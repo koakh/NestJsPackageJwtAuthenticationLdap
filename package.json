@@ -1,0 +1,6 @@
+{
+  "scripts": {
+    "start:dev": "nodemon",
+    "start:debug": "nodemon --config nestjs-package-jwt-authentication-ldap-consumer/nodemon-debug.json"
+  }
+}
