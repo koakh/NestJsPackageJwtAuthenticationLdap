@@ -3,6 +3,9 @@
     "Koakh",
     "Monteiro",
     "dtos",
+    "ldap",
+    "ldapauth",
+    "ldapsearch",
     "middlewares",
     "nestjs"
   ],

@@ -5,6 +5,7 @@
     - [Links](#links)
     - [TLDR](#tldr)
     - [Read base Starter Notes](#read-base-starter-notes)
+  - [LDAP](#ldap)
 
 ## Starter Project
 
@@ -27,3 +28,18 @@ to debug use `launch.json` with [F5]
 ### Read base Starter Notes
 
 - [Read Notes](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md)
+
+## LDAP
+
+```shell
+$ ldapsearch -H ldap://localhost:389 -x -D "cn=administrator,cn=users,dc=c3edu,dc=online" -w "Root123..." -b ou=passport-ldapauth "(uid=mario)"
+# test user auth in shell
+$ /usr/lib/squid/basic_ldap_auth -h 127.0.0.1 -D cn=administrator,cn=users,dc=c3edu,dc=online -W /etc/ldap.password -s sub -b dc=c3edu,dc=online -f '(samaccountname=%s)'
+# now type user and pass
+mario root
+OK
+
+# right way to use searchFilter
+$ curl -X POST http://localhost:3000/ldap -d '{"username": "mario", "password": "root"}' -H "Content-Type: application/json"
+{"dn":"CN=mario,CN=Users,DC=c3edu,DC=online","controls":[]}
+```
