@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Post, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { envConstants } from '../common/constants/env';
@@ -7,10 +7,11 @@ import { User } from '../user/models';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
 import { RevokeRefreshTokenDto } from './dto/revoke-refresh-token.dto';
-import { JwtAuthGuard } from './guards';
+import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
 import { JwtResponsePayload } from './interfaces/jwt-response.payload';
+import * as passport from 'passport';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +21,31 @@ export class AuthController {
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
   ) { }
+  @Post('login-ldap')
+  @UseGuards(LdapAuthGuard)
+  async ldapLogin(
+    @Req() req,
+    @Response() res,
+    ) {
+    passport.authenticate('ldap', { session: false });
+    // accessToken: add some user data to it, like id and roles
+    const signJwtTokenDto = { userId: req.user };
+    const { accessToken } = await this.authService.signJwtToken(signJwtTokenDto);
+    // get incremented tokenVersion
+    const tokenVersion = this.userService.usersStore.incrementTokenVersion(req.user);
+    // refreshToken
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
+    // send jid cookie refresh token to client (browser, insomnia etc)
+    this.authService.sendRefreshToken(res, refreshToken);
+    // don't delete sensitive properties here, this is a reference to moke user data
+    // if we delete password, we deleted it from moke user
+    // return LoginUserResponseDto
+    // const returnUser = { username: req.user };
+    return res.send({ ...req.user, accessToken });
+
+    // return req.user;
+  }
+
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async logIn(

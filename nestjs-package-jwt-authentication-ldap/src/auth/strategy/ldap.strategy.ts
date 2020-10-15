@@ -13,12 +13,12 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
       passReqToCallback: true,
       server: {
         // ldapOptions
-        url: configService.get(envConstants.LDAP_URL),
+        url: `ldap://${configService.get(envConstants.LDAP_URL)}`,
         bindDN: configService.get(envConstants.LDAP_BIND_DN),
         bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
         searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
         searchFilter: configService.get(envConstants.LDAP_SEARCH_FILTER),
-        searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES),
+        searchAttributes: ['cn', 'userPrincipalName', 'displayName', 'mail', 'memberOf'],
       },
     }, async (req: Request, user: any, done) => {
       req.user = user;
