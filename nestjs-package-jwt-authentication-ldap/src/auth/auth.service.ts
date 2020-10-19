@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -50,7 +50,7 @@ export class AuthService {
         ...options,
         // require to use refreshTokenJwtSecret
         secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET),
-        expiresIn: this.configService.get(envConstants.ACCESS_TOKEN_EXPIRES_IN),
+        expiresIn: this.configService.get(envConstants.REFRESH_TOKEN_EXPIRES_IN),
       }),
     };
   }
@@ -73,5 +73,19 @@ export class AuthService {
 
   hashPassword(password: string): string {
     return hashPassword(password);
+  }
+
+  getRolesFromMemberOf(memberOf: string[]): string[] {
+    if (memberOf.length < 0) {
+      return [];
+    }
+    const roles: string[] = memberOf.map((e: string) => {
+      const memberOfRole: string[] = e.split(',');
+      // get first group
+      return (memberOfRole[0].includes('='))
+        ? memberOfRole[0].split('=')[1]
+        : null
+    });
+    return roles;
   }
 }

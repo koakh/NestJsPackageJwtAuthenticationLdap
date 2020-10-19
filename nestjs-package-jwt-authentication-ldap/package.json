@@ -1,7 +1,7 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.1",
-  "description": "Koakh NestJS Jwt Authentication Starter Package",
+  "version": "1.0.0",
+  "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
   "readmeFilename": "README.md",
@@ -29,9 +29,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/koakh/NestJsPackageJwtAuthentication"
+    "url": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap"
   },
-  "bugs": "https://github.com/koakh/NestJsPackageJwtAuthentication",
+  "bugs": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap",
   "peerDependencies": {
     "@nestjs/common": "^7.0.0"
   },

@@ -1,17 +1,17 @@
-import { Body, Controller, HttpStatus, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Logger, Post, Req, Request, Response, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import * as passport from 'passport';
 import { envConstants } from '../common/constants/env';
 import { LoginUserDto } from '../user/dtos';
 import { User } from '../user/models';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { RevokeRefreshTokenDto } from './dto/revoke-refresh-token.dto';
+import { LdapLoginRequestDto, LdapLoginResponseDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
 import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
 import { JwtResponsePayload } from './interfaces/jwt-response.payload';
-import * as passport from 'passport';
 
 @Controller('auth')
 export class AuthController {
@@ -24,15 +24,20 @@ export class AuthController {
   @Post('login-ldap')
   @UseGuards(LdapAuthGuard)
   async ldapLogin(
-    @Req() req,
+    @Req() req: LdapLoginRequestDto,
     @Response() res,
-    ) {
+  ): Promise<LdapLoginResponseDto> {
+    // authenticate user
     passport.authenticate('ldap', { session: false });
-    // accessToken: add some user data to it, like id and roles
-    const signJwtTokenDto = { userId: req.user };
+    // destruct
+    const { user: { cn: username, userPrincipalName: email, distinguishedName: userId, memberOf } } = req;
+    const roles = this.authService.getRolesFromMemberOf(memberOf);
+    const metaData = { key: 'value' };
+    // payload for accessToken
+    const signJwtTokenDto: SignJwtTokenDto = { username, userId, roles };
     const { accessToken } = await this.authService.signJwtToken(signJwtTokenDto);
     // get incremented tokenVersion
-    const tokenVersion = this.userService.usersStore.incrementTokenVersion(req.user);
+    const tokenVersion = this.userService.usersStore.incrementTokenVersion(username);
     // refreshToken
     const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
     // send jid cookie refresh token to client (browser, insomnia etc)
@@ -40,10 +45,7 @@ export class AuthController {
     // don't delete sensitive properties here, this is a reference to moke user data
     // if we delete password, we deleted it from moke user
     // return LoginUserResponseDto
-    // const returnUser = { username: req.user };
-    return res.send({ ...req.user, accessToken });
-
-    // return req.user;
+    return res.send({ user: { username, email, roles, metaData }, accessToken });
   }
 
   @Post('login')
@@ -86,8 +88,8 @@ export class AuthController {
     @Request() req,
     @Response() res,
   ): Promise<AccessToken> {
-    // Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
-    // Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
+    Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
+    Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
     // inner function
     const invalidPayload = () => res.status(HttpStatus.UNAUTHORIZED).send({ valid: false, accessToken: '' });
     // get jid token from cookies
@@ -102,12 +104,18 @@ export class AuthController {
       // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
       payload = this.jwtService.verify(token, { secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET) });
     } catch (error) {
-      // Logger.error(error, AuthController.name);
+      Logger.error(error, AuthController.name);
       return invalidPayload();
     }
 
     // token is valid, send back accessToken
+    // TODO: remove old userService
     const user: User = await this.userService.findOneByUsername(payload.username);
+    // destruct
+    // TODO: get user from old jwt payload
+    // const { user: { cn: username, userPrincipalName: email, distinguishedName: userId, memberOf } } = payload;
+    Logger.log(`user:${JSON.stringify(user, undefined, 2)}`, AuthController.name);
+    Logger.log(`payload:${JSON.stringify(payload, undefined, 2)}`, AuthController.name);
     // check jid token
     if (!user) {
       return invalidPayload();

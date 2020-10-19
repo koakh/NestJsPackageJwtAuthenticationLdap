@@ -27,7 +27,7 @@ POST {{uri}}/auth/login-ldap HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "username": "mario", 
+  "username": "mario",
   "password": "root"
 }
 
