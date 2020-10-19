@@ -5,6 +5,7 @@
     "dtos",
     "ldap",
     "ldapauth",
+    "ldapjs",
     "ldapsearch",
     "middlewares",
     "nestjs"

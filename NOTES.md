@@ -4,9 +4,12 @@
   - [Starter Project](#starter-project)
     - [Links](#links)
     - [TLDR](#tldr)
-  - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
+    - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
+    - [Change .env to use tunnel](#change-env-to-use-tunnel)
     - [Read base Starter Notes](#read-base-starter-notes)
   - [LDAP](#ldap)
+  - [Use LdapJs](#use-ldapjs)
+    - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
 
 ## Starter Project
 
@@ -26,11 +29,20 @@ used node version `node/v12.8.1`
 
 to debug use `launch.json` with [F5]
 
-## Create tunnel to connect to c3 LDAP
+### Create tunnel to connect to c3 LDAP
 
 ```shell
 # in c3
 $ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
+```
+
+### Change .env to use tunnel
+
+```shell
+# ldap
+# LDAP_URL="127.0.0.1"
+# ldap using tunnel
+LDAP_URL="192.168.1.1:2210"
 ```
 
 ### Read base Starter Notes
@@ -53,4 +65,29 @@ OK
 # right way to use searchFilter
 $ curl -X POST http://localhost:3000/ldap -d '{"username": "mario", "password": "root"}' -H "Content-Type: application/json"
 {"dn":"CN=mario,CN=Users,DC=c3edu,DC=online","controls":[]}
+```
+
+## Use LdapJs
+
+- [LdapJs Docs](http://ldapjs.org/)
+
+```shell
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm i ldapjs
+$ npm i -D @types/ldapjs
+```
+
+### Example of Search Users with LdapJs
+
+- [simple example to search for username · Issue #428 · ldapjs/node-ldapjs · GitHub](https://github.com/ldapjs/node-ldapjs/issues/428)
+
+> Note for `scope`, the trick to filter in c3 is using `scope: "sub`
+
+```typescript
+this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: '(cn=mario)' }, (err, res) => {
+  if (err) Logger.log(err);
+  res.on('searchEntry', (entry) => {
+    Logger.log('entry: ' + JSON.stringify(entry.object, undefined, 2), LdapService.name);
+  });
+  ...
 ```

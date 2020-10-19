@@ -12,9 +12,9 @@
         "<node_internals>/**"
       ],
       "program": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/src/main.ts",
-      "outFiles": [
-        "${workspaceFolder}/**/*.js"
-      ],
+      // "outFiles": [
+      //   "${workspaceFolder}/**/*.js"
+      // ],
       "envFile": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/.env",
       "outputCapture": "std"
     }

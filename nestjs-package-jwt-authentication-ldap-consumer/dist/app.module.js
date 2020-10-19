@@ -10,7 +10,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
-const nestjs_package_jwt_authentication_1 = require("@koakh/nestjs-package-jwt-authentication-ldap");
+const nestjs_package_jwt_authentication_ldap_1 = require("@koakh/nestjs-package-jwt-authentication-ldap");
 const config_1 = require("@nestjs/config");
 let AppModule = class AppModule {
 };
@@ -18,7 +18,7 @@ AppModule = __decorate([
     common_1.Module({
         imports: [
             config_1.ConfigModule.forRoot({ isGlobal: true, }),
-            nestjs_package_jwt_authentication_1.AuthModule,
+            nestjs_package_jwt_authentication_ldap_1.AuthModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

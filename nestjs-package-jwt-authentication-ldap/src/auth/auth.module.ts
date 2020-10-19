@@ -9,6 +9,7 @@ import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { LdapService } from './ldap.service';
 import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
 
 @Module({
@@ -29,7 +30,7 @@ import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    AuthService, UserService, LocalStrategy, JwtStrategy, LdapStrategy
+    AuthService, UserService, LocalStrategy, JwtStrategy, LdapStrategy, LdapService,
   ],
   exports: [AuthService],
   controllers: [AuthController],

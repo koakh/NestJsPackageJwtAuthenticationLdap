@@ -1,7 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from '@koakh/nestjs-package-jwt-authentication-ldap/src/common/filters';
+import { HttpExceptionFilter } from '@koakh/nestjs-package-jwt-authentication-ldap';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);

@@ -12,10 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
 const app_module_1 = require("./app.module");
+const nestjs_package_jwt_authentication_ldap_1 = require("@koakh/nestjs-package-jwt-authentication-ldap");
 function bootstrap() {
     return __awaiter(this, void 0, void 0, function* () {
         const app = yield core_1.NestFactory.create(app_module_1.AppModule);
-        app.useGlobalPipes(new common_1.ValidationPipe());
+        app.useGlobalPipes(new common_1.ValidationPipe({ transform: true }));
+        app.useGlobalFilters(new nestjs_package_jwt_authentication_ldap_1.HttpExceptionFilter());
         yield app.listen(3000);
     });
 }

@@ -7,11 +7,12 @@ import { LoginUserDto } from '../user/dtos';
 import { User } from '../user/models';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LdapLoginRequestDto, LdapLoginResponseDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
+import { LdapLoginRequestDto, LdapLoginResponseDto, LdapSearchUsernameDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
 import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
 import { JwtResponsePayload } from './interfaces/jwt-response.payload';
+import { LdapService } from './ldap.service';
 
 @Controller('auth')
 export class AuthController {
@@ -20,6 +21,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
     private readonly userService: UserService,
+    private readonly ldapService: LdapService,
   ) { }
   @Post('login-ldap')
   @UseGuards(LdapAuthGuard)
@@ -88,6 +90,7 @@ export class AuthController {
     @Request() req,
     @Response() res,
   ): Promise<AccessToken> {
+    debugger;
     Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
     Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
     // inner function
@@ -110,6 +113,8 @@ export class AuthController {
 
     // token is valid, send back accessToken
     // TODO: remove old userService
+    // const { user }: LdapSearchUsernameDto = await this.ldapService.getUserRecord(payload.username);
+
     const user: User = await this.userService.findOneByUsername(payload.username);
     // destruct
     // TODO: get user from old jwt payload
@@ -128,9 +133,12 @@ export class AuthController {
     }
 
     // refresh the refreshToken on accessToken, this way we extended/reset refreshToken validity to default value
+    // TODO: password here ????
     const loginUserDto: LoginUserDto = { username: user.username, password: user.password };
     // we don't increment tokenVersion here, only when we login, this way refreshToken is always valid until we login again
+    // TODO: loginUserDto here ????
     const refreshToken: AccessToken = await this.authService.signRefreshToken(loginUserDto, tokenVersion);
+    // const refreshToken: AccessToken = await this.authService.signRefreshToken(user, tokenVersion);
     // send refreshToken in response/setCookie
     this.authService.sendRefreshToken(res, refreshToken);
 

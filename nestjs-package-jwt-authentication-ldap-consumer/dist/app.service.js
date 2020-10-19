@@ -11,7 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AppService = void 0;
 const common_1 = require("@nestjs/common");
-const nestjs_package_jwt_authentication_1 = require("@koakh/nestjs-package-jwt-authentication-ldap");
+const nestjs_package_jwt_authentication_ldap_1 = require("@koakh/nestjs-package-jwt-authentication-ldap");
 let AppService = class AppService {
     constructor(authService) {
         this.authService = authService;
@@ -22,7 +22,7 @@ let AppService = class AppService {
 };
 AppService = __decorate([
     common_1.Injectable(),
-    __metadata("design:paramtypes", [nestjs_package_jwt_authentication_1.AuthService])
+    __metadata("design:paramtypes", [nestjs_package_jwt_authentication_ldap_1.AuthService])
 ], AppService);
 exports.AppService = AppService;
 //# sourceMappingURL=app.service.js.map
