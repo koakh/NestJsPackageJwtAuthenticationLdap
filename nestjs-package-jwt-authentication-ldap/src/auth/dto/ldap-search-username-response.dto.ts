@@ -3,7 +3,7 @@ export interface LdapSearchUsernameResponseDto {
     username: string,
     dn: string,
     email: string,
-    roles: string[],
+    memberOf: string[],
     controls: string[],
   },
   status: number;

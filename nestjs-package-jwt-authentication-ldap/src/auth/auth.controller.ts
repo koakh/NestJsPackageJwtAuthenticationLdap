@@ -153,13 +153,14 @@ export class AuthController {
 
     // user from ldapService
     const { user }: LdapSearchUsernameResponseDto = await this.ldapService.getUserRecord(payload.username);
+    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
     // check jid token
     if (!user) {
       return invalidPayload();
     }
 
     // accessToken: add some user data to it, like id and roles
-    const signJwtTokenDto = { ...user, userId: user.dn };
+    const signJwtTokenDto: SignJwtTokenDto = { username: user.username, userId: user.dn, roles };
     const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtTokenDto);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token

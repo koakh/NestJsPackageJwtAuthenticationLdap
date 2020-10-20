@@ -37,7 +37,7 @@ export class LdapService {
   getUserRecord = (username: string): Promise<LdapSearchUsernameResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-        let user: { username: string, dn: string, email: string, roles: string[], controls: string[] };
+        let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
@@ -49,7 +49,7 @@ export class LdapService {
               username: entry.object.cn as string,
               dn: entry.object.dn as string,
               email: entry.object.userPrincipalName as string,
-              roles: entry.object.memberOf as string[],
+              memberOf: entry.object.memberOf as string[],
               controls: entry.object.controls as string[],
             };
           });
@@ -58,14 +58,11 @@ export class LdapService {
           });
           res.on('end', (result: ldap.LDAPResult) => {
             // Logger.log(`status: [${result.status}]`, LdapService.name);
-            // responsePayload.result = result;
-            // resolve promise
             resolve({ user, status: result.status });
           });
         });
       } catch (error) {
         // Logger.error(`error: [${error.message}]`, LdapService.name);
-        // reject promise
         reject(error);
       }
     })
