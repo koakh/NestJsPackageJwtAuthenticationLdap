@@ -39,5 +39,6 @@ import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
 export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token');
+    consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token-ldap');
   }
 }

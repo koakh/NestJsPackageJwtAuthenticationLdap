@@ -20,6 +20,15 @@ Content-Type: {{contentType}}
   "password": "12345678"
 }
 
+### authRefreshToken
+// @name authRefreshToken
+
+POST {{uri}}/auth/refresh-token HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+}
+
 ### authLogInLdap
 // @name authLogInLdap
 
@@ -31,10 +40,10 @@ Content-Type: {{contentType}}
   "password": "root"
 }
 
-### authRefreshToken
-// @name authRefreshToken
+### authRefreshTokenLdap
+// @name authRefreshTokenLdap
 
-POST {{uri}}/auth/refresh-token HTTP/1.1
+POST {{uri}}/auth/refresh-token-ldap HTTP/1.1
 Content-Type: {{contentType}}
 
 {

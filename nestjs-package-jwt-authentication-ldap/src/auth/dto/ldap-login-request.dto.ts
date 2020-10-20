@@ -3,7 +3,6 @@ export interface LdapLoginRequestDto {
     dn: string,
     cn: string,
     userPrincipalName: string,
-    distinguishedName: string;
     controls: any[],
     memberOf: string[],
   }

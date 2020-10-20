@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants } from '../common/constants/env';
-import { LdapSearchUsernameDto } from './dto';
+import { LdapSearchUsernameResponseDto } from './dto';
 
 @Injectable()
 export class LdapService {
@@ -29,15 +29,15 @@ export class LdapService {
     this.searchAttributes = configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(';');
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
-    // test getUserRecord
-    const user = await this.getUserRecord('mario');
-    Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`);
+    // uncomment to test getUserRecord on init
+    // const user = await this.getUserRecord('mario');
+    // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`);
   }
 
-  getUserRecord = (username: string): Promise<LdapSearchUsernameDto> => {
+  getUserRecord = (username: string): Promise<LdapSearchUsernameResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-        let user: { username: string, email: string, roles: string[], controls: string[] };
+        let user: { username: string, dn: string, email: string, roles: string[], controls: string[] };
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
@@ -47,9 +47,10 @@ export class LdapService {
             user = {
               // extract username from string | array
               username: entry.object.cn as string,
-              email: (entry.object as any).userPrincipalName,
-              roles: (entry.object as any).memberOf,
-              controls: (entry.object as any).controls,
+              dn: entry.object.dn as string,
+              email: entry.object.userPrincipalName as string,
+              roles: entry.object.memberOf as string[],
+              controls: entry.object.controls as string[],
             };
           });
           res.on('error', (error) => {

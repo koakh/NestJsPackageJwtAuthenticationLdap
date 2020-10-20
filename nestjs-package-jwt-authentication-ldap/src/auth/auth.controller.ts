@@ -7,7 +7,7 @@ import { LoginUserDto } from '../user/dtos';
 import { User } from '../user/models';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LdapLoginRequestDto, LdapLoginResponseDto, LdapSearchUsernameDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
+import { LdapLoginRequestDto, LdapLoginResponseDto, LdapSearchUsernameResponseDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
 import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
@@ -23,33 +23,6 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly ldapService: LdapService,
   ) { }
-  @Post('login-ldap')
-  @UseGuards(LdapAuthGuard)
-  async ldapLogin(
-    @Req() req: LdapLoginRequestDto,
-    @Response() res,
-  ): Promise<LdapLoginResponseDto> {
-    // authenticate user
-    passport.authenticate('ldap', { session: false });
-    // destruct
-    const { user: { cn: username, userPrincipalName: email, distinguishedName: userId, memberOf } } = req;
-    const roles = this.authService.getRolesFromMemberOf(memberOf);
-    const metaData = { key: 'value' };
-    // payload for accessToken
-    const signJwtTokenDto: SignJwtTokenDto = { username, userId, roles };
-    const { accessToken } = await this.authService.signJwtToken(signJwtTokenDto);
-    // get incremented tokenVersion
-    const tokenVersion = this.userService.usersStore.incrementTokenVersion(username);
-    // refreshToken
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
-    // send jid cookie refresh token to client (browser, insomnia etc)
-    this.authService.sendRefreshToken(res, refreshToken);
-    // don't delete sensitive properties here, this is a reference to moke user data
-    // if we delete password, we deleted it from moke user
-    // return LoginUserResponseDto
-    return res.send({ user: { username, email, roles, metaData }, accessToken });
-  }
-
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async logIn(
@@ -74,25 +47,15 @@ export class AuthController {
     return res.send({ user: returnUser, accessToken });
   }
 
-  @Post('logout')
-  @UseGuards(JwtAuthGuard)
-  async logOut(
-    @Response() res
-  ): Promise<void> {
-    // send empty refreshToken, with same name jid, etc, better than res.clearCookie
-    // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
-    this.authService.sendRefreshToken(res, { accessToken: '' });
-    return res.send({ logOut: true });
-  }
-
+  /**
+   * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
+   */
   @Post('/refresh-token')
   async refreshToken(
     @Request() req,
     @Response() res,
   ): Promise<AccessToken> {
-    debugger;
-    Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
-    Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
+    let payload: JwtResponsePayload;
     // inner function
     const invalidPayload = () => res.status(HttpStatus.UNAUTHORIZED).send({ valid: false, accessToken: '' });
     // get jid token from cookies
@@ -102,7 +65,6 @@ export class AuthController {
       return invalidPayload();
     }
 
-    let payload: JwtResponsePayload;
     try {
       // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
       payload = this.jwtService.verify(token, { secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET) });
@@ -111,39 +73,117 @@ export class AuthController {
       return invalidPayload();
     }
 
-    // token is valid, send back accessToken
-    // TODO: remove old userService
-    // const { user }: LdapSearchUsernameDto = await this.ldapService.getUserRecord(payload.username);
-
+    // get user from userService
     const user: User = await this.userService.findOneByUsername(payload.username);
-    // destruct
-    // TODO: get user from old jwt payload
-    // const { user: { cn: username, userPrincipalName: email, distinguishedName: userId, memberOf } } = payload;
-    Logger.log(`user:${JSON.stringify(user, undefined, 2)}`, AuthController.name);
-    Logger.log(`payload:${JSON.stringify(payload, undefined, 2)}`, AuthController.name);
     // check jid token
     if (!user) {
       return invalidPayload();
     }
 
-    // check inMemory tokenVersion
+    // prepare signJwtTokenDto payload: add some user data to it, like id and roles
+    const signJwtTokenDto = { ...user, userId: user.id };
+    const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtTokenDto);
+
+    // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
     const tokenVersion: number = this.userService.usersStore.getTokenVersion(user.username);
     if (tokenVersion !== payload.tokenVersion) {
       return invalidPayload();
     }
 
-    // refresh the refreshToken on accessToken, this way we extended/reset refreshToken validity to default value
-    // TODO: password here ????
-    const loginUserDto: LoginUserDto = { username: user.username, password: user.password };
     // we don't increment tokenVersion here, only when we login, this way refreshToken is always valid until we login again
-    // TODO: loginUserDto here ????
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(loginUserDto, tokenVersion);
-    // const refreshToken: AccessToken = await this.authService.signRefreshToken(user, tokenVersion);
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
     // send refreshToken in response/setCookie
     this.authService.sendRefreshToken(res, refreshToken);
-
-    const { accessToken }: AccessToken = await this.authService.signJwtToken(user);
     res.send({ valid: true, accessToken });
+  }
+
+  @Post('login-ldap')
+  @UseGuards(LdapAuthGuard)
+  async ldapLogin(
+    @Req() req: LdapLoginRequestDto,
+    @Response() res,
+  ): Promise<LdapLoginResponseDto> {
+    // authenticate user
+    passport.authenticate('ldap', { session: false });
+    // destruct
+    const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
+    const roles = this.authService.getRolesFromMemberOf(memberOf);
+    // payload for accessToken
+    const signJwtTokenDto: SignJwtTokenDto = { username, userId, roles };
+    const { accessToken } = await this.authService.signJwtToken(signJwtTokenDto);
+    // get incremented tokenVersion
+    const tokenVersion = this.userService.usersStore.incrementTokenVersion(username);
+    // refreshToken
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
+    // send jid cookie refresh token to client (browser, insomnia etc)
+    this.authService.sendRefreshToken(res, refreshToken);
+    // don't delete sensitive properties here, this is a reference to moke user data
+    // if we delete password, we deleted it from moke user
+    // return LoginUserResponseDto
+    return res.send({ user: { id: userId, username, email, roles }, accessToken });
+  }
+
+  /**
+   * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
+   */
+  @Post('/refresh-token-ldap')
+  async ldapRefreshToken(
+    @Request() req,
+    @Response() res,
+  ): Promise<AccessToken> {
+    let payload: JwtResponsePayload;
+    // Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
+    // Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
+    // inner function
+    const invalidPayload = () => res.status(HttpStatus.UNAUTHORIZED).send({ valid: false, accessToken: '' });
+    // get jid token from cookies
+    const token: string = (req.cookies && req.cookies.jid) ? req.cookies.jid : null;
+    // check if jid token is present
+    if (!token) {
+      return invalidPayload();
+    }
+
+    try {
+      // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
+      payload = this.jwtService.verify(token, { secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET) });
+    } catch (error) {
+      Logger.error(error, AuthController.name);
+      return invalidPayload();
+    }
+
+    // user from ldapService
+    const { user }: LdapSearchUsernameResponseDto = await this.ldapService.getUserRecord(payload.username);
+    // check jid token
+    if (!user) {
+      return invalidPayload();
+    }
+
+    // accessToken: add some user data to it, like id and roles
+    const signJwtTokenDto = { ...user, userId: user.dn };
+    const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtTokenDto);
+
+    // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
+    const tokenVersion: number = this.userService.usersStore.getTokenVersion(user.username);
+    if (tokenVersion !== payload.tokenVersion) {
+      return invalidPayload();
+    }
+
+    // we don't increment tokenVersion here, only when we login, this way refreshToken is always valid until we login again
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtTokenDto, tokenVersion);
+    // send refreshToken in response/setCookie
+    this.authService.sendRefreshToken(res, refreshToken);
+    res.send({ valid: true, accessToken });
+  }
+
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  async logOut(
+    @Response() res
+  ): Promise<void> {
+    // send empty refreshToken, with same name jid, etc, better than res.clearCookie
+    // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
+    this.authService.sendRefreshToken(res, { accessToken: '' });
+    return res.send({ logOut: true });
   }
 
   // Don't expose this resolver, only used in development environments

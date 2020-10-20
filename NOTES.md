@@ -4,6 +4,7 @@
   - [Starter Project](#starter-project)
     - [Links](#links)
     - [TLDR](#tldr)
+  - [Debug](#debug)
     - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
     - [Change .env to use tunnel](#change-env-to-use-tunnel)
     - [Read base Starter Notes](#read-base-starter-notes)
@@ -28,6 +29,16 @@ used node version `node/v12.8.1`
 > this notes are the continuation of NOTES.md from [NestJsPackageStarter](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md) and [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication)
 
 to debug use `launch.json` with [F5]
+
+## Debug
+
+```shell
+# term1
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm run start:dev
+# now press f5 to debug consumer app
+# after changes in package, restart debugger with ctrl+shift+f5
+```
 
 ### Create tunnel to connect to c3 LDAP
 
