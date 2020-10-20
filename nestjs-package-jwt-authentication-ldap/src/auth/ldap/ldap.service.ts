@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { envConstants } from '../common/constants/env';
-import { LdapSearchUsernameResponseDto } from './dto';
+import { envConstants } from '../../common/constants/env';
+import { LdapSearchUsernameResponseDto } from '../dto';
 
 @Injectable()
 export class LdapService {
@@ -58,11 +58,14 @@ export class LdapService {
           });
           res.on('end', (result: ldap.LDAPResult) => {
             // Logger.log(`status: [${result.status}]`, LdapService.name);
+            // responsePayload.result = result;
+            // resolve promise
             resolve({ user, status: result.status });
           });
         });
       } catch (error) {
         // Logger.error(`error: [${error.message}]`, LdapService.name);
+        // reject promise
         reject(error);
       }
     })

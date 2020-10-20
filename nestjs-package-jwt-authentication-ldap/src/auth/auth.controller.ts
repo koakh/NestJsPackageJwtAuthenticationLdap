@@ -12,7 +12,11 @@ import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
 import { JwtResponsePayload } from './interfaces/jwt-response.payload';
-import { LdapService } from './ldap.service';
+import { LdapService } from './ldap/ldap.service';
+
+/**
+ * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken
+ */
 
 @Controller('auth')
 export class AuthController {

@@ -9,8 +9,9 @@ import { UserModule } from '../user/user.module';
 import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { LdapService } from './ldap.service';
+import { LdapService } from './ldap/ldap.service';
 import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
+import { LdapController } from './ldap/ldap.controller';
 
 @Module({
   imports: [
@@ -33,11 +34,12 @@ import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
     AuthService, UserService, LocalStrategy, JwtStrategy, LdapStrategy, LdapService,
   ],
   exports: [AuthService],
-  controllers: [AuthController],
+  controllers: [AuthController, LdapController],
 })
 
 export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
+    // TODO: refactor to use only ldap
     consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token');
     consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token-ldap');
   }

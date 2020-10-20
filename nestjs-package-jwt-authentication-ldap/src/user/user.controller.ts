@@ -2,7 +2,6 @@ import { Body, Controller, Delete, Get, NotFoundException, Param, ParseIntPipe, 
 import { JwtAuthGuard } from '../auth/guards';
 import { CreateUserDto, UpdateUserDto, UpdateUserPasswordDto } from './dtos';
 import { UserModelInterface } from './interfaces';
-import { User } from './models';
 import { UserService } from './user.service';
 
 @Controller('users')

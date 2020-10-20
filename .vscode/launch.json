@@ -17,6 +17,12 @@
       // ],
       "envFile": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/.env",
       "outputCapture": "std"
+      // if commented use debug console as default
+      // "console": "integratedTerminal"
+      // https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_launch-configuration-support-for-npm-and-other-tools
+      // "cwd": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer",
+      // "runtimeExecutable": "npm",
+      // "runtimeArgs": ["run-script", "start:debug"]
     }
   ]
 }
