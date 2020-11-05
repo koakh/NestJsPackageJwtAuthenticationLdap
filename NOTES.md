@@ -3,14 +3,15 @@
 - [NOTES](#notes)
   - [Starter Project](#starter-project)
     - [Links](#links)
-    - [TLDR](#tldr)
-  - [Debug](#debug)
+  - [TLDR](#tldr)
     - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
     - [Change .env to use tunnel](#change-env-to-use-tunnel)
-    - [Read base Starter Notes](#read-base-starter-notes)
+    - [Debug package and consumer app](#debug-package-and-consumer-app)
+    - [Test Api](#test-api)
+  - [Read base Starter Notes](#read-base-starter-notes)
   - [LDAP](#ldap)
   - [Use LdapJs](#use-ldapjs)
-    - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
+  - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
 
 ## Starter Project
 
@@ -22,28 +23,17 @@
 - [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication)
 - [NPM: NestJsPackageJwtAuthentication](https://www.npmjs.com/package/@koakh/nestjs-package-jwt-authentication-ldap)
 
-### TLDR
+## TLDR
 
 used node version `node/v12.8.1`
 
 > this notes are the continuation of NOTES.md from [NestJsPackageStarter](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md) and [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication)
 
-to debug use `launch.json` with [F5]
-
-## Debug
-
-```shell
-# term1
-$ cd nestjs-package-jwt-authentication-ldap
-$ npm run start:dev
-# now press f5 to debug consumer app
-# after changes in package, restart debugger with ctrl+shift+f5
-```
-
 ### Create tunnel to connect to c3 LDAP
 
 ```shell
-# in c3
+# open a new window and connect to c3, in c3
+$ ssh c3@c3edu.online
 $ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
 ```
 
@@ -56,7 +46,32 @@ $ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
 LDAP_URL="192.168.1.1:2210"
 ```
 
-### Read base Starter Notes
+### Debug package and consumer app
+
+```shell
+# in term1: build and watch 
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm run start:dev
+# now press f5 to debug consumer app
+# after changes in package, restart debugger with ctrl+shift+f5
+# wait for...in debug console
+[Nest] 17825   - 11/04/2020, 11:13:39 AM   [NestApplication] Nest application successfully started +2ms
+```
+
+> to debug use `launch.json` with [F5]
+
+> if service not start check `DEBUG CONSOLE` window for errors
+
+### Test Api
+
+```shell
+$ curl --request POST \
+  --url http://localhost:3000/auth/login-ldap \
+  --header 'content-type: application/json' \
+  --data '{"username": "mario","password": "root"}'
+```
+
+## Read base Starter Notes
 
 - [Read Notes](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md)
 
@@ -88,7 +103,7 @@ $ npm i ldapjs
 $ npm i -D @types/ldapjs
 ```
 
-### Example of Search Users with LdapJs
+## Example of Search Users with LdapJs
 
 - [simple example to search for username · Issue #428 · ldapjs/node-ldapjs · GitHub](https://github.com/ldapjs/node-ldapjs/issues/428)
 

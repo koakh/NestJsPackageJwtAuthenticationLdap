@@ -2,13 +2,17 @@
   "cSpell.words": [
     "Koakh",
     "Monteiro",
+    "TLDR",
     "dtos",
+    "givenname",
     "ldap",
     "ldapauth",
     "ldapjs",
     "ldapsearch",
+    "listmembers",
     "middlewares",
-    "nestjs"
+    "nestjs",
+    "ssha"
   ],
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#1f6fd0",

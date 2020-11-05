@@ -86,7 +86,8 @@ export class LdapService {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
       // const defaultNamePostfix = this.configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES);
-      const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
+// const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
+const cn = createLdapUserDto.username;
       const newUser: CreateLdapUserModel = {
         // dn: createLdapUserDto.distinguishedName,
         cn,

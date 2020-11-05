@@ -1,0 +1,41 @@
+#C3UserRole
+dn: cn=C3UserRole,cn=Schema,cn=Configuration,dc=c3edu,dc=online
+attributeID: 1.3.6.1.4.1.1
+lDAPDisplayName: C3UserRole
+attributeSyntax: 2.5.5.9
+omSyntax: 2
+isSingleValued: TRUE
+rangeLower: 0
+rangeUpper: 99
+description: User role on the C3 00 - Guest 10 - Student 15 - Parent 20 - Teacher 99 - Admin
+objectClass: attributeSchema
+
+#gender
+dn: cn=gender,cn=Schema,cn=Configuration,dc=c3edu,dc=online
+attributeID: 1.3.6.1.4.1.2
+lDAPDisplayName: gender
+attributeSyntax: 2.5.5.5
+omSyntax: 22
+isSingleValued: TRUE
+description: Case insensitive gender: M for male, F for female
+objectClass: attributeSchema
+
+#dateOfBirth
+dn: cn=dateOfBirth,cn=Schema,cn=Configuration,dc=c3edu,dc=online
+attributeID: 1.3.6.1.4.1.3
+lDAPDisplayName: dateOfBirth
+attributeSyntax: 2.5.5.6
+omSyntax: 18
+isSingleValued: TRUE
+description: Date of birth (format YYYYMMDD, only numeric chars)
+objectClass: attributeSchema
+
+#studentID
+dn: cn=studentID,cn=Schema,cn=Configuration,dc=c3edu,dc=online
+attributeID: 1.3.6.1.4.1.4
+lDAPDisplayName: studentID
+attributeSyntax: 2.5.5.5
+omSyntax: 22
+isSingleValued: TRUE
+description: Student ID
+objectClass: attributeSchema
