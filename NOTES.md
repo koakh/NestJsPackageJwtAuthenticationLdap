@@ -49,18 +49,20 @@ LDAP_URL="192.168.1.1:2210"
 ### Debug package and consumer app
 
 ```shell
-# in term1: build and watch 
+# in term1: build and watch
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
-# now press f5 to debug consumer app
+# now press f5 to debug consumer app (without launch npm run start:dev)
 # after changes in package, restart debugger with ctrl+shift+f5
 # wait for...in debug console
-[Nest] 17825   - 11/04/2020, 11:13:39 AM   [NestApplication] Nest application successfully started +2ms
+[NestApplication] Nest application successfully started +2ms
 ```
 
 > to debug use `launch.json` with [F5]
 
 > if service not start check `DEBUG CONSOLE` window for errors
+
+> NOTE: in any change restart debugger with `ctrl+shift+F5`
 
 ### Test Api
 

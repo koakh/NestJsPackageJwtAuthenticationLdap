@@ -1,9 +1,9 @@
 import { Body, Controller, Get, HttpStatus, Post, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards';
+import { parseTemplate } from '../utils';
 import { CreateLdapUserDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
-import { parseTemplate } from './ldap.util';
 
 @Controller('ldap')
 export class LdapController {
@@ -25,10 +25,16 @@ export class LdapController {
   ): Promise<void> {
     this.ldapService.createUserRecord(createLdapUserDto)
       .then(() => {
-        res.status(HttpStatus.CREATED).send({ message: parseTemplate(c.USER_CREATED, createLdapUserDto), user: createLdapUserDto });
+        res.status(HttpStatus.CREATED).send({
+          message: parseTemplate(c.USER_CREATED, createLdapUserDto), user: {
+            // remove password from response
+            ...createLdapUserDto, password: undefined
+          }
+        });
       })
       .catch((error) => {
         res.status(HttpStatus.CONFLICT).send(error);
       });
   }
 }
+

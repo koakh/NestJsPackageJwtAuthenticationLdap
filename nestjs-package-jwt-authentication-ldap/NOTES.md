@@ -22,7 +22,7 @@
 
 ```
 ou=<role> e o Group correcto ex Users ?
-<role> c3student,c3administrator,c3student,c3parent
+<role> c3student,c3administrator,c3teacher,c3parent
 [11:32 AM] Mário Monteiro
 e uma delas apenas?
 ​[11:32 AM] André Gomes
@@ -40,6 +40,30 @@ sim
   era esse e q eu falava q ele ALTERA a flag ou useraccountcontrol
   mas altera para outro UserAccountControl Attribute/Flag Value
   sem ser o 66058
+​[11:36 AM] Mário Monteiro
+  entao as flags possiveis sao APENAS ESTAS?
+  userAccountControl: 66056
+  userAccountControl: 66058
+​[11:41 AM] André Gomes
+    sim, são essas
+[11:41 AM] André Gomes
+  faz o mesmo. o useraccountcontrol, cada bit representa uma opção diferente. o bit de desactivar a conta é 2. basicamente se a contar estiver enabled basta incrementar o useraccountcontrol por 2.
+```
+
+```
+[11:41 AM] André Gomes
+  já agora pass antes de ir para base64 tem de convertida para utf16 little endian
+
+encodeAdPassword(utf8) {
+  const quoteEncoded = '"' + '\000';
+  let utf16le = quoteEncoded;
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0, n = utf8.length; i < n; ++i) {
+  utf16le += utf8[i] + '\000';
+}
+utf16le += quoteEncoded;
+return utf16le;
+}
 ```
 
 ```shell
@@ -79,7 +103,7 @@ uSNChanged: 114833
 memberOf: CN=Users,CN=Builtin,DC=c3edu,DC=online
 distinguishedName: CN=alex,CN=Users,DC=c3edu,DC=online
 
-# copy paste lines
+# copy paste lines: benchmark search
 GROUP="Users"
 CMD="sudo samba-tool group listmembers ${GROUP}"
 START_TIME="$(date -u +%s.%N)"

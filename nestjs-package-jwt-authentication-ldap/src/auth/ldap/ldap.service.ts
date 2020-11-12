@@ -2,14 +2,13 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { envConstants } from '../../common/constants/env';
-import { LdapSearchUsernameResponseDto } from '../dto';
-import { UserAccountControl } from './enums';
-import { CreateLdapUserDto } from './dto';
-import { CreateLdapUserModel } from './models';
-import { parseTemplate } from './ldap.util';
-import { constants as c } from './ldap.constants';
 import * as ssha256 from 'node-ssha256';
+import { envConstants as e } from '../../common/constants/env';
+import { LdapSearchUsernameResponseDto } from '../dto';
+import { encodeAdPassword } from '../utils';
+import { CreateLdapUserDto } from './dto';
+import { UserAccountControl } from './enums';
+import { CreateLdapUserModel } from './models';
 
 /**
  * user model
@@ -31,13 +30,13 @@ export class LdapService {
   // called by GqlLocalAuthGuard
   async init(configService: ConfigService): Promise<any> {
     const clientOptions: ldap.ClientOptions = {
-      url: `ldap://${configService.get(envConstants.LDAP_URL)}`,
-      bindDN: this.configService.get(envConstants.LDAP_BIND_DN),
-      bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
+      url: `ldap://${configService.get(e.LDAP_URL)}`,
+      bindDN: this.configService.get(e.LDAP_BIND_DN),
+      bindCredentials: configService.get(e.LDAP_BIND_CREDENTIALS),
     };
     // props
-    this.searchBase = configService.get(envConstants.LDAP_SEARCH_BASE);
-    this.searchAttributes = configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(';');
+    this.searchBase = configService.get(e.LDAP_SEARCH_BASE);
+    this.searchAttributes = configService.get(e.LDAP_SEARCH_ATTRIBUTES).toString().split(';');
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
     // uncomment to test getUserRecord on init
@@ -85,9 +84,9 @@ export class LdapService {
   createUserRecord(createLdapUserDto: CreateLdapUserDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      // const defaultNamePostfix = this.configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES);
-// const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
-const cn = createLdapUserDto.username;
+      // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_ATTRIBUTES);
+      // const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
+      const cn = createLdapUserDto.username;
       const newUser: CreateLdapUserModel = {
         // dn: createLdapUserDto.distinguishedName,
         cn,
@@ -96,14 +95,34 @@ const cn = createLdapUserDto.username;
         mail: createLdapUserDto.email,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass,
-        userPassword: ssha256.create(createLdapUserDto.password),
+        // TODO NOT WORK
+        // unicodePwd: ssha256.create(createLdapUserDto.password),
+        // unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000"',
+        // unicodePwd: 'IgBzAGUAYwByAGUAdAAiAA==',
+        unicodePwd: ssha256.create('s00prs3cr3+'),
+        // TODO NOT WORK
+        // userPassword: createLdapUserDto.password,
+        // unicodePwd: encodeAdPassword(createLdapUserDto.password),
+        // userPassword: encodeAdPassword(createLdapUserDto.password),
         // givenname: createLdapUserDto.firstName,
         // userPrincipalName: createLdapUserDto.email,
         sAMAccountName: createLdapUserDto.username,
         userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
       };
+
+      // const o={
+      //   sAMAccountName: 'a',
+      //   objectClass: 'user',
+      //   userAccountControl: 66056,
+      //   displayName: 'a',
+      //   cn: 'a',
+      //   c3UserRole: 15,
+      //   unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000'
+      // };
+ 
       try {
-        const newDN = `CN=${cn},CN=Users,DC=c3edu,DC=online`;
+        const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        debugger;
         this.ldapClient.add(newDN, newUser, (error) => {
           if (error) {
             reject(error);

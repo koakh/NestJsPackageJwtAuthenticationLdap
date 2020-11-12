@@ -3,6 +3,7 @@
     "Koakh",
     "Monteiro",
     "TLDR",
+    "YYYYMMDD",
     "dtos",
     "givenname",
     "ldap",
@@ -12,6 +13,7 @@
     "listmembers",
     "middlewares",
     "nestjs",
+    "plusplus",
     "ssha"
   ],
   "workbench.colorCustomizations": {

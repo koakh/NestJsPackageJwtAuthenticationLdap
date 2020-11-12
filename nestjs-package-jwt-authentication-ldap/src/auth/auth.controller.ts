@@ -111,7 +111,10 @@ export class AuthController {
     passport.authenticate('ldap', { session: false });
     // destruct
     const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
-    const roles = this.authService.getRolesFromMemberOf(memberOf);
+    const roles = (memberOf)
+      // check roles to prevent crash
+      ? this.authService.getRolesFromMemberOf(memberOf)
+      : [];
     // payload for accessToken
     const signJwtTokenDto: SignJwtTokenDto = { username, userId, roles };
     const { accessToken } = await this.authService.signJwtToken(signJwtTokenDto);
