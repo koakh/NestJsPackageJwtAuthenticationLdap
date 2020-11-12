@@ -27,12 +27,13 @@ export const parseTemplate = (stringTemplate: string, obj: any) => stringTemplat
  */
 export const encodeAdPassword = (utf8) => {
   // const quoteEncoded = '"' + '\000';
-  const quoteEncoded = '"' + '\\000';
-  // const quoteEncoded = '"' + '\u0000';
+  // const quoteEncoded = '"' + '\\000';
+  const quoteEncoded = '"' + '\u0000';
   let utf16le = quoteEncoded;
   // eslint-disable-next-line no-plusplus
   for (let i = 0, n = utf8.length; i < n; ++i) {
-    utf16le += utf8[i] + '\\000';
+    // utf16le += utf8[i] + '\\000';
+    utf16le += utf8[i] + '\u0000';
   }
   utf16le += quoteEncoded;
 

@@ -62,7 +62,7 @@ $ npm run start:dev
 
 > if service not start check `DEBUG CONSOLE` window for errors
 
-> NOTE: in any change restart debugger with `ctrl+shift+F5`
+> NOTE: in any change restart debugger with `ctrl+shift+F5` 
 
 ### Test Api
 

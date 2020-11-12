@@ -99,10 +99,11 @@ export class LdapService {
         // unicodePwd: ssha256.create(createLdapUserDto.password),
         // unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000"',
         // unicodePwd: 'IgBzAGUAYwByAGUAdAAiAA==',
-        unicodePwd: ssha256.create('s00prs3cr3+'),
+        // TODO remove dep sha256
+        // unicodePwd: ssha256.create('s00prs3cr3+'),
         // TODO NOT WORK
         // userPassword: createLdapUserDto.password,
-        // unicodePwd: encodeAdPassword(createLdapUserDto.password),
+        unicodePwd: encodeAdPassword(createLdapUserDto.password),
         // userPassword: encodeAdPassword(createLdapUserDto.password),
         // givenname: createLdapUserDto.firstName,
         // userPrincipalName: createLdapUserDto.email,
@@ -119,7 +120,7 @@ export class LdapService {
       //   c3UserRole: 15,
       //   unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000'
       // };
- 
+
       try {
         const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         debugger;
