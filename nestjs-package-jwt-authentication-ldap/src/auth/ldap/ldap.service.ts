@@ -2,12 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import * as ssha256 from 'node-ssha256';
 import { envConstants as e } from '../../common/constants/env';
 import { LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
 import { CreateLdapUserDto } from './dto';
-import { UserAccountControl } from './enums';
+import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
 /**
@@ -88,46 +87,33 @@ export class LdapService {
       // const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
       const cn = createLdapUserDto.username;
       const newUser: CreateLdapUserModel = {
-        // dn: createLdapUserDto.distinguishedName,
         cn,
         name: createLdapUserDto.username,
-        sn: createLdapUserDto.username,
-        mail: createLdapUserDto.email,
+        givenname: createLdapUserDto.firstName,
+        sn: createLdapUserDto.lastName,
+        // tslint:disable-next-line: max-line-length
+        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName} ${createLdapUserDto.firstName}`,
         // class that has custom attributes ex "objectClass": "User"
-        objectclass: createLdapUserDto.objectClass,
-        // TODO NOT WORK
-        // unicodePwd: ssha256.create(createLdapUserDto.password),
-        // unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000"',
-        // unicodePwd: 'IgBzAGUAYwByAGUAdAAiAA==',
-        // TODO remove dep sha256
-        // unicodePwd: ssha256.create('s00prs3cr3+'),
-        // TODO NOT WORK
-        // userPassword: createLdapUserDto.password,
+        objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.password),
-        // userPassword: encodeAdPassword(createLdapUserDto.password),
-        // givenname: createLdapUserDto.firstName,
-        // userPrincipalName: createLdapUserDto.email,
         sAMAccountName: createLdapUserDto.username,
         userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
+        // optionals
+        mail: createLdapUserDto.mail,
+        dateOfBirth: createLdapUserDto.dateOfBirth,
+        gender: createLdapUserDto.gender,
+        telephoneNumber: createLdapUserDto.telephoneNumber,
+        studentID: createLdapUserDto.studentID,
       };
 
-      // const o={
-      //   sAMAccountName: 'a',
-      //   objectClass: 'user',
-      //   userAccountControl: 66056,
-      //   displayName: 'a',
-      //   cn: 'a',
-      //   c3UserRole: 15,
-      //   unicodePwd: '"\u0000s\u0000e\u0000c\u0000r\u0000e\u0000t\u0000"\u0000'
-      // };
-
       try {
-        const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         debugger;
-        this.ldapClient.add(newDN, newUser, (error) => {
+        const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
             reject(error);
           } else {
+            await this.addMember(newUser);
             resolve();
           }
         });
@@ -135,6 +121,35 @@ export class LdapService {
         // const message = (error && error.name === 'InvalidDistinguishedNameError')
         //   ? { message: parseTemplate(c.INVALID_DISTINGUISHED_NAME_ERROR, createLdapUserDto), newUser }
         //   : error;
+        reject(error);
+      }
+    });
+  };
+
+  /**
+   * add group/role to user
+   * @param memberDN
+   */
+  addUserToGroup(memberDN/*newUser*/: CreateLdapUserModel): Promise<any> {
+    return new Promise((resolve, reject) => {
+      try {
+        debugger;
+        const groupDN = 'cn=C3Student,ou=Groups,dc=c3edu,dc=online';
+        const groupChange = new ldap.Change({
+          operation: 'add',
+          modification: {
+            member: `cn=${memberDN.cn},ou=C3Student,ou=People,dc=c3edu,dc=online`
+          }
+        });
+        this.ldapClient.modify(groupDN, groupChange, (error) => {
+          if (error) {
+            throw (error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
+        debugger;
         reject(error);
       }
     });

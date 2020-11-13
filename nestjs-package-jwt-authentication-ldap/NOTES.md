@@ -36,8 +36,8 @@ sim
 
 [11:35 AM] Mário Monteiro
     quer dizer q o `sudo samba-tool user disable USER` nao e suficiente entao?
-​[11:36 AM] Mário Monteiro
-  era esse e q eu falava q ele ALTERA a flag ou useraccountcontrol
+​[11:36 AM] **Mário** Monteiro
+  era esse e q eu falava q ele ALTERA a flag ou **useraccountcontrol**
   mas altera para outro UserAccountControl Attribute/Flag Value
   sem ser o 66058
 ​[11:36 AM] Mário Monteiro

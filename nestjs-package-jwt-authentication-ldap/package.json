@@ -43,7 +43,6 @@
     "bcrypt": "^5.0.0",
     "class-validator": "^0.12.2",
     "ldapjs": "^2.2.0",
-    "node-ssha256": "^0.1.1",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-ldapauth": "^2.1.4",

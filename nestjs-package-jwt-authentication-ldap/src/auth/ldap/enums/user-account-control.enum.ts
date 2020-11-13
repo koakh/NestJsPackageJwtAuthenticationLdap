@@ -8,3 +8,7 @@ export enum UserAccountControl {
   // disabled : Disabled Account	0x0202	514
   DISABLED_ACCOUNT = 66058,
 }
+
+export enum UserObjectClass {
+  USER = 'User',
+}

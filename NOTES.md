@@ -35,6 +35,8 @@ used node version `node/v12.8.1`
 # open a new window and connect to c3, in c3
 $ ssh c3@c3edu.online
 $ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
+# or use one line
+$ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
 ```
 
 ### Change .env to use tunnel
@@ -49,9 +51,11 @@ LDAP_URL="192.168.1.1:2210"
 ### Debug package and consumer app
 
 ```shell
-# in term1: build and watch
+# package watch: in term1: build and watch
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
+
+# consumer app (api)
 # now press f5 to debug consumer app (without launch npm run start:dev)
 # after changes in package, restart debugger with ctrl+shift+f5
 # wait for...in debug console

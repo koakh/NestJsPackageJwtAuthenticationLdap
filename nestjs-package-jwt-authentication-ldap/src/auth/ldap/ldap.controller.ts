@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Post, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
-import { CreateLdapUserDto } from './dto';
+import { AddUserToGroupDto, CreateLdapUserDto as CreateUserRecordDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 
@@ -19,9 +19,9 @@ export class LdapController {
   // TODO must have ROLE_ADMIN, use Guards
   @Post('user')
   @UseGuards(JwtAuthGuard)
-  async create(
+  async createUserRecord(
     @Response() res,
-    @Body() createLdapUserDto: CreateLdapUserDto,
+    @Body() createLdapUserDto: CreateUserRecordDto,
   ): Promise<void> {
     this.ldapService.createUserRecord(createLdapUserDto)
       .then(() => {
@@ -29,6 +29,27 @@ export class LdapController {
           message: parseTemplate(c.USER_CREATED, createLdapUserDto), user: {
             // remove password from response
             ...createLdapUserDto, password: undefined
+          }
+        });
+      })
+      .catch((error) => {
+        res.status(HttpStatus.CONFLICT).send(error);
+      });
+  }
+
+  // TODO must have ROLE_ADMIN, use Guards
+  @Post('group/add-member')
+  @UseGuards(JwtAuthGuard)
+  async addUserToGroup(
+    @Response() res,
+    @Body() addUserToGroupDto: AddUserToGroupDto,
+  ): Promise<void> {
+    this.ldapService.addUserToGroup(addUserToGroupDto)
+      .then(() => {
+        res.status(HttpStatus.CREATED).send({
+          message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto), user: {
+            // remove password from response
+            ...addUserToGroupDto, password: undefined
           }
         });
       })
