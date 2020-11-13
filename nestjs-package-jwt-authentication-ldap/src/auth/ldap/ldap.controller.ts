@@ -10,14 +10,8 @@ export class LdapController {
 
   constructor(private readonly ldapService: LdapService) { }
 
-  @Get(':skip/:take')
-  @UseGuards(JwtAuthGuard)
-  greeting(): { [key: string]: string } {
-    return { message: 'hello from ldap' };
-  }
-
   // TODO must have ROLE_ADMIN, use Guards
-  @Post('user')
+  @Post('/user')
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
     @Response() res,
@@ -38,7 +32,7 @@ export class LdapController {
   }
 
   // TODO must have ROLE_ADMIN, use Guards
-  @Post('group/add-member')
+  @Post('/group/add-member')
   @UseGuards(JwtAuthGuard)
   async addUserToGroup(
     @Response() res,
@@ -47,10 +41,7 @@ export class LdapController {
     this.ldapService.addUserToGroup(addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto), user: {
-            // remove password from response
-            ...addUserToGroupDto, password: undefined
-          }
+          message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto)
         });
       })
       .catch((error) => {
@@ -58,4 +49,3 @@ export class LdapController {
       });
   }
 }
-

@@ -5,7 +5,7 @@ import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
-import { CreateLdapUserDto } from './dto';
+import { AddUserToGroupDto, CreateLdapUserDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -113,7 +113,8 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
-            await this.addMember(newUser);
+            // TODO: put in default user on create
+            await this.addUserToGroup({ username: newUser.cn, group: 'c3student' });
             resolve();
           }
         });
@@ -130,19 +131,20 @@ export class LdapService {
    * add group/role to user
    * @param memberDN
    */
-  addUserToGroup(memberDN/*newUser*/: CreateLdapUserModel): Promise<any> {
+  addUserToGroup(addUserToGroupDto: AddUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         debugger;
-        const groupDN = 'cn=C3Student,ou=Groups,dc=c3edu,dc=online';
+        const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
         const groupChange = new ldap.Change({
           operation: 'add',
           modification: {
-            member: `cn=${memberDN.cn},ou=C3Student,ou=People,dc=c3edu,dc=online`
+            member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
           }
         });
         this.ldapClient.modify(groupDN, groupChange, (error) => {
           if (error) {
+            debugger;
             throw (error);
           } else {
             resolve();

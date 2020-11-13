@@ -97,6 +97,20 @@ Authorization: Bearer {{authToken}}
   "studentID": "34273462836a"
 }
 
+### ldapCreateUser
+// @name ldapCreateUser
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+POST {{uri}}/ldap/group/add-member HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
+  "username": "nuno",
+  "group" : "c3administrator"
+}
+
 ## NOTE bellow are old userService endpoints
 
 // ### authLogIn

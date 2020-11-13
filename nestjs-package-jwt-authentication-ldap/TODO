@@ -1,0 +1,17 @@
+# TODO
+
+☐ add user but fails group
+☐ add a group to a menber that is in that group crashb and we can't see the exception
+☐ addMember(s)
+  ☐ @critical addMembers foi feito a correr o import da shell porque pelo ldapjs era mais lento. Depois tem de se verificar se continua ou não. 
+  ☐ @critical entao se calhar e melhor ficar com addMembers (array simples) e um importMembers() q usa esse metodo
+
+
+c3@c3:/usr/share/backend$ sudo npm run debug
+
+now 
+npm run start:debug starts working in consumer app.....
+
+Debugger attached.
+
+

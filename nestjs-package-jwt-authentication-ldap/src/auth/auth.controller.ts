@@ -101,7 +101,8 @@ export class AuthController {
     res.send({ valid: true, accessToken });
   }
 
-  @Post('login-ldap')
+  // TODO: remove old and replace with /refresh-token-ldap
+  @Post('/login-ldap')
   @UseGuards(LdapAuthGuard)
   async ldapLogin(
     @Req() req: LdapLoginRequestDto,
@@ -133,6 +134,7 @@ export class AuthController {
   /**
    * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
    */
+  // TODO: remove old and replace with /refresh-token-ldap
   @Post('/refresh-token-ldap')
   async ldapRefreshToken(
     @Request() req,
@@ -183,7 +185,7 @@ export class AuthController {
     res.send({ valid: true, accessToken });
   }
 
-  @Post('logout')
+  @Post('/logout')
   @UseGuards(JwtAuthGuard)
   async logOut(
     @Response() res
