@@ -2,5 +2,5 @@
   "watch": ["src", "../nestjs-package-jwt-authentication-ldap/dist"],
   "ext": "ts",
   "ignore": ["src/**/*.spec.ts"],
-  "exec": "node --inspect -r ts-node/register -r tsconfig-paths/register src/main.ts"
+  "exec": "node --inspect=9239 -r ts-node/register -r tsconfig-paths/register src/main.ts"
 }

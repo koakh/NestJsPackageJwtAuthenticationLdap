@@ -62,7 +62,7 @@ or test with a simple curl
 
 ```shell
 $ curl --request POST \
-  --url http://localhost:3000/auth/login \
+  --url http://localhost:3010/auth/login \
   --header 'content-type: application/json' \
   --header 'user-agent: vscode-restclient' \
   --data '{"username": "admin","password": "12345678"}' \

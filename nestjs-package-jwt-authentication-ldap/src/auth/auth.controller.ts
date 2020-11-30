@@ -185,17 +185,6 @@ export class AuthController {
     res.send({ valid: true, accessToken });
   }
 
-  @Post('/logout')
-  @UseGuards(JwtAuthGuard)
-  async logOut(
-    @Response() res
-  ): Promise<void> {
-    // send empty refreshToken, with same name jid, etc, better than res.clearCookie
-    // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
-    this.authService.sendRefreshToken(res, { accessToken: '' });
-    return res.send({ logOut: true });
-  }
-
   // Don't expose this resolver, only used in development environments
   @Post('/revoke-refresh-token')
   async revokeUserRefreshToken(
@@ -205,5 +194,16 @@ export class AuthController {
     // when user tries to use it in /refresh-token and current version is greater than refreshToken.tokenVersion
     const version = this.userService.usersStore.incrementTokenVersion(username);
     return { version };
+  }
+
+  @Post('/logout')
+  @UseGuards(JwtAuthGuard)
+  async logOut(
+    @Response() res
+  ): Promise<void> {
+    // send empty refreshToken, with same name jid, etc, better than res.clearCookie
+    // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
+    this.authService.sendRefreshToken(res, { accessToken: '' });
+    return res.send({ logOut: true });
   }
 }

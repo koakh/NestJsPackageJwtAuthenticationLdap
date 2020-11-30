@@ -6,12 +6,13 @@
   - [TLDR](#tldr)
     - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
     - [Change .env to use tunnel](#change-env-to-use-tunnel)
-    - [Debug package and consumer app](#debug-package-and-consumer-app)
+    - [Debug package and consumer App](#debug-package-and-consumer-app)
     - [Test Api](#test-api)
   - [Read base Starter Notes](#read-base-starter-notes)
   - [LDAP](#ldap)
   - [Use LdapJs](#use-ldapjs)
   - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
+  - [Problems](#problems)
 
 ## Starter Project
 
@@ -25,7 +26,7 @@
 
 ## TLDR
 
-used node version `node/v12.8.1`
+project used node version `node/v12.8.1`
 
 > this notes are the continuation of NOTES.md from [NestJsPackageStarter](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md) and [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication)
 
@@ -48,7 +49,7 @@ $ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
 LDAP_URL="192.168.1.1:2210"
 ```
 
-### Debug package and consumer app
+### Debug package and consumer App
 
 ```shell
 # package watch: in term1: build and watch
@@ -66,7 +67,11 @@ $ npm run start:dev
 
 > if service not start check `DEBUG CONSOLE` window for errors
 
-> NOTE: in any change restart debugger with `ctrl+shift+F5` 
+> UPDATE: 2020-11-30 11:52:50: Fixed `launch.json` now it works with sourceMaps and watch, just launch F5 and Done!
+
+> NOTE: in any change restart debugger with `ctrl+shift+F5` and warn always `npm run build` to reflect changes, like when we change server port, and other consumer stuff, because when we are in debug we aren't watch and build changes
+
+> to watch and build for changes when debug use `npm run start:dev` in **consumer app**
 
 ### Test Api
 
@@ -122,4 +127,24 @@ this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, sco
     Logger.log('entry: ' + JSON.stringify(entry.object, undefined, 2), LdapService.name);
   });
   ...
+```
+
+## Problems
+
+start debug
+
+```shell
+Debugger attached.
+Waiting for the debugger to disconnect...
+/media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/src/main.ts:1
+import { ValidationPipe } from '@nestjs/common';
+```
+
+seems that is a port conflit, resolve the issue, build and test, before launch debugger
+
+```shell
+$ npm run dev
+[Nest] 3700   - 11/30/2020, 10:55:03 AM   [Main] server started at https://localhost:3010 +1ms
+# require build to use new port 3001
+$ npm run build
 ```

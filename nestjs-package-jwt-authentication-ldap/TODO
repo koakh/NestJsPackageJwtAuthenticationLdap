@@ -1,5 +1,23 @@
 # TODO
 
+☐ EndPoints
+  ☐ Auth
+    ☐ ldapLogin
+      ✔ /auth/login-ldap @done(20-11-30 10:59)
+      ☐ change endpoint to `/auth/login`
+    ☐ ldapRefreshToken
+      ✔ /auth/refresh-token-ldap @done(20-11-30 11:00)
+      ☐ change endpoint to `/auth/refresh-token`
+    ✔ revokeUserRefreshToken @done(20-11-30 11:04)
+      ✔ /revoke-refresh-token @done(20-11-30 11:03)
+    ✔ logOut @done(20-11-30 11:04)
+      ✔ /auth/logout @done(20-11-30 11:04)
+
+    /auth/revoke-refresh-token
+
+  ☐ logOut
+
+
 ☐ add user but fails group
 ☐ add a group to a menber that is in that group crashb and we can't see the exception
 ☐ addMember(s)

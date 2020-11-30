@@ -4,6 +4,20 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+    // {
+    //   "name": "Attach to Process",
+    //   "port": 9239,
+    //   "request": "attach",
+    //   "skipFiles": [
+    //     "<node_internals>/**"
+    //   ],
+    //   "type": "pwa-node",
+    //   "sourceMaps": true,
+    //   "outFiles": [
+    //     "${workspaceFolder}/nestjs-package-jwt-authentication-ldap/dist/**/*.js",
+    //     "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/dist/**/*.js"
+    //   ]
+    // },
     {
       "type": "node",
       "request": "launch",
@@ -16,13 +30,14 @@
       //   "${workspaceFolder}/**/*.js"
       // ],
       "envFile": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/.env",
-      "outputCapture": "std"
+      "outputCapture": "std",
       // if commented use debug console as default
       // "console": "integratedTerminal"
       // https://code.visualstudio.com/docs/nodejs/nodejs-debugging#_launch-configuration-support-for-npm-and-other-tools
-      // "cwd": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer",
-      // "runtimeExecutable": "npm",
-      // "runtimeArgs": ["run-script", "start:debug"]
+      "cwd": "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run-script", "start:debug"],
+      // "sourceMaps": true,
     }
   ]
 }
