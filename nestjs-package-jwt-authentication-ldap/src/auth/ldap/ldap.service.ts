@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
-import { LdapSearchUsernameDto, LdapSearchUsernameResponseDto } from '../dto';
+import { LdapChangeUsernameDto as LdapChangeUsernameDto, LdapSearchUsernameDto, LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
 import { AddUserToGroupDto, CreateUserRecordDto, DeleteUserRecordDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
@@ -124,7 +124,7 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
-            await this.addUserToGroup({ username: newUser.cn, group: 'c3student' });
+            await this.changeUsernameDto({ username: newUser.cn, group: 'c3student' });
             resolve();
           }
         });
@@ -155,20 +155,19 @@ export class LdapService {
   };
 
   /**
-   * add group/role to user
-   * @param memberDN
+   * modify user record
    */
-  addUserToGroup(addUserToGroupDto: AddUserToGroupDto): Promise<any> {
+  changeUsernameDto(changeUsernameDto: LdapChangeUsernameDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
-        const groupChange = new ldap.Change({
-          operation: 'add',
-          modification: {
-            member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
-          }
+        const modDN = `cn=${changeUsernameDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changes: ldap.Change[] = changeUsernameDto.modifications.map((modification: ldap.Change) => {
+          return new ldap.Change({
+            operation: changeUsernameDto.operation,
+            modification
+          })
         });
-        this.ldapClient.modify(groupDN, groupChange, (error) => {
+        this.ldapClient.modify(modDN, changes, (error) => {
           if (error) {
             reject(error);
           } else {

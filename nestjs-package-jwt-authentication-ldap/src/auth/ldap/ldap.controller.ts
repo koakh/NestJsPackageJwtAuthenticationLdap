@@ -38,7 +38,7 @@ export class LdapController {
     @Response() res,
     @Body() addUserToGroupDto: AddMemberToGroupDto,
   ): Promise<void> {
-    this.ldapService.addUserToGroup(addUserToGroupDto)
+    this.ldapService.modifyUsernameDto(addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
           message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto)

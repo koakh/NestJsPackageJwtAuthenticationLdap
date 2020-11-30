@@ -70,7 +70,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "pili",
+  "username": "pelu",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
@@ -94,14 +94,14 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "pili",
+  "username": "pelu",
   "group" : "c3administrator"
 }
 
 ### ldapGetUserRecord
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@username = mario
+@username = pelu
 
 GET {{uri}}/ldap/user/{{username}} HTTP/1.1
 Content-Type: {{contentType}}
