@@ -27,6 +27,7 @@ export class AuthController {
     private readonly userService: UserService,
     private readonly ldapService: LdapService,
   ) { }
+  /* OLD NON LDAP ENDPOINT
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async logIn(
@@ -50,10 +51,12 @@ export class AuthController {
     const returnUser = { ...user, password: undefined };
     return res.send({ user: returnUser, accessToken });
   }
+  */
 
   /**
    * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
    */
+  /* OLD NON LDAP ENDPOINT
   @Post('/refresh-token')
   async refreshToken(
     @Request() req,
@@ -100,11 +103,11 @@ export class AuthController {
     this.authService.sendRefreshToken(res, refreshToken);
     res.send({ valid: true, accessToken });
   }
+  */
 
-  // TODO: remove old and replace with /refresh-token-ldap
-  @Post('/login-ldap')
+  @Post('/login')
   @UseGuards(LdapAuthGuard)
-  async ldapLogin(
+  async login(
     @Req() req: LdapLoginRequestDto,
     @Response() res,
   ): Promise<LdapLoginResponseDto> {
@@ -134,8 +137,7 @@ export class AuthController {
   /**
    * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
    */
-  // TODO: remove old and replace with /refresh-token-ldap
-  @Post('/refresh-token-ldap')
+  @Post('/refresh-token')
   async ldapRefreshToken(
     @Request() req,
     @Response() res,

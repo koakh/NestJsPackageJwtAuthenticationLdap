@@ -5,7 +5,7 @@ import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
-import { AddUserToGroupDto, CreateLdapUserDto } from './dto';
+import { AddUserToGroupDto, CreateUserRecordDto as createUserRecordDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -35,7 +35,7 @@ export class LdapService {
     };
     // props
     this.searchBase = configService.get(e.LDAP_SEARCH_BASE);
-    this.searchAttributes = configService.get(e.LDAP_SEARCH_ATTRIBUTES).toString().split(';');
+    this.searchAttributes = configService.get(e.LDAP_SEARCH_ATTRIBUTES).toString().split(',');
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
     // uncomment to test getUserRecord on init
@@ -52,7 +52,9 @@ export class LdapService {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
-            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+debugger;
+Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+// cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID
             user = {
               // extract username from string | array
               username: entry.object.cn as string,
@@ -80,7 +82,7 @@ export class LdapService {
     })
   };
 
-  createUserRecord(createLdapUserDto: CreateLdapUserDto): Promise<void> {
+  createUserRecord(createLdapUserDto: createUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
       // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_ATTRIBUTES);
@@ -107,7 +109,6 @@ export class LdapService {
       };
 
       try {
-        debugger;
         const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
@@ -134,7 +135,6 @@ export class LdapService {
   addUserToGroup(addUserToGroupDto: AddUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        debugger;
         const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
         const groupChange = new ldap.Change({
           operation: 'add',
@@ -144,14 +144,12 @@ export class LdapService {
         });
         this.ldapClient.modify(groupDN, groupChange, (error) => {
           if (error) {
-            debugger;
-            throw (error);
+            reject(error);
           } else {
             resolve();
           }
         });
       } catch (error) {
-        debugger;
         reject(error);
       }
     });

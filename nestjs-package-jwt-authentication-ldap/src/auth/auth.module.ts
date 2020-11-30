@@ -39,8 +39,6 @@ import { LdapController } from './ldap/ldap.controller';
 
 export class AuthModule {
   configure(consumer: MiddlewareConsumer) {
-    // TODO: refactor to use only ldap
     consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token');
-    consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token-ldap');
   }
 }

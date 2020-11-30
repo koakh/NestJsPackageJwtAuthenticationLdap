@@ -18,7 +18,7 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
         bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
         searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
         searchFilter: configService.get(envConstants.LDAP_SEARCH_FILTER),
-        searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(';'),
+        searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(','),
       },
     }, async (req: Request, user: any, done) => {
       req.user = user;

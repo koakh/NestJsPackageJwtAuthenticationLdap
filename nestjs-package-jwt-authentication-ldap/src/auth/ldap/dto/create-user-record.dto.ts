@@ -1,6 +1,6 @@
 import { IsDefined, IsEmail, IsNumber, IsOptional, Length, Min } from 'class-validator';
 
-export class CreateLdapUserDto {
+export class CreateUserRecordDto {
   @IsDefined()
   @Length(3, 50)
   // ldap: name

@@ -77,7 +77,7 @@ $ npm run start:dev
 
 ```shell
 $ curl --request POST \
-  --url http://localhost:3000/auth/login-ldap \
+  --url http://localhost:3000/auth/login \
   --header 'content-type: application/json' \
   --data '{"username": "mario","password": "root"}'
 ```
