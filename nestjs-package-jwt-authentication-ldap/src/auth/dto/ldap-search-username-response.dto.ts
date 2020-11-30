@@ -1,10 +1,9 @@
+import { LdapSearchUsernameDto } from './ldap-search-username.dto';
+
+/**
+ * must match LDAP_SEARCH_ATTRIBUTES properties
+ */
 export interface LdapSearchUsernameResponseDto {
-  user: {
-    username: string,
-    dn: string,
-    email: string,
-    memberOf: string[],
-    controls: string[],
-  },
+  user: LdapSearchUsernameDto,
   status: number;
 }

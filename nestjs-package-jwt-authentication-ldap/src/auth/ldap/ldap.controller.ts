@@ -65,20 +65,19 @@ export class LdapController {
       });
   }
 
-  // TODO WIP
   // TODO must have ROLE_ADMIN, use Guards
-  // @Delete('/user/:username')
-  // @UseGuards(JwtAuthGuard)
-  // async deleteUserRecord(
-  //   @Response() res,
-  //   @Param('username') username?: string,
-  // ): Promise<void> {
-  //   this.ldapService.deleteUserRecord(username)
-  //     .then(() => {
-  //       res.status(HttpStatus.NO_CONTENT).send();
-  //     })
-  //     .catch((error) => {
-  //       res.status(HttpStatus.NOT_FOUND).send(error);
-  //     });
-  // }
+  @Delete('/user/:username')
+  @UseGuards(JwtAuthGuard)
+  async deleteUserRecord(
+    @Response() res,
+    @Param('username') username?: string,
+  ): Promise<void> {
+    this.ldapService.deleteUserRecord({username})
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.NOT_FOUND).send(error);
+      });
+  }
 }

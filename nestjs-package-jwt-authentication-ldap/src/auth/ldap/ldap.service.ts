@@ -3,9 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
-import { LdapSearchUsernameResponseDto } from '../dto';
+import { LdapSearchUsernameDto, LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
-import { AddUserToGroupDto, CreateUserRecordDto as createUserRecordDto } from './dto';
+import { AddUserToGroupDto, CreateUserRecordDto, DeleteUserRecordDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -46,22 +46,30 @@ export class LdapService {
   getUserRecord = (username: string): Promise<LdapSearchUsernameResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-        let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
+        // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
+        let user: LdapSearchUsernameDto;
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
-debugger;
-Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-// cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID
+            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
             user = {
               // extract username from string | array
-              username: entry.object.cn as string,
               dn: entry.object.dn as string,
-              email: entry.object.userPrincipalName as string,
               memberOf: entry.object.memberOf as string[],
               controls: entry.object.controls as string[],
+              objectCategory: entry.object.objectCategory as string,
+              userAccountControl: entry.object.userAccountControl as string,
+              lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
+              username: entry.object.cn as string,
+              email: entry.object.userPrincipalName as string,
+              displayName: entry.object.displayName as string,
+              gender: entry.object.gender as string,
+              mail: entry.object.mail as string,
+              C3UserRole: entry.object.C3UserRole as string,
+              dateOfBirth: entry.object.dateOfBirth as string,
+              studentID: entry.object.studentID as string,
             };
           });
           res.on('error', (error) => {
@@ -71,7 +79,9 @@ Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
             // Logger.log(`status: [${result.status}]`, LdapService.name);
             // responsePayload.result = result;
             // resolve promise
-            resolve({ user, status: result.status });
+            user
+              ? resolve({ user, status: result.status })
+              : reject({ message: `user not found`, status: result.status });
           });
         });
       } catch (error) {
@@ -82,7 +92,7 @@ Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
     })
   };
 
-  createUserRecord(createLdapUserDto: createUserRecordDto): Promise<void> {
+  createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
       // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_ATTRIBUTES);
@@ -114,7 +124,6 @@ Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
           if (error) {
             reject(error);
           } else {
-            // TODO: put in default user on create
             await this.addUserToGroup({ username: newUser.cn, group: 'c3student' });
             resolve();
           }
@@ -123,6 +132,23 @@ Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
         // const message = (error && error.name === 'InvalidDistinguishedNameError')
         //   ? { message: parseTemplate(c.INVALID_DISTINGUISHED_NAME_ERROR, createLdapUserDto), newUser }
         //   : error;
+        reject(error);
+      }
+    });
+  };
+
+  deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const delDN = `cn=${deleteUserRecordDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      try {
+        this.ldapClient.del(delDN, async (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
         reject(error);
       }
     });
