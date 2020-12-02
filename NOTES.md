@@ -13,6 +13,8 @@
   - [Use LdapJs](#use-ldapjs)
   - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
   - [Problems](#problems)
+  - [Ignore debug error message](#ignore-debug-error-message)
+  - [Missing LDAP Port Forword](#missing-ldap-port-forword)
 
 ## Starter Project
 
@@ -147,4 +149,19 @@ $ npm run dev
 [Nest] 3700   - 11/30/2020, 10:55:03 AM   [Main] server started at https://localhost:3010 +1ms
 # require build to use new port 3001
 $ npm run build
+```
+
+## Ignore debug error message
+
+when launch debug with F5 we can see bellow error on start, please ignore it, eveything works has expected, move on
+
+```shell
+Could not read source map for file:///media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/typescript/lib/typescript.js: ENOENT: no such file or directory, open '/media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/typescript/lib/typescript.js.map'
+```
+
+## Missing LDAP Port Forword
+
+```shell
+[ExceptionsHandler] connect ECONNREFUSED 192.168.1.1:2210 +97867ms
+Error: connect ECONNREFUSED 192.168.1.1:2210
 ```

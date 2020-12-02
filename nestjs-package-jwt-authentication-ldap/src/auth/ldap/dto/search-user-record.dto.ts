@@ -1,4 +1,4 @@
-export interface LdapSearchUsernameDto {
+export interface SearchUserRecordDto {
   dn: string;
   memberOf: string[];
   controls: string[];
@@ -15,4 +15,5 @@ export interface LdapSearchUsernameDto {
   C3UserRole: string;
   dateOfBirth: string;
   studentID: string;
+  telephoneNumber: string;
 }

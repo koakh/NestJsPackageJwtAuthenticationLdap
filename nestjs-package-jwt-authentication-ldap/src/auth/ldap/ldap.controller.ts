@@ -1,8 +1,7 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Response, UseGuards } from '@nestjs/common';
-import { LdapSearchUsernameResponseDto } from '../dto';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
-import { AddUserToGroupDto as AddMemberToGroupDto, CreateUserRecordDto as CreateUserRecordDto } from './dto';
+import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto as CreateUserRecordDto, SearchUserRecordResponseDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 
@@ -27,7 +26,7 @@ export class LdapController {
         });
       })
       .catch((error) => {
-        res.status(HttpStatus.CONFLICT).send(error);
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
       });
   }
 
@@ -38,14 +37,14 @@ export class LdapController {
     @Response() res,
     @Body() addUserToGroupDto: AddMemberToGroupDto,
   ): Promise<void> {
-    this.ldapService.modifyUsernameDto(addUserToGroupDto)
+    this.ldapService.addUserToGroup(addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
           message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto)
         });
       })
       .catch((error) => {
-        res.status(HttpStatus.CONFLICT).send(error);
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
       });
   }
 
@@ -54,14 +53,14 @@ export class LdapController {
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
     @Response() res,
-    @Param('username') username?: string,
+    @Param('username') username: string,
   ): Promise<void> {
     this.ldapService.getUserRecord(username)
-      .then((user:LdapSearchUsernameResponseDto) => {
+      .then((user: SearchUserRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
       })
       .catch((error) => {
-        res.status(HttpStatus.NOT_FOUND).send(error);
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
       });
   }
 
@@ -70,14 +69,31 @@ export class LdapController {
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
     @Response() res,
-    @Param('username') username?: string,
+    @Param('username') username: string,
   ): Promise<void> {
-    this.ldapService.deleteUserRecord({username})
+    this.ldapService.deleteUserRecord(username)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })
       .catch((error) => {
-        res.status(HttpStatus.NOT_FOUND).send(error);
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+      });
+  }
+
+  // TODO must have ROLE_ADMIN, use Guards
+  @Put('/user/:username')
+  @UseGuards(JwtAuthGuard)
+  async changeUserRecord(
+    @Response() res,
+    @Param('username') username: string,
+    @Body() changeUserRecordDto: ChangeUserRecordDto,
+  ): Promise<void> {
+    this.ldapService.changeUserRecord(username, changeUserRecordDto)
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
       });
   }
 }

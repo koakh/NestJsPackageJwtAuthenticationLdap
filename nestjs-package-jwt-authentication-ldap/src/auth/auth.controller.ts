@@ -3,15 +3,13 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as passport from 'passport';
 import { envConstants } from '../common/constants/env';
-import { LoginUserDto } from '../user/dtos';
-import { User } from '../user/models';
 import { UserService } from '../user/user.service';
 import { AuthService } from './auth.service';
-import { LdapLoginRequestDto, LdapLoginResponseDto, LdapSearchUsernameResponseDto, RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
+import { RevokeRefreshTokenDto, SignJwtTokenDto } from './dto';
 import { JwtAuthGuard, LdapAuthGuard } from './guards';
-import { LocalAuthGuard } from './guards/local-auth.guard';
 import AccessToken from './interfaces/access-token';
 import { JwtResponsePayload } from './interfaces/jwt-response.payload';
+import { LoginRequestDto, LoginResponseDto, SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
 
 /**
@@ -108,9 +106,9 @@ export class AuthController {
   @Post('/login')
   @UseGuards(LdapAuthGuard)
   async login(
-    @Req() req: LdapLoginRequestDto,
+    @Req() req: LoginRequestDto,
     @Response() res,
-  ): Promise<LdapLoginResponseDto> {
+  ): Promise<LoginResponseDto> {
     // authenticate user
     passport.authenticate('ldap', { session: false });
     // destruct
@@ -163,7 +161,7 @@ export class AuthController {
     }
 
     // user from ldapService
-    const { user }: LdapSearchUsernameResponseDto = await this.ldapService.getUserRecord(payload.username);
+    const { user }: SearchUserRecordResponseDto = await this.ldapService.getUserRecord(payload.username);
     const roles = this.authService.getRolesFromMemberOf(user.memberOf);
     // check jid token
     if (!user) {

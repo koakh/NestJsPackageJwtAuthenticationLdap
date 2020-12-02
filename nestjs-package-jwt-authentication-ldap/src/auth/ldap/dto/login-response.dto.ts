@@ -1,4 +1,4 @@
-export interface LdapLoginResponseDto {
+export interface LoginResponseDto {
   user: {
     username: string | string[],
     email: string,

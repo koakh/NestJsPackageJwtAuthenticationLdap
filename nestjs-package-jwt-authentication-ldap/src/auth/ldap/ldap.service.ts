@@ -3,9 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
-import { LdapChangeUsernameDto as LdapChangeUsernameDto, LdapSearchUsernameDto, LdapSearchUsernameResponseDto } from '../dto';
 import { encodeAdPassword } from '../utils';
-import { AddUserToGroupDto, CreateUserRecordDto, DeleteUserRecordDto } from './dto';
+import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -43,11 +42,11 @@ export class LdapService {
     // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`);
   }
 
-  getUserRecord = (username: string): Promise<LdapSearchUsernameResponseDto> => {
+  getUserRecord = (username: string): Promise<SearchUserRecordResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
-        let user: LdapSearchUsernameDto;
+        let user: SearchUserRecordDto;
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
@@ -70,6 +69,7 @@ export class LdapService {
               C3UserRole: entry.object.C3UserRole as string,
               dateOfBirth: entry.object.dateOfBirth as string,
               studentID: entry.object.studentID as string,
+              telephoneNumber: entry.object.telephoneNumber as string,
             };
           });
           res.on('error', (error) => {
@@ -124,7 +124,7 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
-            await this.changeUsernameDto({ username: newUser.cn, group: 'c3student' });
+            await this.addUserToGroup({ username: newUser.cn, group: 'c3student' });
             resolve();
           }
         });
@@ -137,9 +137,36 @@ export class LdapService {
     });
   };
 
-  deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
+  /**
+   * add group/role to user
+   * @param memberDN
+   */
+  addUserToGroup(addUserToGroupDto: AddUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteUserRecordDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      try {
+        const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
+        const groupChange = new ldap.Change({
+          operation: 'add',
+          modification: {
+            member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
+          }
+        });
+        this.ldapClient.modify(groupDN, groupChange, (error) => {
+          if (error) {
+            throw (error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  deleteUserRecord(username: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const delDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {
@@ -155,19 +182,22 @@ export class LdapService {
   };
 
   /**
-   * modify user record
+   * change user record
+   * @param memberDN
    */
-  changeUsernameDto(changeUsernameDto: LdapChangeUsernameDto): Promise<any> {
+  changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
-        const modDN = `cn=${changeUsernameDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
-        const changes: ldap.Change[] = changeUsernameDto.modifications.map((modification: ldap.Change) => {
+        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        // map array of changes to ldap.Change
+        const changes = changeUserRecordDto.map((change: ldap.Change) => {
           return new ldap.Change({
-            operation: changeUsernameDto.operation,
-            modification
-          })
+            operation: change.operation,
+            modification: change.modification
+          });
         });
-        this.ldapClient.modify(modDN, changes, (error) => {
+
+        this.ldapClient.modify(changeDN, changes, (error) => {
           if (error) {
             reject(error);
           } else {
