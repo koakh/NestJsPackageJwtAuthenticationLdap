@@ -5,4 +5,5 @@ export * from './login-request.dto';
 export * from './login-response.dto';
 export * from './search-user-record-response.dto';
 export * from './search-user-records-response.dto';
+export * from './search-user-paginator-response.dto';
 export * from './search-user-record.dto';
