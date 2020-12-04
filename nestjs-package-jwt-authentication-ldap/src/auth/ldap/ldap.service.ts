@@ -18,12 +18,16 @@ export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
   private searchAttributes: string;
+  // TODO
+  private searchPagePause: boolean;
 
   constructor(
     private readonly configService: ConfigService,
   ) {
     // init ldapServer
     this.init(configService);
+    // TODO
+    this.searchPagePause = true;
   }
   // called by GqlLocalAuthGuard
   async init(configService: ConfigService): Promise<any> {
@@ -39,7 +43,7 @@ export class LdapService {
     this.ldapClient = ldap.createClient(clientOptions);
     // uncomment to test getUserRecord on init
     // const user = await this.getUserRecord('mario');
-    // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`);
+    // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`, LdapService.name);
   }
 
   getUserRecord = (username: string): Promise<SearchUserRecordResponseDto> => {
@@ -48,11 +52,31 @@ export class LdapService {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let user: SearchUserRecordDto;
         // note to work we must use the scope sub else it won't work
-        this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
+// TODO
+let users: SearchUserRecordDto[] = [];
+// const pageSize = 1;
+let countUsers = 0;
+// const filter = `(cn=${username})`;
+const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)`;
+// const paged: {pageSize: number, pagePause: boolean} = {
+//   pageSize,
+//   pagePause: true
+// };
+        this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter,
+        // paged: true,
+        // sizeLimit: 200
+        paged: {
+          pageSize: 50,
+          pagePause: true
+        },
+       }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
-          if (err) Logger.log(err);
+          if (err) Logger.error(err, LdapService.name);
           res.on('searchEntry', (entry) => {
-            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+// TODO
+countUsers++;
+// Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
             user = {
               // extract username from string | array
               dn: entry.object.dn as string,
@@ -71,6 +95,17 @@ export class LdapService {
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
             };
+// TODO
+users.push(user);
+          });
+          res.on('page', (result) => {
+Logger.log('page end', LdapService.name);
+users.length > 0
+// users.length > 0
+  // TODO use user or users
+  ? resolve({ user, users, status: result.status })
+  // ? resolve({ user, users, status: result.status })
+  : reject({ message: `user not found`, status: result.status });
           });
           res.on('error', (error) => {
             throw error;
@@ -79,9 +114,13 @@ export class LdapService {
             // Logger.log(`status: [${result.status}]`, LdapService.name);
             // responsePayload.result = result;
             // resolve promise
-            user
-              ? resolve({ user, status: result.status })
-              : reject({ message: `user not found`, status: result.status });
+debugger;
+users.length > 0
+// users.length > 0
+  // TODO use user or users
+  ? resolve({ user, users, status: result.status })
+  // ? resolve({ user, users, status: result.status })
+  : reject({ message: `user not found`, status: result.status });
           });
         });
       } catch (error) {
