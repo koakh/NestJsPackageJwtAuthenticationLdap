@@ -1,6 +1,10 @@
-import { SearchUserPaginatorResponseDto } from './search-user-paginator-response.dto';
+import { SearchUserRecordDto } from './search-user-record.dto';
 
-export interface InitUserRecordsCacheResponseDto  extends SearchUserPaginatorResponseDto {
-  timeTaken: number,
+export interface InitUserRecordsCacheResponseDto {
+  total: number,
+  elapsedTime: number,
+  memoryUsage: any,
   status: number,
+  // optional: used only for debug purposes
+  data?: SearchUserRecordDto[],
 }

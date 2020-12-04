@@ -84,7 +84,7 @@ Authorization: Bearer {{authToken}}
   "studentID": "34273462836a"
 }
 
-### ldapGetUserRecord
+### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 @getUsername = putz

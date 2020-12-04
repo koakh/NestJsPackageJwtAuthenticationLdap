@@ -99,32 +99,42 @@ export class LdapService {
   /**
    * init/update inMemory cache
    */
-  // TODO: args payload object with filter, pagination props etc
-  initUserRecordsCache = (): Promise<InitUserRecordsCacheResponseDto> => {
+  // tslint:disable-next-line: max-line-length
+  initUserRecordsCache = (
+    // TODO: add to controller payload
+    filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
+    pageSize: number = 1000
+  ): Promise<InitUserRecordsCacheResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
+// TODO
+const formatMemoryUsage = (data: any) => `${Math.round(data / 1024 / 1024 * 100) / 100} MB`;
+let memoryData = process.memoryUsage()
+let memoryUsage = {
+  rss: `${formatMemoryUsage(memoryData.rss)} -> Resident Set Size - total memory allocated for the process execution`,
+  heapTotal: `${formatMemoryUsage(memoryData.heapTotal)} -> total size of the allocated heap`,
+  heapUsed: `${formatMemoryUsage(memoryData.heapUsed)} -> actual memory used during the execution`,
+  external: `${formatMemoryUsage(memoryData.external)} -> V8 external memory`,
+};
+Logger.log(memoryUsage);
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
+        // countUsers sums on searchEntry event
         let countUsers = 0;
-        let currentPage = 0;
+        // recordsFound sums on page event
         let recordsFound = 0;
+        let currentPage = 0;
         const startTime = process.hrtime();
-        // TODO
-        // const filter = `(cn=${username})`;
-        // TODO: this will be a payload argument property
-        const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)`;
-        // TODO: on search many use minimal search attributes
+        // start search by filter
         this.ldapClient.search(this.searchBase, {
           attributes: this.searchAttributes, scope: 'sub', filter,
           paged: {
-            pageSize: 1000,
+            pageSize,
             pagePause: true
           },
         }, (err, res) => {
-          // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
           res.on('searchEntry', (entry) => {
-            // TODO
             countUsers++;
             const dn = entry.object.dn as string;
             // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
@@ -175,14 +185,24 @@ export class LdapService {
               const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
               return seconds;
             }
+// TODO
+memoryData = process.memoryUsage()
+memoryUsage = {
+  rss: `${formatMemoryUsage(memoryData.rss)} -> Resident Set Size - total memory allocated for the process execution`,
+  heapTotal: `${formatMemoryUsage(memoryData.heapTotal)} -> total size of the allocated heap`,
+  heapUsed: `${formatMemoryUsage(memoryData.heapUsed)} -> actual memory used during the execution`,
+  external: `${formatMemoryUsage(memoryData.external)} -> V8 external memory`,
+};
+Logger.log(memoryUsage);
             // elapsed time
-            const timeTaken = parseHrtimeToSeconds(process.hrtime(startTime));
+            const elapsedTime = parseHrtimeToSeconds(process.hrtime(startTime));
             const inMemoryUsersLength = Object.keys(this.inMemoryUsers).length;
             // TODO: send back the cache initialization summary ony, without data
             // get paginatorResult
             if (inMemoryUsersLength > 0 && Array.isArray(Object.values(this.inMemoryUsers))) {
-              const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
-              resolve({ ...paginatorResult, timeTaken, status: result.status });
+              // send data to debug purposes, use property data?
+              // const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
+              resolve({ total: recordsFound, elapsedTime, memoryUsage, status: result.status });
             } else {
               reject({ message: `records not found`, status: result.status });
             }
