@@ -7,7 +7,5 @@ export interface SearchUserPaginatorResponseDto {
   nextPage: number,
   total: number,
   totalPages: number,
-  timeTaken: number,
-  status: number,
   data: SearchUserRecordDto[],
 }

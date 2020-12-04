@@ -1,7 +1,8 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
-import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto as CreateUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsResponseDto } from './dto';
+// tslint:disable-next-line: max-line-length
+import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, InitUserRecordsCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 
@@ -65,18 +66,33 @@ export class LdapController {
   }
 
   // TODO must have ROLE_ADMIN, use Guards
-  @Get('/user')
+  @Post('/cache/init')
   @UseGuards(JwtAuthGuard)
-  async getUserRecords(
-    @Response() res,
-    @Param('username') username: string,
+  async initUserRecordsCache(
+    @Response() res
   ): Promise<void> {
-    this.ldapService.getUserRecords()
-      .then((users: SearchUserRecordsResponseDto) => {
-        res.status(HttpStatus.CREATED).send(users);
+    this.ldapService.initUserRecordsCache()
+      .then((dto: InitUserRecordsCacheResponseDto) => {
+        res.status(HttpStatus.CREATED).send(dto);
       })
       .catch((error) => {
         res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+      });
+  }
+
+  // TODO must have ROLE_ADMIN, use Guards
+  @Get('/user')
+  @UseGuards(JwtAuthGuard)
+  async getUserRecords(
+    @Response() userRecordsResponse,
+    @Param('username') username: string,
+  ): Promise<void> {
+    this.ldapService.getUserRecords()
+      .then((dto: SearchUserPaginatorResponseDto) => {
+        userRecordsResponse.status(HttpStatus.CREATED).send(dto);
+      })
+      .catch((error) => {
+        userRecordsResponse.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
       });
   }
 

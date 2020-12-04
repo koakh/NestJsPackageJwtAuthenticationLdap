@@ -6,7 +6,7 @@ import { paginator } from '../../common/utils/util';
 import { envConstants as e } from '../../common/constants/env';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordsResponseDto } from './dto';
+import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, InitUserRecordsCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordsResponseDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -97,48 +97,38 @@ export class LdapService {
   };
 
   /**
-   * pagination version
+   * init/update inMemory cache
    */
   // TODO: args payload object with filter, pagination props etc
-  getUserRecords = (): Promise<SearchUserPaginatorResponseDto> => {
+  initUserRecordsCache = (): Promise<InitUserRecordsCacheResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-        // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
-        let user: SearchUserRecordDto;
         // note to work we must use the scope sub else it won't work
-// TODO
-// const users: SearchUserRecordDto[] = [];
-// const pageSize = 1;
-let countUsers = 0;
-let currentPage = 0;
-let recordsFound = 0;
-const startTime = process.hrtime();
-// const filter = `(cn=${username})`;
-// TODO: this will be a payload argument property
-const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)`;
-// const paged: {pageSize: number, pagePause: boolean} = {
-//   pageSize,
-//   pagePause: true
-// };
+        let user: SearchUserRecordDto;
+        let countUsers = 0;
+        let currentPage = 0;
+        let recordsFound = 0;
+        const startTime = process.hrtime();
+        // TODO
+        // const filter = `(cn=${username})`;
+        // TODO: this will be a payload argument property
+        const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)`;
         // TODO: on search many use minimal search attributes
-        this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter,
-// works: fire on page with first 200, and keeps going render all 11k and fire at 'end' event
-// paged: true,
-// sizeLimit: 200
-// works
-paged: {
-  pageSize: 1000,
-  pagePause: true
-},
-       }, (err, res) => {
+        this.ldapClient.search(this.searchBase, {
+          attributes: this.searchAttributes, scope: 'sub', filter,
+          paged: {
+            pageSize: 1000,
+            pagePause: true
+          },
+        }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
           res.on('searchEntry', (entry) => {
-// TODO
-countUsers++;
-const dn = entry.object.dn as string;
-// Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-// Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
+            // TODO
+            countUsers++;
+            const dn = entry.object.dn as string;
+            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            // Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
             user = {
               // extract username from string | array
               dn,
@@ -157,67 +147,64 @@ const dn = entry.object.dn as string;
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
             };
-// TODO
-// users.push(user);
-this.inMemoryUsers[dn] = user;
+            // add user to inMemoryUsers with dn key
+            this.inMemoryUsers[dn] = user;
           });
           res.on('page', (result, onPageCallback) => {
-// push to pages
-currentPage++;
-// assign only if null
-if (!recordsFound && result.controls && result.controls[0]) {recordsFound = result.controls[0]._value.size};
-const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
-// const {_value: {size: recordsSize} } = (result.controls as any);
-// Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
-Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
-// this.inMemoryUsers[currentPage] = users;
-// cleanUp users for next page round
-// users = [];
-// tslint:disable-next-line: max-line-length
-// call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
-if (onPageCallback) {onPageCallback();};
-// use the page event to continue with next page if the sizeLimit (of page) is reached.
-// users.length > 0
-// // users.length > 0
-//   // TODO use user or users
-//   ? resolve({ user, users, status: result.status })
-//   // ? resolve({ user, users, status: result.status })
-//   : reject({ message: `user not found`, status: result.status });
+            // push to pages
+            currentPage++;
+            // assign only if null
+            if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
+            // debug stuff: leave it here for future development
+            // const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
+            // const {_value: {size: recordsSize} } = (result.controls as any);
+            // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
+            // tslint:disable-next-line: max-line-length
+            // Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+            // use the page event to continue with next page if the sizeLimit (of page) is reached.
+            // tslint:disable-next-line: max-line-length
+            // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+            if (onPageCallback) { onPageCallback(); };
           });
           res.on('error', (error) => {
-            throw error;
+            reject(error);
           });
           res.on('end', (result: ldap.LDAPResult) => {
-            // Logger.log(`status: [${result.status}]`, LdapService.name);
-            // responsePayload.result = result;
             // resolve promise
             const parseHrtimeToSeconds = (hrtime) => {
               const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
               return seconds;
             }
-// debugger;
-const timeTaken = parseHrtimeToSeconds(process.hrtime(startTime));
-const inMemoryUsersLength = Object.keys(this.inMemoryUsers).length;
-
-
-if (inMemoryUsersLength > 0 && Array.isArray(Object.values(this.inMemoryUsers))) {
-  const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
-  resolve({ ...paginatorResult, timeTaken, status: result.status });
-} else {
-  reject({ message: `records not found`, status: result.status });
-}
-
-
-// get paginated users
-// const paginatorResult = (Array.isArray(Object.values(this.inMemoryUsers)))
-//   ? paginator(Object.values(this.inMemoryUsers), 1, 100)
-//   : [];
-// inMemoryUsersLength > 0
-//   ? resolve({ paginatorResult, timeTaken, status: result.status })
-//   // ? resolve({ user, users, status: result.status })
-//   : reject({ message: `records not found`, status: result.status });
+            // elapsed time
+            const timeTaken = parseHrtimeToSeconds(process.hrtime(startTime));
+            const inMemoryUsersLength = Object.keys(this.inMemoryUsers).length;
+            // TODO: send back the cache initialization summary ony, without data
+            // get paginatorResult
+            if (inMemoryUsersLength > 0 && Array.isArray(Object.values(this.inMemoryUsers))) {
+              const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
+              resolve({ ...paginatorResult, timeTaken, status: result.status });
+            } else {
+              reject({ message: `records not found`, status: result.status });
+            }
           });
         });
+      } catch (error) {
+        // Logger.error(`error: [${error.message}]`, LdapService.name);
+        // reject promise
+        reject(error);
+      }
+    })
+  };
+
+  /**
+   * pagination version
+   */
+  // TODO: args payload object with filter, pagination props etc
+  getUserRecords = (): Promise<SearchUserPaginatorResponseDto> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
+        resolve({ ...paginatorResult });
       } catch (error) {
         // Logger.error(`error: [${error.message}]`, LdapService.name);
         // reject promise
