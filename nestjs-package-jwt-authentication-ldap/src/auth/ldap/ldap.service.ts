@@ -4,7 +4,7 @@ import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { encodeAdPassword } from '../utils';
-import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto } from './dto';
+import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsResponseDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -18,16 +18,13 @@ export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
   private searchAttributes: string;
-  // TODO
-  private searchPagePause: boolean;
+  // private inMemoryUsers: Record<number, SearchUserRecordDto[]> = {};
 
   constructor(
     private readonly configService: ConfigService,
   ) {
     // init ldapServer
     this.init(configService);
-    // TODO
-    this.searchPagePause = true;
   }
   // called by GqlLocalAuthGuard
   async init(configService: ConfigService): Promise<any> {
@@ -52,23 +49,83 @@ export class LdapService {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let user: SearchUserRecordDto;
         // note to work we must use the scope sub else it won't work
+        this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
+          // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
+          if (err) Logger.log(err);
+          res.on('searchEntry', (entry) => {
+            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            user = {
+              // extract username from string | array
+              dn: entry.object.dn as string,
+              memberOf: entry.object.memberOf as string[],
+              controls: entry.object.controls as string[],
+              objectCategory: entry.object.objectCategory as string,
+              userAccountControl: entry.object.userAccountControl as string,
+              lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
+              username: entry.object.cn as string,
+              email: entry.object.userPrincipalName as string,
+              displayName: entry.object.displayName as string,
+              gender: entry.object.gender as string,
+              mail: entry.object.mail as string,
+              C3UserRole: entry.object.C3UserRole as string,
+              dateOfBirth: entry.object.dateOfBirth as string,
+              studentID: entry.object.studentID as string,
+              telephoneNumber: entry.object.telephoneNumber as string,
+            };
+          });
+          res.on('error', (error) => {
+            throw error;
+          });
+          res.on('end', (result: ldap.LDAPResult) => {
+            // Logger.log(`status: [${result.status}]`, LdapService.name);
+            // responsePayload.result = result;
+            // resolve promise
+            user
+              ? resolve({ user, status: result.status })
+              : reject({ message: `user not found`, status: result.status });
+          });
+        });
+      } catch (error) {
+        // Logger.error(`error: [${error.message}]`, LdapService.name);
+        // reject promise
+        reject(error);
+      }
+    })
+  };
+
+  /**
+   * pagination version
+   */
+  // TODO: args payload object with filter, pagination props etc
+  getUserRecords = (): Promise<SearchUserRecordsResponseDto> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
+        let user: SearchUserRecordDto;
+        // note to work we must use the scope sub else it won't work
 // TODO
-let users: SearchUserRecordDto[] = [];
+const users: SearchUserRecordDto[] = [];
 // const pageSize = 1;
 let countUsers = 0;
+let currentPage = 0;
+let recordsFound = 0;
+const startTime = process.hrtime();
 // const filter = `(cn=${username})`;
 const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)`;
 // const paged: {pageSize: number, pagePause: boolean} = {
 //   pageSize,
 //   pagePause: true
 // };
+        // TODO: on search many use minimal search attributes
         this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter,
-        // paged: true,
-        // sizeLimit: 200
-        paged: {
-          pageSize: 50,
-          pagePause: true
-        },
+// works: fire on page with first 200, and keeps going render all 11k and fire at 'end' event
+// paged: true,
+// sizeLimit: 200
+// works
+paged: {
+  pageSize: 1000,
+  pagePause: true
+},
        }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
@@ -76,7 +133,7 @@ const filter = `(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC
 // TODO
 countUsers++;
 // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
+// Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
             user = {
               // extract username from string | array
               dn: entry.object.dn as string,
@@ -98,14 +155,28 @@ Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name
 // TODO
 users.push(user);
           });
-          res.on('page', (result) => {
-Logger.log('page end', LdapService.name);
-users.length > 0
+          res.on('page', (result, onPageCallback) => {
+// push to pages
+currentPage++;
+// assign only if null
+if (!recordsFound && result.controls && result.controls[0]) {recordsFound = result.controls[0]._value.size};
+const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] : null;
+// const {_value: {size: recordsSize} } = (result.controls as any);
+// Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
+Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+// this.inMemoryUsers[currentPage] = users;
+// cleanUp users for next page round
+// users = [];
+// tslint:disable-next-line: max-line-length
+// call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+if (onPageCallback) {onPageCallback();};
+// use the page event to continue with next page if the sizeLimit (of page) is reached.
 // users.length > 0
-  // TODO use user or users
-  ? resolve({ user, users, status: result.status })
-  // ? resolve({ user, users, status: result.status })
-  : reject({ message: `user not found`, status: result.status });
+// // users.length > 0
+//   // TODO use user or users
+//   ? resolve({ user, users, status: result.status })
+//   // ? resolve({ user, users, status: result.status })
+//   : reject({ message: `user not found`, status: result.status });
           });
           res.on('error', (error) => {
             throw error;
@@ -115,12 +186,15 @@ users.length > 0
             // responsePayload.result = result;
             // resolve promise
 debugger;
+const parseHrtimeToSeconds = (hrtime) => {
+  const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
+  return seconds;
+}
+const timeTaken = parseHrtimeToSeconds(process.hrtime(startTime));
 users.length > 0
-// users.length > 0
-  // TODO use user or users
-  ? resolve({ user, users, status: result.status })
+  ? resolve({ users, timeTaken, status: result.status })
   // ? resolve({ user, users, status: result.status })
-  : reject({ message: `user not found`, status: result.status });
+  : reject({ message: `records not found`, status: result.status });
           });
         });
       } catch (error) {
@@ -229,7 +303,7 @@ users.length > 0
       try {
         const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         // map array of changes to ldap.Change
-        const changes = changeUserRecordDto.map((change: ldap.Change) => {
+        const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           return new ldap.Change({
             operation: change.operation,
             modification: change.modification

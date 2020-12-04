@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Response, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
-import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto as CreateUserRecordDto, SearchUserRecordResponseDto } from './dto';
+import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto as CreateUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsResponseDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 
@@ -58,6 +58,22 @@ export class LdapController {
     this.ldapService.getUserRecord(username)
       .then((user: SearchUserRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+      });
+  }
+
+  // TODO must have ROLE_ADMIN, use Guards
+  @Get('/user')
+  @UseGuards(JwtAuthGuard)
+  async getUserRecords(
+    @Response() res,
+    @Param('username') username: string,
+  ): Promise<void> {
+    this.ldapService.getUserRecords()
+      .then((users: SearchUserRecordsResponseDto) => {
+        res.status(HttpStatus.CREATED).send(users);
       })
       .catch((error) => {
         res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});

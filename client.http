@@ -96,6 +96,17 @@ Authorization: Bearer {{authToken}}
 {
 }
 
+### ldapGetUserRecords
+// @name ldapGetUserRecords
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+GET {{uri}}/ldap/user HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+}
+
 ### ldapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
