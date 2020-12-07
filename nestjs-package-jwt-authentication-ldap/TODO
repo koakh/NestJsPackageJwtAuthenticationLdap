@@ -33,3 +33,6 @@ npm run start:debug starts working in consumer app.....
 Debugger attached.
 
 
+☐ TODAY
+  ☐ CacheStatus endpoint
+  ☐ memoryUsage helper function
