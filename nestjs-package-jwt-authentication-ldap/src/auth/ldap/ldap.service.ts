@@ -2,13 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { paginator } from '../../common/utils/util';
+import { getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
 import { envConstants as e } from '../../common/constants/env';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, InitUserRecordsCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordsResponseDto } from './dto';
+import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, InitUserRecordsCacheResponseDto as InitCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordsResponseDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
+import { Cache } from '../interfaces';
 
 /**
  * user model
@@ -21,13 +22,24 @@ export class LdapService {
   private searchBase: string;
   private searchAttributes: string;
   // dn, SearchUserRecordDto
-  private inMemoryUsers: Record<string, SearchUserRecordDto> = {};
+  // TODO remove
+  // private inMemoryUsers: Record<string, SearchUserRecordDto> = {};
+  private cache: Cache;
 
   constructor(
     private readonly configService: ConfigService,
   ) {
     // init ldapServer
     this.init(configService);
+    // init cache object
+    this.cache = {
+      lastUpdate: undefined,
+      total: undefined,
+      elapsedTime: undefined,
+      memoryUsage: undefined,
+      status: undefined,
+      users: {}
+    };
   }
   // called by GqlLocalAuthGuard
   async init(configService: ConfigService): Promise<any> {
@@ -103,20 +115,11 @@ export class LdapService {
   initUserRecordsCache = (
     // TODO: add to controller payload
     filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
+    // TODO: add to controller payload
     pageSize: number = 1000
-  ): Promise<InitUserRecordsCacheResponseDto> => {
+  ): Promise<InitCacheResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-// TODO
-const formatMemoryUsage = (data: any) => `${Math.round(data / 1024 / 1024 * 100) / 100} MB`;
-let memoryData = process.memoryUsage()
-let memoryUsage = {
-  rss: `${formatMemoryUsage(memoryData.rss)} -> Resident Set Size - total memory allocated for the process execution`,
-  heapTotal: `${formatMemoryUsage(memoryData.heapTotal)} -> total size of the allocated heap`,
-  heapUsed: `${formatMemoryUsage(memoryData.heapUsed)} -> actual memory used during the execution`,
-  external: `${formatMemoryUsage(memoryData.external)} -> V8 external memory`,
-};
-Logger.log(memoryUsage);
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
         // countUsers sums on searchEntry event
@@ -124,7 +127,9 @@ Logger.log(memoryUsage);
         // recordsFound sums on page event
         let recordsFound = 0;
         let currentPage = 0;
+        // benchMark and memoryUsage
         const startTime = process.hrtime();
+        const startMemoryUsage = getMemoryUsage();
         // start search by filter
         this.ldapClient.search(this.searchBase, {
           attributes: this.searchAttributes, scope: 'sub', filter,
@@ -158,7 +163,7 @@ Logger.log(memoryUsage);
               telephoneNumber: entry.object.telephoneNumber as string,
             };
             // add user to inMemoryUsers with dn key
-            this.inMemoryUsers[dn] = user;
+            this.cache.users[dn] = user;
           });
           res.on('page', (result, onPageCallback) => {
             // push to pages
@@ -185,26 +190,21 @@ Logger.log(memoryUsage);
               const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
               return seconds;
             }
-// TODO
-memoryData = process.memoryUsage()
-memoryUsage = {
-  rss: `${formatMemoryUsage(memoryData.rss)} -> Resident Set Size - total memory allocated for the process execution`,
-  heapTotal: `${formatMemoryUsage(memoryData.heapTotal)} -> total size of the allocated heap`,
-  heapUsed: `${formatMemoryUsage(memoryData.heapUsed)} -> actual memory used during the execution`,
-  external: `${formatMemoryUsage(memoryData.external)} -> V8 external memory`,
-};
-Logger.log(memoryUsage);
-            // elapsed time
+            // benchMark and memoryUsage
             const elapsedTime = parseHrtimeToSeconds(process.hrtime(startTime));
-            const inMemoryUsersLength = Object.keys(this.inMemoryUsers).length;
-            // TODO: send back the cache initialization summary ony, without data
-            // get paginatorResult
-            if (inMemoryUsersLength > 0 && Array.isArray(Object.values(this.inMemoryUsers))) {
-              // send data to debug purposes, use property data?
-              // const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
-              resolve({ total: recordsFound, elapsedTime, memoryUsage, status: result.status });
+            const endMemoryUsage = getMemoryUsage();
+            const cacheMemoryUsage = getMemoryUsageDifference(startMemoryUsage, endMemoryUsage);
+            const cachedUsersLength = Object.keys(this.cache.users).length;
+            if (cachedUsersLength > 0 && Array.isArray(Object.values(this.cache.users))) {
+              // update cache object
+              // tslint:disable-next-line: max-line-length
+              this.cache = { ...this.cache, lastUpdate: Date.now(), total: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
+              // get paginatorResult: used for debug purposes only
+              // const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
+              // Logger.log(`paginatorResult: [${JSON.stringify(paginatorResult, undefined, 2)}]`);
+              resolve({ ...this.cache, users: undefined });
             } else {
-              reject({ message: `records not found`, status: result.status });
+              reject({ message: `records not found, cached not initialized`, status: result.status });
             }
           });
         });
@@ -223,8 +223,12 @@ Logger.log(memoryUsage);
   getUserRecords = (): Promise<SearchUserPaginatorResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
-        const paginatorResult = paginator(Object.values(this.inMemoryUsers), 1, 100);
-        resolve({ ...paginatorResult });
+        if (!this.cache.lastUpdate) {
+          throw new Error('cache not yet initialized! initialize cache and try again');
+        } else {
+          const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
+          resolve({ ...paginatorResult });
+        }
       } catch (error) {
         // Logger.error(`error: [${error.message}]`, LdapService.name);
         // reject promise
