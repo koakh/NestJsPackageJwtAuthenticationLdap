@@ -1,23 +1,22 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Request, Response, SetMetadata, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Logger, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { Roles } from '../decorators/roles.decorator';
-import { JwtAuthGuard } from '../guards';
-import { RolesAuthGuard } from '../guards/roles-auth.guard';
+import { Roles as UserRoles } from '../enums';
+import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
+import { AddUserToGroupDto as AddMemberToGroupDto, CacheResponseDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
-import { Roles as UserRoles } from '../enums';
 @Controller('ldap')
 export class LdapController {
   constructor(private readonly ldapService: LdapService) { }
+
   @Post('/user')
   // @Roles and @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
-    @Request() req,
     @Response() res,
     @Body() createLdapUserDto: CreateUserRecordDto,
   ): Promise<void> {
@@ -35,7 +34,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Post('/group/add-member')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -55,7 +53,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Get('/user/:username')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -73,7 +70,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Post('/cache/init')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -90,7 +86,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Get('/user')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -107,7 +102,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Delete('/user/:username')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -125,7 +119,6 @@ export class LdapController {
       });
   }
 
-  // TODO must have ROLE_ADMIN, use Guards
   @Put('/user/:username')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
@@ -136,6 +129,45 @@ export class LdapController {
     @Body() changeUserRecordDto: ChangeUserRecordDto,
   ): Promise<void> {
     this.ldapService.changeUserRecord(username, changeUserRecordDto)
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
+  // Owner
+
+  @Get('/profile')
+  @UseGuards(JwtAuthGuard)
+  async getUserProfileRecord(
+    @Request() req,
+    @Response() res,
+  ): Promise<void> {
+    if (!req.user || !req.user.username) {
+      res.status(HttpStatus.FORBIDDEN).send({ error: 'invalid authenticated username' });
+    }
+    this.ldapService.getUserRecord(req.user.username)
+      .then((user: SearchUserRecordResponseDto) => {
+        res.status(HttpStatus.CREATED).send(user);
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
+  @Put('/profile')
+  @UseGuards(JwtAuthGuard)
+  async setUserProfileRecord(
+    @Request() req,
+    @Response() res,
+    @Body() changeUserRecordDto: ChangeUserRecordDto,
+  ): Promise<void> {
+    if (!req.user || !req.user.username) {
+      res.status(HttpStatus.FORBIDDEN).send({ error: 'invalid authenticated username' });
+    }
+    this.ldapService.changeUserRecord(req.user.username, changeUserRecordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })

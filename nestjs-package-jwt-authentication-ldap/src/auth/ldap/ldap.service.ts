@@ -340,6 +340,7 @@ export class LdapService {
     return new Promise((resolve, reject) => {
       try {
         const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        debugger;
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           return new ldap.Change({

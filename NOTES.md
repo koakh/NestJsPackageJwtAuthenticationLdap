@@ -16,7 +16,7 @@
   - [Ignore debug error message](#ignore-debug-error-message)
   - [Missing LDAP Port Forword](#missing-ldap-port-forword)
   - [Extract data from JWT in Endpoints, ex Extract injected User](#extract-data-from-jwt-in-endpoints-ex-extract-injected-user)
-  - [Add AuthRoles](#add-authroles)
+  - [Add AuthRoles Guard, Decorator etc](#add-authroles-guard-decorator-etc)
 
 ## Starter Project
 
@@ -212,7 +212,7 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
 }
 ```
 
-## Add AuthRoles
+## Add AuthRoles Guard, Decorator etc
 
 - [Documentation | NestJS - A progressive Node.js framework](https://docs.nestjs.com/guards#role-based-authentication)
 

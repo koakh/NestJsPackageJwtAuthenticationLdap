@@ -156,41 +156,73 @@ Authorization: Bearer {{authToken}}
 
 // array of modifications, send one attribute only to prevent error `message:'Only one attribute per Change allowed'`
 // you can pass in a single Change or an array of Change objects
-[
-  {
-    // replace, add, delete
-    "operation": "replace",
-    "modification": {
-      "displayName": "Nuno Bento Changed 6"
+{
+  "changes": [
+    {
+      // replace, add, delete
+      "operation": "replace",
+      "modification": {
+        "displayName": "Nuno Bento Changed 6"
+      }
+    },
+    {
+      "operation": "replace",
+      "modification": {
+        "mail": "nuno.bento@critical-links-changed6.com"
+      }
+    },
+    {
+      "operation": "replace",
+      "modification": {
+        "studentID": "studentID changed 6"
+      }
+    },
+    {
+      "operation": "replace",
+      "modification": {
+        "telephoneNumber": "telephoneNumber changed 6",
+      }
     }
-  },
-  {
-    "operation": "replace",
-    "modification": {
-      "mail": "nuno.bento@critical-links-changed6.com"
+    // works
+    // {
+    //   "operation": "delete",
+    //   "modification": {
+    //     "mail": null
+    //   }
+    // }  
+  ]
+}
+
+### ldapGetUserProfileRecord: don't use cache, goes direct to ldap
+// @name ldapGetUserProfileRecord
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+GET {{uri}}/ldap/profile HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+}
+
+### ldapSetUserProfileRecord
+// @name ldapSetUserProfileRecord
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+PUT {{uri}}/ldap/profile HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "changes": [
+    {
+      // replace, add, delete
+      "operation": "replace",
+      "modification": {
+        "displayName": "Changed Display Name"
+      }
     }
-  },
-  {
-    "operation": "replace",
-    "modification": {
-      "studentID": "studentID changed 6"
-    }
-  },
-  {
-    "operation": "replace",
-    "modification": {
-      "telephoneNumber": "telephoneNumber changed 6",
-      "studentID": "studentID changed 6"
-    }
-  }
-  // works
-  // {
-  //   "operation": "delete",
-  //   "modification": {
-  //     "mail": null
-  //   }
-  // }  
-]
+  ]
+}
 
 ### ldapGreeting WIP to be used to paginate
 
