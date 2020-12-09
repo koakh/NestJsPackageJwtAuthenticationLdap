@@ -2,14 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
 import { envConstants as e } from '../../common/constants/env';
+import { getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
+import { Cache } from '../interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserRecordDto, SearchUserRecordResponseDto, InitUserRecordsCacheResponseDto as InitCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordsResponseDto } from './dto';
+import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto } from './dto';
 import { UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
-import { Cache } from '../interfaces';
 
 /**
  * user model
@@ -34,7 +34,7 @@ export class LdapService {
     // init cache object
     this.cache = {
       lastUpdate: undefined,
-      total: undefined,
+      totalUsers: undefined,
       elapsedTime: undefined,
       memoryUsage: undefined,
       status: undefined,
@@ -117,7 +117,7 @@ export class LdapService {
     filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
     // TODO: add to controller payload
     pageSize: number = 1000
-  ): Promise<InitCacheResponseDto> => {
+  ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
         // note to work we must use the scope sub else it won't work
@@ -171,7 +171,7 @@ export class LdapService {
             // assign only if null
             if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
             // debug stuff: leave it here for future development
-            // const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
+            const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
             // const {_value: {size: recordsSize} } = (result.controls as any);
             // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
             // tslint:disable-next-line: max-line-length
@@ -185,12 +185,11 @@ export class LdapService {
             reject(error);
           });
           res.on('end', (result: ldap.LDAPResult) => {
-            // resolve promise
+            // benchMark and memoryUsage
             const parseHrtimeToSeconds = (hrtime) => {
               const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
               return seconds;
             }
-            // benchMark and memoryUsage
             const elapsedTime = parseHrtimeToSeconds(process.hrtime(startTime));
             const endMemoryUsage = getMemoryUsage();
             const cacheMemoryUsage = getMemoryUsageDifference(startMemoryUsage, endMemoryUsage);
@@ -198,11 +197,18 @@ export class LdapService {
             if (cachedUsersLength > 0 && Array.isArray(Object.values(this.cache.users))) {
               // update cache object
               // tslint:disable-next-line: max-line-length
-              this.cache = { ...this.cache, lastUpdate: Date.now(), total: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
+              this.cache = { ...this.cache, lastUpdate: Date.now(), totalUsers: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
               // get paginatorResult: used for debug purposes only
               // const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
               // Logger.log(`paginatorResult: [${JSON.stringify(paginatorResult, undefined, 2)}]`);
-              resolve({ ...this.cache, users: undefined });
+              // resolve promise
+              resolve({
+                lastUpdate: this.cache.lastUpdate,
+                totalUsers: this.cache.totalUsers,
+                elapsedTime: this.cache.elapsedTime,
+                memoryUsage: this.cache.memoryUsage,
+                status: this.cache.status
+              });
             } else {
               reject({ message: `records not found, cached not initialized`, status: result.status });
             }

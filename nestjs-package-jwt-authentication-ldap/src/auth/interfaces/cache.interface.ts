@@ -4,7 +4,7 @@ import { SearchUserRecordDto } from '../ldap/dto';
 export interface Cache {
   // last update initialized date
   lastUpdate: number,
-  total: number,
+  totalUsers: number,
   status: number,
   // hashMap of cached users
   users: Record<string, SearchUserRecordDto>,

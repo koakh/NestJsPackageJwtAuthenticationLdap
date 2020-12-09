@@ -1,13 +1,16 @@
-import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { envConstants } from '../common/constants';
+import { envConstants } from '../common/constants/env';
+
+/**
+ * inMemory userStore to manage token versions
+ */
 
 interface User {
   username: string;
   tokenVersion: number;
 }
 
-export class UserStore {
+export class AuthStore {
   store: User[];
 
   constructor(private readonly configService: ConfigService) {

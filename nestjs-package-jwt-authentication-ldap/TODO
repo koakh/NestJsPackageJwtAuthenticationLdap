@@ -34,5 +34,27 @@ Debugger attached.
 
 
 ☐ TODAY
-  ☐ CacheStatus endpoint
+  ☐ convert roles to CONSTANT ex SERVER_OPERATORS
+  ☐ use @Roles(UserRoles.ADMINISTRATOR) @UseGuards(RolesAuthGuard) roles in every endpoint
+  ☐ initCache have role?
+  ☐ cacheStatus endpoint
+  ☐ temove all user module stuff and @critical local.strategy.ts to
+  ☐ return init cache before use endPoint in ldapGetUserRecords
   ☐ memoryUsage helper function
+  ☐ remove group
+  ☐ update password
+  ☐ roles, all endpoint protected with roles, ONLY login, logout, and changeUser profile or change user record may PASS
+  ☐ 
+
+ldapGetUserRecords  is same has -> return init cache before use endPoint
+  {
+    "total": 110022,
+    "elapsedTime": "47.740",
+    "memoryUsage": {
+      "rss": "465.38 MB -> Resident Set Size - total memory allocated for the process execution",
+      "heapTotal": "366.74 MB -> total size of the allocated heap",
+      "heapUsed": "198.43 MB -> actual memory used during the execution",
+      "external": "1.57 MB -> V8 external memory"
+    },
+    "status": 0
+  }

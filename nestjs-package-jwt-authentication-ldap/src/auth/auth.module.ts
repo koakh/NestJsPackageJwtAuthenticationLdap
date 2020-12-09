@@ -5,12 +5,10 @@ import { APP_FILTER } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { envConstants } from '../common/constants/env';
 import { HttpExceptionFilter } from '../common/filters';
-import { UserModule } from '../user/user.module';
-import { UserService } from '../user/user.service';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { LdapService } from './ldap/ldap.service';
-import { JwtStrategy, LdapStrategy, LocalStrategy } from './strategy';
+import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
 import { LdapController } from './ldap/ldap.controller';
 
 @Module({
@@ -23,7 +21,6 @@ import { LdapController } from './ldap/ldap.controller';
       }),
       inject: [ConfigService],
     }),
-    UserModule,
   ],
   providers: [
     // register a global-scoped filter directly from any module
@@ -31,7 +28,7 @@ import { LdapController } from './ldap/ldap.controller';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    AuthService, UserService, LocalStrategy, JwtStrategy, LdapStrategy, LdapService,
+    AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService,
   ],
   exports: [AuthService],
   controllers: [AuthController, LdapController],

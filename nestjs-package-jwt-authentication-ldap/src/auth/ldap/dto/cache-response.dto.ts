@@ -1,6 +1,6 @@
-export interface InitCacheResponseDto extends Cache {
+export interface CacheResponseDto {
   lastUpdate: number,
-  total: number,
+  totalUsers: number,
   elapsedTime: number,
   memoryUsage: any,
   status: number,

@@ -1,1 +1,1 @@
-export * from './memory-usage';
+export * from './memory-usage.interface';

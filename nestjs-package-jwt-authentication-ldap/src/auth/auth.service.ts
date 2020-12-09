@@ -5,33 +5,42 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { envConstants } from '../common/constants/env';
-import { UserService } from '../user/user.service';
-import AccessToken from './interfaces/access-token';
-import { JwtResponsePayload } from './interfaces/jwt-response.payload';
+import AccessToken from './interfaces/access-token.interface';
+import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { hashPassword } from './utils/util';
+import { AuthStore } from './auth.store';
+// import { LdapService } from './ldap/ldap.service';
 
 @Injectable()
 export class AuthService {
+  // init usersStore
+  usersStore: AuthStore = new AuthStore(this.configService);
+
   constructor(
     private readonly configService: ConfigService,
-    private readonly usersService: UserService,
+    // private readonly ldapService: LdapService,
     private readonly jwtService: JwtService,
   ) { }
   // called by GqlLocalAuthGuard
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByUsername(username);
-    if (user) {
-      const authorized = this.bcryptValidate(pass, user.password);
-      if (authorized) {
-        // this will remove password from result leaving all the other properties
-        const { password, ...result } = user;
-        // we could do a database lookup in our validate() method to extract more information about the user,
-        // resulting in a more enriched user object being available in our Request
-        return result;
-      }
-    }
-    return null;
-  }
+  // async validateUser(username: string, pass: string): Promise<any> {
+  //   // TODO
+  //   // const user = await this.usersService.findOneByUsername(username);
+  //   debugger;
+  //   // const user = await this.ldapService.getUserRecord(username);
+  //   // TODO wip
+  //   console.log('WIP');
+  //   // if (user) {
+  //   //   const authorized = this.bcryptValidate(pass, user.password);
+  //   //   if (authorized) {
+  //   //     // this will remove password from result leaving all the other properties
+  //   //     const { password, ...result } = user;
+  //   //     // we could do a database lookup in our validate() method to extract more information about the user,
+  //   //     // resulting in a more enriched user object being available in our Request
+  //   //     return result;
+  //   //   }
+  //   // }
+  //   return null;
+  // }
 
   async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
@@ -81,10 +90,10 @@ export class AuthService {
     }
     const roles: string[] = memberOf.map((e: string) => {
       const memberOfRole: string[] = e.split(',');
-      // get first group
+      // get first group, and only add c3 prefixed roles
       return (memberOfRole[0].includes('='))
-        ? memberOfRole[0].split('=')[1]
-        : null
+        ? memberOfRole[0].split('=')[1].replace('C3','C3_').replace(' ','_').toUpperCase()
+        : undefined
     });
     return roles;
   }

@@ -1,19 +1,23 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Request, Response, SetMetadata, UseGuards } from '@nestjs/common';
+import { Roles } from '../decorators/roles.decorator';
 import { JwtAuthGuard } from '../guards';
+import { RolesAuthGuard } from '../guards/roles-auth.guard';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, InitUserRecordsCacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
+import { AddUserToGroupDto as AddMemberToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
-
+import { Roles as UserRoles } from '../enums';
 @Controller('ldap')
 export class LdapController {
-
   constructor(private readonly ldapService: LdapService) { }
-  // TODO must have ROLE_ADMIN, use Guards
   @Post('/user')
+  // @Roles and @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
+    @Request() req,
     @Response() res,
     @Body() createLdapUserDto: CreateUserRecordDto,
   ): Promise<void> {
@@ -27,12 +31,14 @@ export class LdapController {
         });
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Post('/group/add-member')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async addMemberToGroup(
     @Response() res,
@@ -45,12 +51,14 @@ export class LdapController {
         });
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Get('/user/:username')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
     @Response() res,
@@ -61,43 +69,48 @@ export class LdapController {
         res.status(HttpStatus.CREATED).send(user);
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Post('/cache/init')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
     @Response() res
   ): Promise<void> {
     this.ldapService.initUserRecordsCache()
-      .then((dto: InitUserRecordsCacheResponseDto) => {
+      .then((dto: CacheResponseDto) => {
         res.status(HttpStatus.CREATED).send(dto);
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Get('/user')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecords(
     @Response() userRecordsResponse,
-    @Param('username') username: string,
   ): Promise<void> {
     this.ldapService.getUserRecords()
       .then((dto: SearchUserPaginatorResponseDto) => {
         userRecordsResponse.status(HttpStatus.CREATED).send(dto);
       })
       .catch((error) => {
-        userRecordsResponse.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        userRecordsResponse.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Delete('/user/:username')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
     @Response() res,
@@ -108,12 +121,14 @@ export class LdapController {
         res.status(HttpStatus.NO_CONTENT).send();
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 
   // TODO must have ROLE_ADMIN, use Guards
   @Put('/user/:username')
+  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
     @Response() res,
@@ -125,7 +140,7 @@ export class LdapController {
         res.status(HttpStatus.NO_CONTENT).send();
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({error: (error.message) ? error.message : error});
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
 }

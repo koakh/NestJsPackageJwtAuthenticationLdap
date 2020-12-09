@@ -15,6 +15,8 @@
   - [Problems](#problems)
   - [Ignore debug error message](#ignore-debug-error-message)
   - [Missing LDAP Port Forword](#missing-ldap-port-forword)
+  - [Extract data from JWT in Endpoints, ex Extract injected User](#extract-data-from-jwt-in-endpoints-ex-extract-injected-user)
+  - [Add AuthRoles](#add-authroles)
 
 ## Starter Project
 
@@ -164,4 +166,86 @@ Could not read source map for file:///media/mario/storage/Home/Documents/Develop
 ```shell
 [ExceptionsHandler] connect ECONNREFUSED 192.168.1.1:2210 +97867ms
 Error: connect ECONNREFUSED 192.168.1.1:2210
+```
+
+## Extract data from JWT in Endpoints, ex Extract injected User
+
+- [Get current user in nestjs on a route without an AuthGuard](https://stackoverflow.com/questions/63257879/get-current-user-in-nestjs-on-a-route-without-an-authguard)
+
+just extract `user` from request
+
+```typescript
+@Post('/user')
+@UseGuards(JwtAuthGuard)
+async createUserRecord(
+  @Request() req,
+  @Response() res,
+  @Body() createLdapUserDto: CreateUserRecordDto,
+): Promise<void> {
+  console.log(req.user); 
+```
+
+the magic happens in `nestjs-package-jwt-authentication-ldap/src/auth/strategy/ldap.strategy.ts` where we inject user in request in `req.user = user;`
+
+```typescript
+@Injectable()
+export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
+  constructor(private readonly configService: ConfigService) {
+    super({
+      // allows us to pass back the entire request to the callback
+      passReqToCallback: true,
+      server: {
+        // ldapOptions
+        url: `ldap://${configService.get(envConstants.LDAP_URL)}`,
+        bindDN: configService.get(envConstants.LDAP_BIND_DN),
+        bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
+        searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
+        searchFilter: configService.get(envConstants.LDAP_SEARCH_FILTER),
+        searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(','),
+      },
+    }, async (req: Request, user: any, done) => {
+      // add user to request
+      req.user = user;
+      return done(null, user);
+    });
+  }
+}
+```
+
+## Add AuthRoles
+
+- [Documentation | NestJS - A progressive Node.js framework](https://docs.nestjs.com/guards#role-based-authentication)
+
+add files
+
+- `nestjs-package-jwt-authentication-ldap/src/auth/decorators/roles.decorator.ts`
+- `nestjs-package-jwt-authentication-ldap/src/auth/enums/roles.enum.ts`
+- `nestjs-package-jwt-authentication-ldap/src/auth/strategy/role.strategy.ts`
+- `nestjs-package-jwt-authentication-ldap/src/auth/guards/role-auth.guard.ts`
+- `nestjs-package-jwt-authentication-ldap/src/auth/auth.module.ts`
+
+```typescript
+import { JwtStrategy, LdapStrategy,RoleStrategy } from './strategy';
+...
+@Module({
+  ...
+  providers: [
+    AuthService, JwtStrategy, LdapStrategy, RoleStrategy, LdapService,
+  ],
+})
+```
+
+use guards like that
+
+```typescript
+constructor(private readonly ldapService: LdapService) { }
+@Post('/user')
+@Roles(UserRoles.C3_ADMINISTRATOR)
+@UseGuards(RolesAuthGuard)
+@UseGuards(JwtAuthGuard)
+async createUserRecord(
+  @Request() req,
+  @Response() res,
+  @Body() createLdapUserDto: CreateUserRecordDto,
+): Promise<void> {
 ```

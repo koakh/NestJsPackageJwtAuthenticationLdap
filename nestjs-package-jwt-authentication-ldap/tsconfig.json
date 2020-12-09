@@ -7,10 +7,10 @@
     "experimentalDecorators": true,
     "target": "es6",
     "sourceMap": true,
+    "noLib": false,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./",
-    "noLib": false
+    "baseUrl": "./"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules"]

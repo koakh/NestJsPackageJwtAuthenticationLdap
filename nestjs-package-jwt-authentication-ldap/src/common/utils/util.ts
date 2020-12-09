@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { MemoryUsage } from '../interfaces';
 
 /**
@@ -71,7 +70,7 @@ export const getMemoryUsage = (): MemoryUsage => {
       label: `v8 external memory`,
     },
   };
-  Logger.log(memoryUsage);
+  // Logger.log(memoryUsage);
   return memoryUsage;
 };
 
