@@ -1,13 +1,11 @@
-
-
 import { IsDefined, Length } from 'class-validator';
 
-export class AddUserToGroupDto {
+export class ChangeUserPasswordDto {
   @IsDefined()
   @Length(3, 50)
-  username: string;
+  oldPassword: string;
 
   @IsDefined()
   @Length(3, 50)
-  group: string;
+  newPassword: string;
 }

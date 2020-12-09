@@ -7,8 +7,8 @@ import { getMemoryUsage, getMemoryUsageDifference, paginator } from '../../commo
 import { Cache } from '../interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto } from './dto';
-import { UserAccountControl, UserObjectClass } from './enums';
+import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto } from './dto';
+import { ChangeUserRecordOperation, UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
 /**
@@ -275,7 +275,7 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
-            await this.addUserToGroup({ username: newUser.cn, group: 'c3student' });
+            await this.addDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: 'c3student' });
             resolve();
           }
         });
@@ -290,21 +290,20 @@ export class LdapService {
 
   /**
    * add group/role to user
-   * @param memberDN
    */
-  addUserToGroup(addUserToGroupDto: AddUserToGroupDto): Promise<any> {
+  addDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddDeleteUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
         const groupChange = new ldap.Change({
-          operation: 'add',
+          operation,
           modification: {
             member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
           }
         });
         this.ldapClient.modify(groupDN, groupChange, (error) => {
           if (error) {
-            throw (error);
+            reject(error);
           } else {
             resolve();
           }
@@ -334,13 +333,11 @@ export class LdapService {
 
   /**
    * change user record
-   * @param memberDN
    */
   changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
         const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
-        debugger;
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           return new ldap.Change({
@@ -349,6 +346,47 @@ export class LdapService {
           });
         });
 
+        this.ldapClient.modify(changeDN, changes, (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+  
+  /**
+   * change user password
+   */
+  changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<any> {
+    return new Promise((resolve, reject) => {
+      try {
+        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
+          throw new Error('you must pass a valid oldPassword and newPassword properties')
+        }
+        if (changeUserPasswordDto.oldPassword === changeUserPasswordDto.newPassword) {
+          throw new Error('oldPassword and newPassword are equal')
+        }
+        // map array of changes to ldap.Change
+        const changes = [
+          new ldap.Change({
+            operation: 'delete',
+            modification: {
+              unicodePwd: encodeAdPassword(changeUserPasswordDto.oldPassword)
+            }
+          }),
+          new ldap.Change({
+            operation: 'add',
+            modification: {
+              unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword)
+            }
+          })
+        ];
         this.ldapClient.modify(changeDN, changes, (error) => {
           if (error) {
             reject(error);

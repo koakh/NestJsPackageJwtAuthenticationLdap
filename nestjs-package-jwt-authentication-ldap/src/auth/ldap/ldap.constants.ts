@@ -1,6 +1,6 @@
 export const constants: { [key: string]: string } = {
   USER_CREATED: 'user \'${username}\' created successfully',
-  USER_ADDED_TO_GROUP: 'user \'${username}\' add to group \'${group}\' successfully',
+  USER_ADDED_DELETED_TO_GROUP: '${operation} user \'${username}\' from group \'${group}\' successfully',
   // occurs on create user that already exists
   // INVALID_DISTINGUISHED_NAME_ERROR: 'can\'t create user \'${username}\' with invalid distinguished name \'${distinguishedName}\'',
 }

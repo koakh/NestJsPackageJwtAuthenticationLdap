@@ -1,15 +1,23 @@
-import { Body, Controller, Delete, Get, HttpStatus, Logger, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Logger, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { Roles } from '../decorators/roles.decorator';
 import { Roles as UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddUserToGroupDto as AddMemberToGroupDto, CacheResponseDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
+import { AddDeleteUserToGroupDto as AddMemberToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto } from './dto';
+import { ChangeUserRecordOperation } from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 @Controller('ldap')
 export class LdapController {
   constructor(private readonly ldapService: LdapService) { }
+
+  // helper method to check valid logged user
+  checkAuthUser(req: Request) {
+    if (!(req as any).user || !(req as any).user.username) {
+      throw new NotFoundException(`invalid authenticated user`);
+    }
+  }
 
   @Post('/user')
   // @Roles and @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
@@ -34,18 +42,19 @@ export class LdapController {
       });
   }
 
-  @Post('/group/add-member')
+  @Post('/group/:operation')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async addMemberToGroup(
     @Response() res,
+    @Param('operation') operation: ChangeUserRecordOperation,
     @Body() addUserToGroupDto: AddMemberToGroupDto,
   ): Promise<void> {
-    this.ldapService.addUserToGroup(addUserToGroupDto)
+    this.ldapService.addDeleteUserToGroup(operation, addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.USER_ADDED_TO_GROUP, addUserToGroupDto)
+          message: parseTemplate(c.USER_ADDED_DELETED_TO_GROUP, { operation, ...addUserToGroupDto })
         });
       })
       .catch((error) => {
@@ -145,9 +154,7 @@ export class LdapController {
     @Request() req,
     @Response() res,
   ): Promise<void> {
-    if (!req.user || !req.user.username) {
-      res.status(HttpStatus.FORBIDDEN).send({ error: 'invalid authenticated username' });
-    }
+    this.checkAuthUser(req);
     this.ldapService.getUserRecord(req.user.username)
       .then((user: SearchUserRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
@@ -159,15 +166,30 @@ export class LdapController {
 
   @Put('/profile')
   @UseGuards(JwtAuthGuard)
-  async setUserProfileRecord(
+  async changeUserProfileRecord(
     @Request() req,
     @Response() res,
     @Body() changeUserRecordDto: ChangeUserRecordDto,
   ): Promise<void> {
-    if (!req.user || !req.user.username) {
-      res.status(HttpStatus.FORBIDDEN).send({ error: 'invalid authenticated username' });
-    }
+    this.checkAuthUser(req);
     this.ldapService.changeUserRecord(req.user.username, changeUserRecordDto)
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
+  @Put('/profile/password')
+  @UseGuards(JwtAuthGuard)
+  async changeUserProfilePassword(
+    @Request() req,
+    @Response() res,
+    @Body() changeUserPasswordDto: ChangeUserPasswordDto,
+  ): Promise<void> {
+    this.checkAuthUser(req);
+    this.ldapService.changeUserProfilePassword(req.user.username, changeUserPasswordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })

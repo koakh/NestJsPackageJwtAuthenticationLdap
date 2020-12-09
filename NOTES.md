@@ -17,6 +17,7 @@
   - [Missing LDAP Port Forword](#missing-ldap-port-forword)
   - [Extract data from JWT in Endpoints, ex Extract injected User](#extract-data-from-jwt-in-endpoints-ex-extract-injected-user)
   - [Add AuthRoles Guard, Decorator etc](#add-authroles-guard-decorator-etc)
+  - [ldapjs Password Change](#ldapjs-password-change)
 
 ## Starter Project
 
@@ -249,3 +250,25 @@ async createUserRecord(
   @Body() createLdapUserDto: CreateUserRecordDto,
 ): Promise<void> {
 ```
+
+## ldapjs Password Change
+
+- [ldapjs Password Change](https://gist.github.com/mattwoolnough/4ab72ad0d00b9f3067bb55835bda1566)
+
+```typescript
+Client.modify(userDN, [
+  new ldap.Change({
+    operation: 'delete',
+    modification: {
+      unicodePwd: encodePassword(oldPassword)
+    }
+  }),
+  new ldap.Change({
+    operation: 'add',
+    modification: {
+      unicodePwd: encodePassword(newPassword)
+    }
+  })
+```
+
+> When sending **add** and **delete** at the same time **Active Directory** treats it as a **normal password reset**, to perform an **administrator password reset** Active Directory only expects to receive the **replace** command.
