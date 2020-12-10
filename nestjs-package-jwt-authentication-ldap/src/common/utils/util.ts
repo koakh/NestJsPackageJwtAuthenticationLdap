@@ -18,6 +18,13 @@ export const mapKeysToLowerCase = (obj: object) => {
   return result;
 };
 
+export const recordToArray = (record: any) => {
+  if (Array.isArray(Object.values(record))) {
+    // console.log(`Object.values(record): [${JSON.stringify(Object.values(record), undefined, 2)}]`);
+    return Object.values(record);
+  }  
+}
+
 /**
  * paginator helper function
  * @param items array of items
@@ -25,24 +32,30 @@ export const mapKeysToLowerCase = (obj: object) => {
  * @param perPageItems
  * @description used like `console.log(paginator(products, 2, 2));`
  */
-export const paginator = (items: any, currentPage: number, perPageItems: number): SearchUserPaginatorResponseDto => {
-  // defaults
-  const page = currentPage || 1;
-  const perPage = perPageItems || 10;
-  const offset = (page - 1) * perPage;
+export const paginator = (items: any, currentPage: number, perPageItems: number): Promise<SearchUserPaginatorResponseDto> => {
+  return new Promise((resolve, reject) => {
+    try {
+      // defaults
+      const page = currentPage || 1;
+      const perPage = perPageItems || 10;
+      const offset = (page - 1) * perPage;
+      const paginatedItems = items.slice(offset).slice(0, perPageItems);
+      const totalPages = Math.ceil(items.length / perPage);
 
-  const paginatedItems = items.slice(offset).slice(0, perPageItems);
-  const totalPages = Math.ceil(items.length / perPage);
-
-  return {
-    page,
-    perPage,
-    prePage: page - 1 ? page - 1 : null,
-    nextPage: (totalPages > page) ? page + 1 : null,
-    total: items.length,
-    totalPages,
-    data: paginatedItems,
-  };
+      resolve({
+        page,
+        perPage,
+        prePage: page - 1 ? page - 1 : null,
+        nextPage: (totalPages > page) ? page + 1 : null,
+        total: items.length,
+        totalPages,
+        data: paginatedItems,
+      });
+    } catch (error) {
+      // reject promise
+      reject(error);
+    }
+  })
 };
 
 /**
@@ -50,45 +63,54 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
  * @param items 
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
-export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): SearchUserRecordDto[] => {
-  if (Array.isArray(searchAttributes)) {
-    let result: SearchUserRecordDto[] = items;
-    searchAttributes.forEach((attribute: FilteratorSearchFieldAttribute) => {
-      // check if is a valid object with attributeKey
-      if (typeof attribute === 'object' && Array.isArray(Object.keys(attribute))) {
-        const attributeKey = Object.keys(attribute)[0];
-        if (attribute[attributeKey].exact) {
-          debugger;
-          Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
-          // filter attributeKey
-          result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
-        }
-        if (attribute[attributeKey].contains) {
-          debugger;
-          Logger.log(`filterator attribute: contains '${attribute[attributeKey].contains}'`);
-          // filter attributeKey
-          result = result.filter((e) => e[attributeKey].contains(attribute[attributeKey].contains));
-        }
-        if (attribute[attributeKey].regex) {
-          debugger;
-          Logger.log(`filterator attribute: regex '${attribute[attributeKey].regex}'`);
-          try {
+export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+  try {
+    if (Array.isArray(searchAttributes)) {
+      let result: SearchUserRecordDto[] = items;
+      searchAttributes.forEach((attribute: FilteratorSearchFieldAttribute) => {
+        // check if is a valid object with attributeKey
+        if (typeof attribute === 'object' && Array.isArray(Object.keys(attribute))) {
+          const attributeKey = Object.keys(attribute)[0];
+          if (attribute[attributeKey].exact) {
+            // Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
+            // filter attributeKey
+            result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
+          }
+          if (attribute[attributeKey].includes) {
+            // Logger.log(`filterator attribute: contains '${attribute[attributeKey].includes}'`);
+            // filter attributeKey
             result = result.filter((e) => {
-              debugger;
-              const regExp = new RegExp(attribute[attributeKey].regex);
-              return regExp.test(e[attributeKey]);
+              return (e[attributeKey]).includes(attribute[attributeKey].includes);
             });
-          } catch (error) {
-            Logger.log(`filterator invalid regExp on attributeKey ${attributeKey}. regExp: '${attribute[attributeKey].regex}'`);
+          }
+          if (attribute[attributeKey].regex) {
+            // Logger.log(`filterator attribute: regex '${attribute[attributeKey].regex}'`);
+            try {
+              result = result.filter((e) => {
+                const regExp = new RegExp(attribute[attributeKey].regex);
+                // TODO: cleanup
+                // RegExp(attribute[attributeKey].regex).test(e[attributeKey])
+                // ok
+                // RegExp("(\\w*mario\\w*)", "gm").test(e[attributeKey])
+                // ok
+                // RegExp("\\b(\\w*mario\\w*)\\b", "g").test(e[attributeKey])
+                return regExp.test(e[attributeKey]);
+              });
+            } catch (error) {
+              Logger.log(`filterator invalid regExp on attributeKey ${attributeKey}. regExp: '${attribute[attributeKey].regex}'`);
+            }
           }
         }
-      }
-    });
-    return result;
-  } else {
-    return items;
+        resolve(result);
+      });
+    } else {
+      resolve(items);
+    }
+  } catch (error) {
+    // reject promise
+    reject(error);
   }
-}
+});
 
 export const getMemoryUsage = (): MemoryUsage => {
   // inner helper function

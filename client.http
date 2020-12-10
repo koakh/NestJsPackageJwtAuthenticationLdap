@@ -118,7 +118,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "page": 1101,
+  "page": 1,
   "perPage": 100,
   // optional
   "searchAttributes": [{
@@ -127,9 +127,10 @@ Authorization: Bearer {{authToken}}
       // must match string
       "exact": "mario",
       // must contain string
-      "contains": "mario",
+      "includes": "mario",
       // must match regex, warn for escaped slashes
-      "regex": "\b(\\w*mario\\w*)\b"
+      // "regex": "/\b(\\w*mario\\w*)\b/gm"
+      "regex": "\\b(\\w*mario\\w*)\\b"
     }
   }]
 }

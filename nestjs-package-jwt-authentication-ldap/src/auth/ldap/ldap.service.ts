@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
-import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
+import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
 import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
@@ -266,14 +266,15 @@ Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFoun
    */
   // TODO: args payload object with filter, pagination props etc
   getUserRecords = (searchUserRecordsRequestDto: SearchUserRecordsRequestDto): Promise<SearchUserPaginatorResponseDto> => {
-    return new Promise((resolve, reject) => {
+    return new Promise(async(resolve, reject) => {
       try {
         if (!this.cache.lastUpdate) {
           throw new Error('cache not yet initialized! first initialize cache and try again');
         } else {
-          // TODO
-          const filtered = filterator(this.cache.users, searchUserRecordsRequestDto.searchAttributes);
-          const paginatorResult = paginator(Object.values(filtered), searchUserRecordsRequestDto.page, searchUserRecordsRequestDto.perPage);
+          // convert record to array before duty
+          const recordArray = recordToArray(this.cache.users);
+          const filtered = await filterator(recordArray, searchUserRecordsRequestDto.searchAttributes);
+          const paginatorResult = await paginator(filtered, searchUserRecordsRequestDto.page, searchUserRecordsRequestDto.perPage);
           resolve({ ...paginatorResult });
         }
       } catch (error) {

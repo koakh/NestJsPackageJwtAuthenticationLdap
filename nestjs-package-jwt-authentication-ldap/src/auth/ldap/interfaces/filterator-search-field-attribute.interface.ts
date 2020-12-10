@@ -3,7 +3,7 @@ export interface FilteratorSearchFieldAttribute {
     // must match string
     exact?: string,
     // must contain string
-    contains?: string,
+    includes?: string,
     // must match regex
     regex?: string,
   }
