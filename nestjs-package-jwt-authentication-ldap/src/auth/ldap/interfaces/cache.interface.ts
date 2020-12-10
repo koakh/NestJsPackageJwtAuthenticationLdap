@@ -1,5 +1,5 @@
-import { MemoryUsage } from '../../common/interfaces';
-import { SearchUserRecordDto } from '../ldap/dto';
+import { MemoryUsage } from '../../../common/interfaces';
+import { SearchUserRecordDto } from '../dto';
 
 export interface Cache {
   // last update initialized date

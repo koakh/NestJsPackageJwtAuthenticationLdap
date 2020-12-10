@@ -88,6 +88,10 @@ export class AuthService {
     if (memberOf.length < 0) {
       return [];
     }
+    // if memberOf is a string, in case of ldap have only one group, we must modify memberOf to be an array, else it fails on map
+    if (typeof memberOf === 'string') {
+      memberOf = [memberOf];
+    }
     const roles: string[] = memberOf.map((e: string) => {
       const memberOfRole: string[] = e.split(',');
       // get first group, and only add c3 prefixed roles

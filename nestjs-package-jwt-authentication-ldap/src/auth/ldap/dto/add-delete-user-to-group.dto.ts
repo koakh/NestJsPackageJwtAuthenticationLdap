@@ -1,5 +1,3 @@
-
-
 import { IsDefined, Length } from 'class-validator';
 
 export class AddDeleteUserToGroupDto {

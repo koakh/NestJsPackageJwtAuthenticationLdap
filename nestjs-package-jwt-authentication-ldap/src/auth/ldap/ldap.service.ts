@@ -3,12 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
-import { getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
-import { Cache } from '../interfaces';
+import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator } from '../../common/utils/util';
+import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto } from './dto';
-import { ChangeUserRecordOperation, UserAccountControl, UserObjectClass } from './enums';
+import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsRequestDto } from './dto';
+import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
 /**
@@ -41,6 +41,7 @@ export class LdapService {
       users: {}
     };
   }
+
   // called by GqlLocalAuthGuard
   async init(configService: ConfigService): Promise<any> {
     const clientOptions: ldap.ClientOptions = {
@@ -58,6 +59,42 @@ export class LdapService {
     // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`, LdapService.name);
   }
 
+  /**
+   * helper method to update cache, on ldap changes
+   * @param operation
+   * @param username 
+   */
+  async updateCachedUser(operation: UpdateCacheOperation, username: string): Promise<void> {
+    // export type Period = 'dy' | 'wk' | 'mn' | 'qt' | 'yr';
+    // const periods: Record<Period, string> = {
+    //   dy: 'Day',
+    //   wk: 'Week',
+    //   mn: 'Month',
+    //   qt: 'Quarter',
+    //   yr: 'Year'
+    // };
+    // const key = (Object.keys(periods) as Array<Period>).find(key => periods[key] === 'Day');    
+    switch (operation) {
+      case UpdateCacheOperation.CREATE:
+        Logger.log(`UpdateCacheOperation.CREATE`, LdapService.name)
+        const user: SearchUserRecordResponseDto = await this.getUserRecord(username);
+        const key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
+        Logger.log(`user:${JSON.stringify(user, undefined, 2)}`, LdapService.name)
+        // using key
+        Logger.log(`this.cache.users[username]:${JSON.stringify(this.cache.users[key], undefined, 2)}`, LdapService.name)
+        break;
+      case UpdateCacheOperation.UPDATE:
+        Logger.log(`UpdateCacheOperation.UPDATE`, LdapService.name)
+        // const user: SearchUserRecordResponseDto = this.getUserRecord(username);
+        break;
+      case UpdateCacheOperation.DELETE:
+        Logger.log(`UpdateCacheOperation.DELETE`, LdapService.name)
+        break;
+      default:
+        break;
+    }
+  }
+
   getUserRecord = (username: string): Promise<SearchUserRecordResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
@@ -72,7 +109,8 @@ export class LdapService {
             user = {
               // extract username from string | array
               dn: entry.object.dn as string,
-              memberOf: entry.object.memberOf as string[],
+              // if only have on group we must convert ldap string to array to ve consistent
+              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
               userAccountControl: entry.object.userAccountControl as string,
@@ -147,7 +185,7 @@ export class LdapService {
             user = {
               // extract username from string | array
               dn,
-              memberOf: entry.object.memberOf as string[],
+              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
               userAccountControl: entry.object.userAccountControl as string,
@@ -175,7 +213,8 @@ export class LdapService {
             // const {_value: {size: recordsSize} } = (result.controls as any);
             // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
             // tslint:disable-next-line: max-line-length
-            // Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+// TODO: comment
+Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
             // use the page event to continue with next page if the sizeLimit (of page) is reached.
             // tslint:disable-next-line: max-line-length
             // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
@@ -226,13 +265,15 @@ export class LdapService {
    * pagination version
    */
   // TODO: args payload object with filter, pagination props etc
-  getUserRecords = (): Promise<SearchUserPaginatorResponseDto> => {
+  getUserRecords = (searchUserRecordsRequestDto: SearchUserRecordsRequestDto): Promise<SearchUserPaginatorResponseDto> => {
     return new Promise((resolve, reject) => {
       try {
         if (!this.cache.lastUpdate) {
-          throw new Error('cache not yet initialized! initialize cache and try again');
+          throw new Error('cache not yet initialized! first initialize cache and try again');
         } else {
-          const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
+          // TODO
+          const filtered = filterator(this.cache.users, searchUserRecordsRequestDto.searchAttributes);
+          const paginatorResult = paginator(Object.values(filtered), searchUserRecordsRequestDto.page, searchUserRecordsRequestDto.perPage);
           resolve({ ...paginatorResult });
         }
       } catch (error) {
@@ -243,6 +284,7 @@ export class LdapService {
     })
   };
 
+  // TODO: must update cache
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
@@ -275,7 +317,11 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
+            // must add new user to group
             await this.addDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: 'c3student' });
+            // TODO: always get fresh created/update user from ldap to be consistent
+            debugger;
+            await this. updateCachedUser(UpdateCacheOperation.CREATE, createLdapUserDto.username);
             resolve();
           }
         });
@@ -291,6 +337,7 @@ export class LdapService {
   /**
    * add group/role to user
    */
+  // TODO: must update cache
   addDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddDeleteUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
@@ -314,6 +361,10 @@ export class LdapService {
     });
   };
 
+  /**
+   * delete user
+   */
+  // TODO: must update cache
   deleteUserRecord(username: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const delDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
@@ -334,6 +385,7 @@ export class LdapService {
   /**
    * change user record
    */
+  // TODO: must update cache
   changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
@@ -358,7 +410,7 @@ export class LdapService {
       }
     });
   };
-  
+
   /**
    * change user password
    */

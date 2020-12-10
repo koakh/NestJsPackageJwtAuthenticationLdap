@@ -1,3 +1,6 @@
+import { Logger } from '@nestjs/common';
+import { FilteratorSearchFieldAttribute } from '../../auth/ldap/interfaces';
+import { SearchUserPaginatorResponseDto, SearchUserRecordDto } from '../../auth/ldap/dto';
 import { MemoryUsage } from '../interfaces';
 
 /**
@@ -22,7 +25,7 @@ export const mapKeysToLowerCase = (obj: object) => {
  * @param perPageItems
  * @description used like `console.log(paginator(products, 2, 2));`
  */
-export const paginator = (items: any, currentPage: number, perPageItems: number) => {
+export const paginator = (items: any, currentPage: number, perPageItems: number): SearchUserPaginatorResponseDto => {
   // defaults
   const page = currentPage || 1;
   const perPage = perPageItems || 10;
@@ -41,6 +44,51 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
     data: paginatedItems,
   };
 };
+
+/**
+ * helper function to filter array based on searchAttributes
+ * @param items 
+ * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
+ */
+export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): SearchUserRecordDto[] => {
+  if (Array.isArray(searchAttributes)) {
+    let result: SearchUserRecordDto[] = items;
+    searchAttributes.forEach((attribute: FilteratorSearchFieldAttribute) => {
+      // check if is a valid object with attributeKey
+      if (typeof attribute === 'object' && Array.isArray(Object.keys(attribute))) {
+        const attributeKey = Object.keys(attribute)[0];
+        if (attribute[attributeKey].exact) {
+          debugger;
+          Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
+          // filter attributeKey
+          result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
+        }
+        if (attribute[attributeKey].contains) {
+          debugger;
+          Logger.log(`filterator attribute: contains '${attribute[attributeKey].contains}'`);
+          // filter attributeKey
+          result = result.filter((e) => e[attributeKey].contains(attribute[attributeKey].contains));
+        }
+        if (attribute[attributeKey].regex) {
+          debugger;
+          Logger.log(`filterator attribute: regex '${attribute[attributeKey].regex}'`);
+          try {
+            result = result.filter((e) => {
+              debugger;
+              const regExp = new RegExp(attribute[attributeKey].regex);
+              return regExp.test(e[attributeKey]);
+            });
+          } catch (error) {
+            Logger.log(`filterator invalid regExp on attributeKey ${attributeKey}. regExp: '${attribute[attributeKey].regex}'`);
+          }
+        }
+      }
+    });
+    return result;
+  } else {
+    return items;
+  }
+}
 
 export const getMemoryUsage = (): MemoryUsage => {
   // inner helper function
@@ -81,6 +129,11 @@ export const getMemoryUsageDifference = (start: MemoryUsage, end: MemoryUsage): 
   const heapTotal = (end.heapTotal.value - start.heapTotal.value);
   const heapUsed = (end.heapUsed.value - start.heapUsed.value);
   const external = (end.external.value - start.external.value);
+  // debug message
+  Logger.log(`rss: ${end.rss.value} - ${start.rss.value} = ${end.rss.value - start.rss.value}`);
+  Logger.log(`heapTotal: ${end.heapTotal.value} - ${start.heapTotal.value} = ${end.heapTotal.value - start.heapTotal.value}`);
+  Logger.log(`heapUsed: ${end.heapUsed.value} - ${start.heapUsed.value} = ${end.heapUsed.value - start.heapUsed.value}`);
+  Logger.log(`external: ${end.external.value} - ${start.external.value} = ${end.external.value - start.external.value}`);
   return {
     rss: {
       value: rss,

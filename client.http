@@ -25,10 +25,10 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  // "username": "mario",
-  // "password": "root"
-  "username": "putz",
-  "password": "secret!"
+  "username": "mario",
+  "password": "root"
+  // "username": "putz",
+  // "password": "secret!!"
 }
 
 ### authRefreshTokenLdap
@@ -72,7 +72,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "putz",
+  "username": "nick1",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
@@ -118,6 +118,20 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  "page": 1101,
+  "perPage": 100,
+  // optional
+  "searchAttributes": [{
+    // fields
+    "username": {
+      // must match string
+      "exact": "mario",
+      // must contain string
+      "contains": "mario",
+      // must match regex, warn for escaped slashes
+      "regex": "\b(\\w*mario\\w*)\b"
+    }
+  }]
 }
 
 ### ldapAddMemberToGroup
@@ -130,7 +144,6 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
   "username": "{{addMemberUsername}}",
   "group" : "c3administrator"
 }
@@ -145,7 +158,6 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
   "username": "{{addMemberUsername}}",
   "group" : "c3administrator"
 }
@@ -153,7 +165,7 @@ Authorization: Bearer {{authToken}}
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = putz
+@deleteUsername = nick1
 
 DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -235,7 +247,7 @@ Authorization: Bearer {{authToken}}
       // replace, add, delete
       "operation": "replace",
       "modification": {
-        "displayName": "Changed Display Name in Profile Endpoint"
+        "displayName": "Changed Display Name in Profile Endpoint...change2"
       }
     }
   ]
@@ -250,8 +262,10 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "oldPassword": "secret",
-  "newPassword": "secret!"
+  "oldPassword": "secret!",
+  // newPassword must not be used in history, else
+  // 0000052D: Constraint violation - check_password_restrictions: the password was already used (in history)!
+  "newPassword": "secret!!"
 }
 
 ### ldapGreeting WIP to be used to paginate
