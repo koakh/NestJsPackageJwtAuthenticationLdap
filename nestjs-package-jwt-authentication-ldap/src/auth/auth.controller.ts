@@ -28,7 +28,7 @@ export class AuthController {
   async login(
     @Req() req: LoginRequestDto,
     @Response() res,
-  ): Promise<LoginResponseDto> {
+  ): payload<LoginResponseDto> {
     // authenticate user
     passport.authenticate('ldap', { session: false });
     // destruct
@@ -59,7 +59,7 @@ export class AuthController {
   async ldapRefreshToken(
     @Request() req,
     @Response() res,
-  ): Promise<AccessToken> {
+  ): payload<AccessToken> {
     let payload: JwtResponsePayload;
     // Logger.log(`headers ${JSON.stringify(req.headers, undefined, 2)}`, AuthController.name);
     // Logger.log(`cookies ${JSON.stringify(req.cookies, undefined, 2)}`, AuthController.name);
@@ -109,7 +109,7 @@ export class AuthController {
   @Post('/revoke-refresh-token')
   async revokeUserRefreshToken(
     @Body('username') username: string,
-  ): Promise<RevokeRefreshTokenDto> {
+  ): payload<RevokeRefreshTokenDto> {
     // invalidate user tokens increasing tokenVersion, this way last tokenVersion of refreshToken will be invalidate
     // when user tries to use it in /refresh-token and current version is greater than refreshToken.tokenVersion
     const version = this.authService.usersStore.incrementTokenVersion(username);
@@ -120,7 +120,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async logOut(
     @Response() res
-  ): Promise<void> {
+  ): payload<void> {
     // send empty refreshToken, with same name jid, etc, better than res.clearCookie
     // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
     this.authService.sendRefreshToken(res, { accessToken: '' });

@@ -18,6 +18,10 @@ export const mapKeysToLowerCase = (obj: object) => {
   return result;
 };
 
+/**
+ * helper to convert Record Type into array
+ * @param record 
+ */
 export const recordToArray = (record: any) => {
   if (Array.isArray(Object.values(record))) {
     // console.log(`Object.values(record): [${JSON.stringify(Object.values(record), undefined, 2)}]`);
@@ -32,7 +36,7 @@ export const recordToArray = (record: any) => {
  * @param perPageItems
  * @description used like `console.log(paginator(products, 2, 2));`
  */
-export const paginator = (items: any, currentPage: number, perPageItems: number): Promise<SearchUserPaginatorResponseDto> => {
+export const paginator = (items: any, currentPage: number, perPageItems: number): payload<SearchUserPaginatorResponseDto> => {
   return new Promise((resolve, reject) => {
     try {
       // defaults
@@ -63,7 +67,7 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
  * @param items 
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
-export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): payload<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
   try {
     if (Array.isArray(searchAttributes)) {
       let result: SearchUserRecordDto[] = items;
@@ -154,11 +158,10 @@ export const getMemoryUsageDifference = (start: MemoryUsage, end: MemoryUsage): 
   const heapTotal = (end.heapTotal.value - start.heapTotal.value);
   const heapUsed = (end.heapUsed.value - start.heapUsed.value);
   const external = (end.external.value - start.external.value);
-  // debug message
-  Logger.log(`rss: ${end.rss.value} - ${start.rss.value} = ${end.rss.value - start.rss.value}`);
-  Logger.log(`heapTotal: ${end.heapTotal.value} - ${start.heapTotal.value} = ${end.heapTotal.value - start.heapTotal.value}`);
-  Logger.log(`heapUsed: ${end.heapUsed.value} - ${start.heapUsed.value} = ${end.heapUsed.value - start.heapUsed.value}`);
-  Logger.log(`external: ${end.external.value} - ${start.external.value} = ${end.external.value - start.external.value}`);
+  // Logger.log(`rss: ${end.rss.value} - ${start.rss.value} = ${end.rss.value - start.rss.value}`);
+  // Logger.log(`heapTotal: ${end.heapTotal.value} - ${start.heapTotal.value} = ${end.heapTotal.value - start.heapTotal.value}`);
+  // Logger.log(`heapUsed: ${end.heapUsed.value} - ${start.heapUsed.value} = ${end.heapUsed.value - start.heapUsed.value}`);
+  // Logger.log(`external: ${end.external.value} - ${start.external.value} = ${end.external.value - start.external.value}`);
   return {
     rss: {
       value: rss,

@@ -27,7 +27,7 @@ export class LdapController {
   async createUserRecord(
     @Response() res,
     @Body() createLdapUserDto: CreateUserRecordDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.createUserRecord(createLdapUserDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
@@ -50,7 +50,7 @@ export class LdapController {
     @Response() res,
     @Param('operation') operation: ChangeUserRecordOperation,
     @Body() addUserToGroupDto: AddDeleteUserToGroupDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.addDeleteUserToGroup(operation, addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
@@ -69,7 +69,7 @@ export class LdapController {
   async getUserRecord(
     @Response() res,
     @Param('username') username: string,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.getUserRecord(username)
       .then((user: SearchUserRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
@@ -85,7 +85,7 @@ export class LdapController {
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
     @Response() res
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.initUserRecordsCache()
       .then((dto: CacheResponseDto) => {
         res.status(HttpStatus.CREATED).send(dto);
@@ -102,7 +102,7 @@ export class LdapController {
   async getUserRecords(
     @Response() userRecordsResponse,
     @Body() searchUserRecordsRequestDto: SearchUserRecordsRequestDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.getUserRecords(searchUserRecordsRequestDto)
       .then((dto: SearchUserPaginatorResponseDto) => {
         userRecordsResponse.status(HttpStatus.CREATED).send(dto);
@@ -119,7 +119,7 @@ export class LdapController {
   async deleteUserRecord(
     @Response() res,
     @Param('username') username: string,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.deleteUserRecord(username)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
@@ -137,7 +137,7 @@ export class LdapController {
     @Response() res,
     @Param('username') username: string,
     @Body() changeUserRecordDto: ChangeUserRecordDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.ldapService.changeUserRecord(username, changeUserRecordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
@@ -154,7 +154,7 @@ export class LdapController {
   async getUserProfileRecord(
     @Request() req,
     @Response() res,
-  ): Promise<void> {
+  ): payload<void> {
     this.checkAuthUser(req);
     this.ldapService.getUserRecord(req.user.username)
       .then((user: SearchUserRecordResponseDto) => {
@@ -171,7 +171,7 @@ export class LdapController {
     @Request() req,
     @Response() res,
     @Body() changeUserRecordDto: ChangeUserRecordDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.checkAuthUser(req);
     this.ldapService.changeUserRecord(req.user.username, changeUserRecordDto)
       .then(() => {
@@ -188,7 +188,7 @@ export class LdapController {
     @Request() req,
     @Response() res,
     @Body() changeUserPasswordDto: ChangeUserPasswordDto,
-  ): Promise<void> {
+  ): payload<void> {
     this.checkAuthUser(req);
     this.ldapService.changeUserProfilePassword(req.user.username, changeUserPasswordDto)
       .then(() => {

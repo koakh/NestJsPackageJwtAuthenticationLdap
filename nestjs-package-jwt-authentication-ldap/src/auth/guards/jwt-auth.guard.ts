@@ -7,7 +7,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   // require return type to prevent bellow error
   // tslint:disable-next-line: max-line-length
   // The inferred type of 'canActivate' cannot be named without a reference to '../../../../../../../../../../media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap/node_modules/rxjs'. This is likely not portable. A type annotation is necessary.ts(2742)
-  canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+  canActivate(context: ExecutionContext): boolean | payload<boolean> | Observable<boolean> {
     // Add your custom authentication logic here
     // for example, call super.logIn(request) to establish a session.
     return super.canActivate(context);

@@ -21,9 +21,6 @@ export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
   private searchAttributes: string;
-  // dn, SearchUserRecordDto
-  // TODO remove
-  // private inMemoryUsers: Record<string, SearchUserRecordDto> = {};
   private cache: Cache;
 
   constructor(
@@ -64,35 +61,46 @@ export class LdapService {
    * @param operation
    * @param username 
    */
-  async updateCachedUser(operation: UpdateCacheOperation, username: string): Promise<void> {
-    // export type Period = 'dy' | 'wk' | 'mn' | 'qt' | 'yr';
-    // const periods: Record<Period, string> = {
-    //   dy: 'Day',
-    //   wk: 'Week',
-    //   mn: 'Month',
-    //   qt: 'Quarter',
-    //   yr: 'Year'
-    // };
-    // const key = (Object.keys(periods) as Array<Period>).find(key => periods[key] === 'Day');    
-    switch (operation) {
-      case UpdateCacheOperation.CREATE:
-        Logger.log(`UpdateCacheOperation.CREATE`, LdapService.name)
-        const user: SearchUserRecordResponseDto = await this.getUserRecord(username);
-        const key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
-        Logger.log(`user:${JSON.stringify(user, undefined, 2)}`, LdapService.name)
-        // using key
-        Logger.log(`this.cache.users[username]:${JSON.stringify(this.cache.users[key], undefined, 2)}`, LdapService.name)
-        break;
-      case UpdateCacheOperation.UPDATE:
-        Logger.log(`UpdateCacheOperation.UPDATE`, LdapService.name)
-        // const user: SearchUserRecordResponseDto = this.getUserRecord(username);
-        break;
-      case UpdateCacheOperation.DELETE:
-        Logger.log(`UpdateCacheOperation.DELETE`, LdapService.name)
-        break;
-      default:
-        break;
-    }
+  updateCachedUser(operation: UpdateCacheOperation, username: string): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let key;
+        // Logger.log(`UpdateCacheOperation operation: '${operation}'`, LdapService.name);
+        switch (operation) {
+          case UpdateCacheOperation.CREATE:
+            // add user to cache, always get it from ldap to double check that it is inSync
+            this.cache.users[username] = (await this.getUserRecord(username)).user;
+            break;
+          case UpdateCacheOperation.UPDATE:
+            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
+            // Logger.log(`this.cache.users[username]:${JSON.stringify(this.cache.users[key], undefined, 2)}`, LdapService.name)
+            // update user in cache, always get it from ldap to double check that it is inSync
+            this.cache.users[key] = (await this.getUserRecord(username)).user;
+            break;
+          case UpdateCacheOperation.DELETE:
+            // TODO
+            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
+            // remove user from cache, we need a filteredUsers array helper
+            const filteredUsers: Record<string, SearchUserRecordDto> = {};
+            recordToArray(this.cache.users).forEach((e: SearchUserRecordDto) => {
+              if (e.username != username) {
+                // add to filteredUsers
+                filteredUsers[e.username] = e;
+              }
+            });
+            // update cached users without deleted user
+            this.cache.users = filteredUsers;
+            break;
+          default:
+            break;
+        }
+        // resolve promise
+        resolve();
+      } catch (error) {
+        // reject promise
+        reject(error);
+      }
+    })
   }
 
   getUserRecord = (username: string): Promise<SearchUserRecordResponseDto> => {
@@ -151,9 +159,9 @@ export class LdapService {
    */
   // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
-    // TODO: add to controller payload
+    // TODO: optional add to controller payload, currently we are using this defaults
     filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
-    // TODO: add to controller payload
+    // TODO: optional add to controller payload, currently we are using this defaults
     pageSize: number = 1000
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
@@ -208,7 +216,7 @@ export class LdapService {
             currentPage++;
             // assign only if null
             if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
-            // debug stuff: leave it here for future development
+            // NOTE: debug stuff: leave it here for future development
             const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
             // const {_value: {size: recordsSize} } = (result.controls as any);
             // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
@@ -263,9 +271,8 @@ export class LdapService {
   /**
    * pagination version
    */
-  // TODO: args payload object with filter, pagination props etc
   getUserRecords = (searchUserRecordsRequestDto: SearchUserRecordsRequestDto): Promise<SearchUserPaginatorResponseDto> => {
-    return new Promise(async(resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         if (!this.cache.lastUpdate) {
           throw new Error('cache not yet initialized! first initialize cache and try again');
@@ -284,7 +291,6 @@ export class LdapService {
     })
   };
 
-  // TODO: must update cache
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
@@ -319,9 +325,8 @@ export class LdapService {
           } else {
             // must add new user to group
             await this.addDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: 'c3student' });
-            // TODO: always get fresh created/update user from ldap to be consistent
-            debugger;
-            await this. updateCachedUser(UpdateCacheOperation.CREATE, createLdapUserDto.username);
+            // update cache
+            await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             resolve();
           }
         });
@@ -337,7 +342,6 @@ export class LdapService {
   /**
    * add group/role to user
    */
-  // TODO: must update cache
   addDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddDeleteUserToGroupDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {
@@ -348,10 +352,12 @@ export class LdapService {
             member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
           }
         });
-        this.ldapClient.modify(groupDN, groupChange, (error) => {
+        this.ldapClient.modify(groupDN, groupChange, async (error) => {
           if (error) {
             reject(error);
           } else {
+            // update cache
+            await this.updateCachedUser(UpdateCacheOperation.UPDATE, addUserToGroupDto.username);
             resolve();
           }
         });
@@ -364,7 +370,6 @@ export class LdapService {
   /**
    * delete user
    */
-  // TODO: must update cache
   deleteUserRecord(username: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const delDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
@@ -373,6 +378,8 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
+            // update cache
+            await this.updateCachedUser(UpdateCacheOperation.DELETE, username);
             resolve();
           }
         });
@@ -385,7 +392,6 @@ export class LdapService {
   /**
    * change user record
    */
-  // TODO: must update cache
   changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
     return new Promise((resolve, reject) => {
       try {

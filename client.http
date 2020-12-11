@@ -72,7 +72,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "nick1",
+  "username": "nick6",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
@@ -86,109 +86,10 @@ Authorization: Bearer {{authToken}}
   "studentID": "34273462836a"
 }
 
-### ldapGetUserRecord: don't use cache, goes direct to ldap
-// @name ldapGetUserRecord
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = putz
-
-GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-}
-
-### ldapInitUserRecordsCache
-// @name ldapInitUserRecordsCache
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-
-POST {{uri}}/ldap/cache/init HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-}
-
-### ldapGetUserRecords
-// @name ldapGetUserRecords
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-
-GET {{uri}}/ldap/user HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-  "page": 1,
-  "perPage": 100,
-  // optional
-  "searchAttributes": [{
-    // fields
-    "username": {
-      // must match string
-      "exact": "mario",
-      // must contain string
-      "includes": "mario",
-      // must match regex, warn for escaped slashes
-      "regex": "\\b(\\w*mario\\w*)\\b"
-    }
-  },
-  {
-    "email": {
-      // "exact": "mario@c3edu.online"
-    }
-  },
-  {
-    // special property, must search in memberOf array
-    "memberOf": {
-      "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
-    }
-  }]
-}
-
-### ldapAddMemberToGroup
-// @name ldapAddMemberToGroup
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = putz
-
-POST {{uri}}/ldap/group/add HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-  "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
-}
-
-### ldapDeleteMemberToGroup
-// @name ldapDeleteMemberToGroup
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = putz
-
-POST {{uri}}/ldap/group/delete HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-  "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
-}
-
-### ldapDeleteUserRecord
-// @name ldapDeleteUserRecord
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = nick1
-
-DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
-Content-Type: {{contentType}}
-Authorization: Bearer {{authToken}}
-
-{
-}
-
 ### ldapChangeUserRecord
 // @name ldapChangeUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@changeUsername = putz
+@changeUsername = nick6
 
 PUT {{uri}}/ldap/user/{{changeUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -231,6 +132,106 @@ Authorization: Bearer {{authToken}}
     //   }
     // }  
   ]
+}
+
+### ldapGetUserRecord: don't use cache, goes direct to ldap
+// @name ldapGetUserRecord
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+@getUsername = nick6
+
+GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+}
+
+### ldapAddMemberToGroup
+// @name ldapAddMemberToGroup
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+@addMemberUsername = nick6
+
+POST {{uri}}/ldap/group/add HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "username": "{{addMemberUsername}}",
+  "group" : "c3administrator"
+}
+
+### ldapDeleteMemberToGroup
+// @name ldapDeleteMemberToGroup
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+@addMemberUsername = nick6
+
+POST {{uri}}/ldap/group/delete HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "username": "{{addMemberUsername}}",
+  "group" : "c3administrator"
+}
+
+### ldapDeleteUserRecord
+// @name ldapDeleteUserRecord
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+@deleteUsername = nick6
+
+DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+}
+
+### ldapInitUserRecordsCache
+// @name ldapInitUserRecordsCache
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+POST {{uri}}/ldap/cache/init HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+}
+
+### ldapGetUserRecords
+// @name ldapGetUserRecords
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+GET {{uri}}/ldap/user HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "page": 1,
+  "perPage": 100,
+  // optional
+  "searchAttributes": [{
+    // fields
+    "username": {
+      // must match string
+      "exact": "nick6"
+//      "exact": "mario",
+      // must contain string
+//      "includes": "mario",
+      // must match regex, warn for escaped slashes
+//      "regex": "\\b(\\w*mario\\w*)\\b"
+    }
+  },
+  {
+    "email": {
+//      "exact": "mario@c3edu.online"
+    }
+  },
+  {
+    // special property, must search in memberOf array
+    "memberOf": {
+//      "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
+    }
+  }]
 }
 
 ### ldapGetUserProfileRecord: don't use cache, goes direct to ldap
