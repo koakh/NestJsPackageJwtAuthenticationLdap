@@ -213,8 +213,7 @@ export class LdapService {
             // const {_value: {size: recordsSize} } = (result.controls as any);
             // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
             // tslint:disable-next-line: max-line-length
-// TODO: comment
-Logger.log(`page end currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+            // Logger.log(`page end event: currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
             // use the page event to continue with next page if the sizeLimit (of page) is reached.
             // tslint:disable-next-line: max-line-length
             // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null

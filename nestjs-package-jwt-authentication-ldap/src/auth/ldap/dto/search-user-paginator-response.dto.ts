@@ -6,7 +6,7 @@ export interface SearchUserPaginatorResponseDto {
   perPage: number;
   prePage: number;
   nextPage: number;
-  total: number;
+  totalRecords: number;
   totalPages: number;
   data: SearchUserRecordDto[];
   // searchAttributes: SearchUserRecordsRequestDto;

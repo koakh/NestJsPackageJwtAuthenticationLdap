@@ -22,7 +22,7 @@ export const recordToArray = (record: any) => {
   if (Array.isArray(Object.values(record))) {
     // console.log(`Object.values(record): [${JSON.stringify(Object.values(record), undefined, 2)}]`);
     return Object.values(record);
-  }  
+  }
 }
 
 /**
@@ -47,7 +47,7 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
         perPage,
         prePage: page - 1 ? page - 1 : null,
         nextPage: (totalPages > page) ? page + 1 : null,
-        total: items.length,
+        totalRecords: items.length,
         totalPages,
         data: paginatedItems,
       });
@@ -73,8 +73,16 @@ export const filterator = (items: any, searchAttributes?: Array<FilteratorSearch
           const attributeKey = Object.keys(attribute)[0];
           if (attribute[attributeKey].exact) {
             // Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
-            // filter attributeKey
-            result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
+            // filter normal attributeKey
+            if (attributeKey !== 'memberOf') {
+              result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
+              // filter memberOf attributeKey
+            } else {
+              // if memberOf we must search in all items the memberOf array to see if includes exact match
+              if (attribute[attributeKey].exact) {
+                result = result.filter((e) => Array.isArray(e[attributeKey]) && e[attributeKey].length > 0 && e[attributeKey].includes(attribute[attributeKey].exact));
+              }
+            }
           }
           if (attribute[attributeKey].includes) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].includes}'`);
@@ -88,12 +96,6 @@ export const filterator = (items: any, searchAttributes?: Array<FilteratorSearch
             try {
               result = result.filter((e) => {
                 const regExp = new RegExp(attribute[attributeKey].regex);
-                // TODO: cleanup
-                // RegExp(attribute[attributeKey].regex).test(e[attributeKey])
-                // ok
-                // RegExp("(\\w*mario\\w*)", "gm").test(e[attributeKey])
-                // ok
-                // RegExp("\\b(\\w*mario\\w*)\\b", "g").test(e[attributeKey])
                 return regExp.test(e[attributeKey]);
               });
             } catch (error) {
@@ -101,8 +103,9 @@ export const filterator = (items: any, searchAttributes?: Array<FilteratorSearch
             }
           }
         }
-        resolve(result);
       });
+      // end of search all attributes
+      resolve(result);
     } else {
       resolve(items);
     }

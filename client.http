@@ -129,8 +129,18 @@ Authorization: Bearer {{authToken}}
       // must contain string
       "includes": "mario",
       // must match regex, warn for escaped slashes
-      // "regex": "/\b(\\w*mario\\w*)\b/gm"
       "regex": "\\b(\\w*mario\\w*)\\b"
+    }
+  },
+  {
+    "email": {
+      // "exact": "mario@c3edu.online"
+    }
+  },
+  {
+    // special property, must search in memberOf array
+    "memberOf": {
+      "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
     }
   }]
 }
