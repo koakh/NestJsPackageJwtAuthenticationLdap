@@ -5,10 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { envConstants } from '../common/constants/env';
-import AccessToken from './interfaces/access-token.interface';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { hashPassword } from './utils/util';
 import { AuthStore } from './auth.store';
+import { AccessToken } from './interfaces';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +20,7 @@ export class AuthService {
     // private readonly ldapService: LdapService,
     private readonly jwtService: JwtService,
   ) { }
-  async signJwtToken(user: any, options?: SignOptions): payload<AccessToken> {
+  async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
     const payload = { username: user.username, sub: user.userId, roles: user.roles };
     return {
@@ -29,7 +29,7 @@ export class AuthService {
     };
   }
 
-  async signRefreshToken(user: any, tokenVersion: number, options?: SignOptions): payload<AccessToken> {
+  async signRefreshToken(user: any, tokenVersion: number, options?: SignOptions): Promise<AccessToken> {
     const payload = { username: user.username, sub: user.userId, roles: user.roles, tokenVersion };
     return {
       // generate JWT from a subset of the user object properties

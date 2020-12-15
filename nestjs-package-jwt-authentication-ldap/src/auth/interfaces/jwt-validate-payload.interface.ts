@@ -1,4 +1,4 @@
-export default interface JwtValidatePayload {
+export interface JwtValidatePayload {
   username: string;
   sub: string;
   roles: string[];

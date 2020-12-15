@@ -1,4 +1,4 @@
-export default interface SignUser {
+export interface SignUser {
   username: string;
   userId: string | number;
 }

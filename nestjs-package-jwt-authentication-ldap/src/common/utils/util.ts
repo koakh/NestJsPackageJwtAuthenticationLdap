@@ -36,7 +36,7 @@ export const recordToArray = (record: any) => {
  * @param perPageItems
  * @description used like `console.log(paginator(products, 2, 2));`
  */
-export const paginator = (items: any, currentPage: number, perPageItems: number): payload<SearchUserPaginatorResponseDto> => {
+export const paginator = (items: any, currentPage: number, perPageItems: number): Promise<SearchUserPaginatorResponseDto> => {
   return new Promise((resolve, reject) => {
     try {
       // defaults
@@ -67,7 +67,7 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
  * @param items 
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
-export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): payload<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
   try {
     if (Array.isArray(searchAttributes)) {
       let result: SearchUserRecordDto[] = items;

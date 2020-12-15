@@ -18,6 +18,10 @@
   - [Extract data from JWT in Endpoints, ex Extract injected User](#extract-data-from-jwt-in-endpoints-ex-extract-injected-user)
   - [Add AuthRoles Guard, Decorator etc](#add-authroles-guard-decorator-etc)
   - [ldapjs Password Change](#ldapjs-password-change)
+  - [Install anc Configure OpenApi on consumer App and package](#install-anc-configure-openapi-on-consumer-app-and-package)
+    - [Installation](#installation)
+    - [Bootstrap](#bootstrap)
+    - [Add @ApiProperty() to schemas](#add-apiproperty-to-schemas)
 
 ## Starter Project
 
@@ -272,3 +276,142 @@ Client.modify(userDN, [
 ```
 
 > When sending **add** and **delete** at the same time **Active Directory** treats it as a **normal password reset**, to perform an **administrator password reset** Active Directory only expects to receive the **replace** command.
+
+## Install anc Configure OpenApi on consumer App and package
+
+- [Documentation | NestJS - A progressive Node.js framework](https://docs.nestjs.com/openapi/introduction)
+- [Sample Project](/media/mario/storage/Home/Documents/Development/Node/@NestJs/NodeNestJsSwaggerSample)
+
+### Installation
+
+```shell
+$ cd nestjs-package-jwt-authentication-ldap-consumer/
+$ npm install --save @nestjs/swagger swagger-ui-express
+```
+
+### Bootstrap
+
+Once the installation process is complete, open the main.ts file and initialize Swagger using the SwaggerModule class:
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  const options = new DocumentBuilder()
+    .setTitle('Cats example')
+    .setDescription('The cats API description')
+    .setVersion('1.0')
+    .addTag('cats')
+    .build();
+  const document = SwaggerModule.createDocument(app, options);
+  SwaggerModule.setup('api', app, document);
+
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+> done run app and go to <http://localhost:3010/api/>
+
+> To generate and download a Swagger JSON file, navigate to <http://localhost:3010/api-json> (swagger-ui-express)
+
+### Add @ApiProperty() to schemas
+
+```shell
+# add @nestjs/swagger to package to use `@ApiProperty()`
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm install --save @nestjs/swagger
+```
+
+get schemas, add `@ApiProperty()`
+
+- CreateUserRecordDto
+- AddDeleteUserToGroupDto
+- SearchUserRecordsDto
+- ChangeUserPasswordDto
+
+> HINT: **Instead of manually annotating each property**, consider using the **Swagger plugin** (see [Plugin section](https://docs.nestjs.com/openapi/cli-plugin)) which will automatically provide this for you
+
+> Please, note that your filenames must have one of the following suffixes: `['.dto.ts', '.entity.ts']` (e.g., create-user.dto.ts) in order to be analysed by the plugin
+
+- [Using the CLI plugin](https://docs.nestjs.com/openapi/cli-plugin#using-the-cli-plugin)
+
+To enable the plugin, open `nest-cli.json` (if you use Nest CLI) and add the following plugins configuration:
+
+
+add `compilerOptions` to `nest-cli.json`
+
+```json
+{
+  "language": "ts",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "plugins": ["@nestjs/swagger"]
+  }  
+}
+```
+
+
+
+
+
+npm i -D @nestjs/cli @nestjs/schematics
+
+
+https://trilon.io/blog/eliminating-redundancy-with-nestjs-cli-plugins
+To enable plugins, open up the nest-cli.json file (if you use Nest CLI) and add the following plugins configuration:
+IF YOU USE CLI
+we use 
+    "start": "ts-node -r tsconfig-paths/register src/main.ts",
+    "start:dev": "nodemon",
+    "start:debug": "nodemon --config nodemon-debug.json",
+and not
+    "start": "nest start",
+    "start:dev": "nest start --watch",
+    "start:debug": "nest start --debug --watch",
+
+
+
+fuck after we use `nest start` all local task endpoints start working and dtos to
+only non consumer app don't work
+
+- CreateUserRecordDto
+- AddDeleteUserToGroupDto
+- SearchUserRecordsDto
+- ChangeUserPasswordDto
+
+
+the trick to make appear Auth Dto's on swagger is usign the missing attribute `@Body` in `@Request` :(
+
+```typescript
+@Controller('auth')
+@ApiTags('auth')
+export class AuthController {
+  ...
+  @Post('/login')
+  @UseGuards(LdapAuthGuard)
+  @ApiBody({ type: LoginDto })
+  // require @ApiBody else LoginDto is not exposed in swagger api
+  async login(
+    @Request() req: LoginDto,
+    // TODO add LoginResponseDto 
+    @Response() res,
+  ): Promise<LoginResponseDto> {
+    // authenticate user
+    passport.authenticate('ldap', { session: false });
+```
+
+
+@ApiParam({name: 'operation', enum: ['replace', 'add', 'delete']})
+
+
+- [Documentation | NestJS - A progressive Node.js framework](https://docs.nestjs.com/openapi/types-and-parameters#generics-and-interfaces)
+
+BUT IF WE USE @Body we can't login :(
+to solve use `@ApiBody({ type: [LoginDto] })`
+
+- [NestJS, Modules and Swagger best practices](https://cimpleo.com/blog/nestjs-modules-and-swagger-best-practices/)
+
+
+

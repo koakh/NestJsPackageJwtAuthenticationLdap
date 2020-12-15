@@ -1,4 +1,4 @@
-export default interface AccessToken {
+export interface AccessToken {
   valid?: boolean;
   accessToken: string;
 }

@@ -7,7 +7,7 @@ import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, record
 import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsRequestDto } from './dto';
+import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -78,7 +78,6 @@ export class LdapService {
             this.cache.users[key] = (await this.getUserRecord(username)).user;
             break;
           case UpdateCacheOperation.DELETE:
-            // TODO
             key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
             // remove user from cache, we need a filteredUsers array helper
             const filteredUsers: Record<string, SearchUserRecordDto> = {};
@@ -271,7 +270,7 @@ export class LdapService {
   /**
    * pagination version
    */
-  getUserRecords = (searchUserRecordsRequestDto: SearchUserRecordsRequestDto): Promise<SearchUserPaginatorResponseDto> => {
+  getUserRecords = (searchUserRecordsDto: SearchUserRecordsDto): Promise<SearchUserPaginatorResponseDto> => {
     return new Promise(async (resolve, reject) => {
       try {
         if (!this.cache.lastUpdate) {
@@ -279,8 +278,8 @@ export class LdapService {
         } else {
           // convert record to array before duty
           const recordArray = recordToArray(this.cache.users);
-          const filtered = await filterator(recordArray, searchUserRecordsRequestDto.searchAttributes);
-          const paginatorResult = await paginator(filtered, searchUserRecordsRequestDto.page, searchUserRecordsRequestDto.perPage);
+          const filtered = await filterator(recordArray, searchUserRecordsDto.searchAttributes);
+          const paginatorResult = await paginator(filtered, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
           resolve({ ...paginatorResult });
         }
       } catch (error) {

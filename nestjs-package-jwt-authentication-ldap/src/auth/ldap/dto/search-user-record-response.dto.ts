@@ -1,9 +1,16 @@
+import { IsDefined } from 'class-validator';
 import { SearchUserRecordDto } from './search-user-record.dto';
+import { ApiProperty } from '@nestjs/swagger';
 
 /**
  * must match LDAP_SEARCH_ATTRIBUTES properties
  */
-export interface SearchUserRecordResponseDto {
-  user: SearchUserRecordDto,
+export class SearchUserRecordResponseDto {
+  @IsDefined()
+  @ApiProperty()
+  user: SearchUserRecordDto;
+
+  @IsDefined()
+  @ApiProperty()
   status: number;
 }

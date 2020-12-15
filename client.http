@@ -1,6 +1,6 @@
 @host = localhost
 @port = 3010
-@uriBase = http://{{host}}:{{port}}
+@uriBase = http://{{host}}:{{port}}/v1
 @uri = {{uriBase}}
 @contentType = application/json
 
@@ -146,7 +146,7 @@ Authorization: Bearer {{authToken}}
 {
 }
 
-### ldapAddMemberToGroup
+### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 @addMemberUsername = nick6
@@ -160,7 +160,7 @@ Authorization: Bearer {{authToken}}
   "group" : "c3administrator"
 }
 
-### ldapDeleteMemberToGroup
+### ldapAddMemberToGroup
 // @name ldapDeleteMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 @addMemberUsername = nick6
@@ -201,7 +201,7 @@ Authorization: Bearer {{authToken}}
 // @name ldapGetUserRecords
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 
-GET {{uri}}/ldap/user HTTP/1.1
+POST {{uri}}/ldap/cache/search HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 

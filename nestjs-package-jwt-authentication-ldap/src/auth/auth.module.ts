@@ -28,7 +28,7 @@ import { LdapController } from './ldap/ldap.controller';
       provide: APP_FILTER,
       useClass: HttpExceptionFilter,
     },
-    AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService,
+    JwtStrategy, LdapStrategy, RolesStrategy, AuthService, LdapService,
   ],
   exports: [AuthService],
   controllers: [AuthController, LdapController],
