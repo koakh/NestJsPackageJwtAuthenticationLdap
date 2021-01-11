@@ -40,7 +40,7 @@
     "@nestjs/config": "^0.5.0",
     "@nestjs/jwt": "^7.1.0",
     "@nestjs/passport": "^7.1.0",
-    "@nestjs/swagger": "^4.7.5",
+    "@nestjs/swagger": "^4.7.8",
     "bcrypt": "^5.0.0",
     "class-validator": "^0.12.2",
     "ldapjs": "^2.2.0",
