@@ -286,7 +286,7 @@ Client.modify(userDN, [
 
 ```shell
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
-$ npm install --save @nestjs/swagger swagger-ui-express
+$ npm i @nestjs/swagger swagger-ui-express
 ```
 
 ### Bootstrap
@@ -296,7 +296,9 @@ Once the installation process is complete, open the main.ts file and initialize 
 ```typescript
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  // global prefix
+  app.setGlobalPrefix('v1');
+  // openApi
   const options = new DocumentBuilder()
     .setTitle('Cats example')
     .setDescription('The cats API description')
@@ -320,7 +322,7 @@ bootstrap();
 ```shell
 # add @nestjs/swagger to package to use `@ApiProperty()`
 $ cd nestjs-package-jwt-authentication-ldap
-$ npm install --save @nestjs/swagger
+$ npm i @nestjs/swagger
 ```
 
 get schemas, add `@ApiProperty()`

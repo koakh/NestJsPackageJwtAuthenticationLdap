@@ -40,3 +40,17 @@ Now develop nestjs package and consumer app with hot reload
 ## Test all endpoints with client.http file
 
 > Note: required the awesome [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client)
+
+## Create Admin User
+
+```shell
+$ USER="mario"
+$ sudo samba-tool user list
+$ sudo samba-tool user create ${USER} password
+# test user auth ${​USER}​:root
+$ ldapsearch -H ldap://localhost:389 -x -D "cn=${​USER}​,cn=users,dc=c3edu,dc=online" -w "root" -b ou=passport-ldapauth "(uid=${​USER}​)"
+# show user
+$ sudo samba-tool user show ${​USER}​
+$ sudo samba-tool group addmembers "C3Administrator" ${​USER}​
+$ sudo samba-tool group listmembers "C3Administrator"
+```

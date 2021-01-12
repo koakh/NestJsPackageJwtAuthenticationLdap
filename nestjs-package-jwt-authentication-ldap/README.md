@@ -9,6 +9,7 @@ README in [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/Nest
 $ nest new test
 $ cd test
 # install deps
+$ npm i
 $ npm i @koakh/nestjs-package-jwt-authentication-ldap @nestjs/config
 # edit AppModule
 $ code src/app.module.ts
@@ -40,12 +41,30 @@ export class AppModule { }
 add a `test/.env` file
 
 ```conf
-ACCESS_TOKEN_JWT_SECRET=secretKeyAccessToken
-ACCESS_TOKEN_EXPIRES_IN=15m
-REFRESH_TOKEN_JWT_SECRET=secretKeyRefreshToken
-REFRESH_TOKEN_EXPIRES_IN=7d
-REFRESH_TOKEN_SKIP_INCREMENT_VERSION=false
+HTTP_SERVER_PORT="3010"
+ACCESS_TOKEN_JWT_SECRET="secretKeyAccessToken"
+ACCESS_TOKEN_EXPIRES_IN="15m"
+REFRESH_TOKEN_JWT_SECRET="secretKeyRefreshToken"
+REFRESH_TOKEN_EXPIRES_IN="7d"
+REFRESH_TOKEN_SKIP_INCREMENT_VERSION="false"
+LDAP_URL="192.168.1.1:2210"
+LDAP_BIND_DN="cn=administrator,cn=users,dc=c3edu,dc=online"
+LDAP_BIND_CREDENTIALS="Root123..."
+LDAP_SEARCH_BASE="dc=c3edu,dc=online"
+LDAP_SEARCH_FILTER="(cn={{username}})"
+LDAP_SEARCH_ATTRIBUTES="cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber"
+LDAP_BASE_DN="dc=c3edu,dc=online"
+LDAP_NEW_USER_DN_POSTFIX="ou=C3student,ou=People"
+OPENAPI_TITLE="Consumer App"
+OPENAPI_DESCRIPTION="Koakh NestJS Jwt Authentication Package LDAP Consumer App"
+OPENAPI_VERSION="1.0.0"
+OPENAPI_TAG="nestjs, typescript, ldap, auth, security"
 ```
+
+## Run App
+
+TypeError: Cannot read property 'toString' of undefined
+Cannot read property 'toString' of undefined
 
 ## Test Endpoints
 

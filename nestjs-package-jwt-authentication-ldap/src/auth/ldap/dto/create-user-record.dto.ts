@@ -5,6 +5,7 @@ export class CreateUserRecordDto {
   @IsDefined()
   @Length(3, 50)
   // ldap: name
+  @ApiProperty()
   username: string;
 
   @IsDefined()
