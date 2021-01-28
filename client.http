@@ -17,6 +17,7 @@
 //   "message": "jwt expired",
 //   "expiredAt": "2020-10-20T14:31:36.000Z"
 // }
+// "jwt expired" comes from jsonwebtoken/verify.js
 
 ### authLogInLdap
 // @name authLogInLdap
@@ -89,7 +90,7 @@ Authorization: Bearer {{authToken}}
 ### ldapChangeUserRecord
 // @name ldapChangeUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@changeUsername = nick6
+@changeUsername = mario
 
 PUT {{uri}}/ldap/user/{{changeUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -137,7 +138,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = nick6
+@getUsername = mario
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}

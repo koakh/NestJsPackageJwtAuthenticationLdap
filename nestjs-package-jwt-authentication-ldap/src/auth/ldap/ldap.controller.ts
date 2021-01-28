@@ -50,7 +50,7 @@ export class LdapController {
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
-  @ApiParam({name: 'operation', enum: ['add', 'delete']})
+  @ApiParam({ name: 'operation', enum: ['add', 'delete'] })
   async addMemberToGroup(
     @Response() res,
     @Param('operation') operation: ChangeUserRecordOperation,
@@ -89,9 +89,10 @@ export class LdapController {
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
-    @Response() res
+    @Response() res,
+    @Body() payload: { filter: string },
   ): Promise<void> {
-    this.ldapService.initUserRecordsCache()
+    this.ldapService.initUserRecordsCache(payload.filter)
       .then((dto: CacheResponseDto) => {
         res.status(HttpStatus.CREATED).send(dto);
       })

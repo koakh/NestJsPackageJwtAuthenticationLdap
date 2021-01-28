@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.1",
+  "version": "1.0.9",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -19,7 +19,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "version:patch": "npm run build && npm version patch",
+    "version:publish": "npm publish"
   },
   "keywords": [
     "nestjs"

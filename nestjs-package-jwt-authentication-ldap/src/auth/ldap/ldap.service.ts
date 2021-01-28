@@ -158,9 +158,7 @@ export class LdapService {
    */
   // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
-    // TODO: optional add to controller payload, currently we are using this defaults
     filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
-    // TODO: optional add to controller payload, currently we are using this defaults
     pageSize: number = 1000
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
