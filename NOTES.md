@@ -22,6 +22,7 @@
     - [Installation](#installation)
     - [Bootstrap](#bootstrap)
     - [Add @ApiProperty() to schemas](#add-apiproperty-to-schemas)
+  - [unexpected number of matches (2) for "c3" username](#unexpected-number-of-matches-2-for-c3-username)
 
 ## Starter Project
 
@@ -417,4 +418,14 @@ to solve use `@ApiBody({ type: [LoginDto] })`
 - [NestJS, Modules and Swagger best practices](https://cimpleo.com/blog/nestjs-modules-and-swagger-best-practices/)
 
 
+## unexpected number of matches (2) for "c3" username
 
+`.env`
+
+```shell
+occurs in new iso and the problem is in 
+change
+LDAP_SEARCH_BASE="dc=c3edu,dc=online"
+to
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+```

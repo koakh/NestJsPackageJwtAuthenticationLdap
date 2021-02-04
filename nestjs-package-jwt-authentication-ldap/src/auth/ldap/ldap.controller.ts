@@ -1,14 +1,14 @@
 import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../decorators/roles.decorator';
 import { Roles as UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation } from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
-import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 
 @Controller('ldap')
 @ApiTags('ldap')
@@ -54,9 +54,9 @@ export class LdapController {
   async addMemberToGroup(
     @Response() res,
     @Param('operation') operation: ChangeUserRecordOperation,
-    @Body() addUserToGroupDto: AddDeleteUserToGroupDto,
+    @Body() addUserToGroupDto: AddOrDeleteUserToGroupDto,
   ): Promise<void> {
-    this.ldapService.addDeleteUserToGroup(operation, addUserToGroupDto)
+    this.ldapService.addOrDeleteUserToGroup(operation, addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
           message: parseTemplate(c.USER_ADDED_DELETED_TO_GROUP, { operation, ...addUserToGroupDto })

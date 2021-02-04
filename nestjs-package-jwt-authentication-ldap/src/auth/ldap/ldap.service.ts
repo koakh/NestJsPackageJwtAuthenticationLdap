@@ -327,7 +327,9 @@ export class LdapService {
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             // must add new user to group after update cache, it can crash if group doesn't exists
             debugger;
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, dnPrefix: `cn=${newUser.cn},ou=${createLdapUserDto.defaultGroup}`, group: createLdapUserDto.defaultGroup })
+            // TODO
+            // const dn =  `cn=${newUser.cn},ou=${createLdapUserDto.defaultGroup}`;
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: createLdapUserDto.defaultGroup })
               .catch((error) => {
                 reject(error);
               });
@@ -346,9 +348,8 @@ export class LdapService {
 
   /**
    * add or delete group/role to user/member
-   * dnPrefix is the prefixed of ND ex `CN=peter,OU=C3Student,OU=People,DC=c3edu,DC=online` prefixDn is `CN=peter,OU=C3Student`
    */
-  addOrDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
+  addOrDeleteUserToGroup(dn: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
 // "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
@@ -358,14 +359,24 @@ export class LdapService {
 // "controls": [],
 // "objectCategory": "CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online",
         // "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
-const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
+const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
 // const changeDN = `ou=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
 // const changeDN = `cn=${addUserToGroupDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
-        const member = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+
+// TODO OK createUser
+// const member = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+// Todo we must opt for on group here, to work when we create a user or when we add a member to group
+const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
+// search by member
+const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
+// TODO addGroup fails
+// const member = addUserToGroupDto.dn;
         debugger;
         const groupChange = new ldap.Change({
-          operation,
-          modification: { member }
+          operation: dn,
+          modification: { 
+            member,
+          }
         });
         this.ldapClient.modify(changeDN, groupChange, async (error) => {
           if (error) {
@@ -387,7 +398,8 @@ const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
    */
   deleteUserRecord(username: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      // TODO hardCoded "defaultGroup" : "c3administrator"
+      const delDN = `cn=${username},ou=c3student,${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {

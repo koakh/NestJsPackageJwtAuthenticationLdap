@@ -27,14 +27,20 @@ export class CreateUserRecordDto {
   @ApiProperty()
   lastName: string;
 
+  @IsDefined()
+  @Length(3, 50)
+  @ApiProperty()
+  defaultGroup: string;
+
+  @IsDefined()
+  @Length(3, 50)
+  @ApiProperty()
+  objectClass: string;
+
   // firstName + lastName, if omitted automatically combine `firstName + lastName`
   @IsOptional()
   @ApiProperty()
   displayName: string;
-
-  @Length(3, 50)
-  @ApiProperty()
-  objectClass: string;
 
   @IsOptional()
   @ApiProperty()

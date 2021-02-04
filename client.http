@@ -26,8 +26,12 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "username": "mario",
-  "password": "root"
+  // "username": "c3",
+  // "password": "root"
+  // "username": "mario",
+  // "password": "root"
+  "username": "user14",
+  "password": "secret"
   // "username": "putz",
   // "password": "secret!!"
 }
@@ -73,12 +77,14 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "nick6",
+  "username": "user14",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
   "displayName": "Nuno Bento",
   "objectClass": "User",
+  // "defaultGroup": "c3administrator",
+  "defaultGroup": "c3student",
   // optional
   "mail":"nuno.bento@critical-links.com",
   "dateOfBirth": 19711219,
@@ -138,7 +144,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = mario
+@getUsername = user14
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -150,7 +156,7 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = nick6
+@addMemberUsername = user14
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
@@ -158,13 +164,16 @@ Authorization: Bearer {{authToken}}
 
 {
   "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
+  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  "defaultGroup" : "c3student",
+  // add a member to group
+  "group" : "c3teacher"
 }
 
 ### ldapAddMemberToGroup
 // @name ldapDeleteMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = nick6
+@addMemberUsername = user14
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
@@ -172,19 +181,27 @@ Authorization: Bearer {{authToken}}
 
 {
   "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
+  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  "defaultGroup" : "c3student",
+  // add a member to group
+  "group" : "c3teacher"  
 }
 
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = nick6
+@deleteUsername = root1
 
 DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  // TODO
+  "username": "{{addMemberUsername}}",
+  // TODO
+  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  "defaultGroup" : "c3administrator",
 }
 
 ### ldapInitUserRecordsCache
