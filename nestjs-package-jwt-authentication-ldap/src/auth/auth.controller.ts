@@ -112,12 +112,18 @@ export class AuthController {
   // Don't expose this resolver, only used in development environments
   @Post('/revoke-refresh-token')
   async revokeUserRefreshToken(
-    @Param('username') username: string,
+    // @Param('username') username: string,
+    @Body() user: { username: string },
   ): Promise<RevokeRefreshTokenResponseDto> {
     // invalidate user tokens increasing tokenVersion, this way last tokenVersion of refreshToken will be invalidate
     // when user tries to use it in /refresh-token and current version is greater than refreshToken.tokenVersion
-    const version = this.authService.usersStore.incrementTokenVersion(username);
-    return { version };
+    // note to prevent security issues hide `invalid username` message and throw a 500 error
+    try {
+      const version = this.authService.usersStore.incrementTokenVersion(user.username);
+      return { version };
+    } catch (error) {
+      Logger.error(error.message ? error.message : error, null, AuthController.name);
+    }
   }
 
   @Post('/logout')
@@ -128,6 +134,6 @@ export class AuthController {
     // send empty refreshToken, with same name jid, etc, better than res.clearCookie
     // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
     this.authService.sendRefreshToken(res, { accessToken: '' });
-    return res.send({ logOut: true });
+    return res.status(HttpStatus.OK).send({ logOut: true });
   }
 }

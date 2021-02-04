@@ -118,15 +118,15 @@ export class LdapController {
       });
   }
 
-  @Delete('/user/:username')
+  @Delete('/user')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
     @Response() res,
-    @Param('username') username: string,
+    @Body() deleteUserRecordDto: DeleteUserRecordDto,
   ): Promise<void> {
-    this.ldapService.deleteUserRecord(username)
+    this.ldapService.deleteUserRecord(deleteUserRecordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })
@@ -135,16 +135,15 @@ export class LdapController {
       });
   }
 
-  @Put('/user/:username')
+  @Put('/user')
   @Roles(UserRoles.C3_ADMINISTRATOR)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
     @Response() res,
-    @Param('username') username: string,
     @Body() changeUserRecordDto: ChangeUserRecordDto,
   ): Promise<void> {
-    this.ldapService.changeUserRecord(username, changeUserRecordDto)
+    this.ldapService.changeUserRecord(changeUserRecordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })

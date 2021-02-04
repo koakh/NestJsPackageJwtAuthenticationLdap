@@ -4,11 +4,11 @@ import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
-import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
+import { Cache } from './interfaces';
 import { CreateLdapUserModel } from './models';
 
 /**
@@ -318,7 +318,6 @@ export class LdapService {
         // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online
         // ex cn=user,c3student,ou=People,dc=c3edu,dc=online
         const newDN = `cn=${cn},ou=${createLdapUserDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
-        debugger;
         this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
             reject(error);
@@ -326,9 +325,6 @@ export class LdapService {
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             // must add new user to group after update cache, it can crash if group doesn't exists
-            debugger;
-            // TODO
-            // const dn =  `cn=${newUser.cn},ou=${createLdapUserDto.defaultGroup}`;
             await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: createLdapUserDto.defaultGroup })
               .catch((error) => {
                 reject(error);
@@ -340,7 +336,6 @@ export class LdapService {
         // const message = (error && error.name === 'InvalidDistinguishedNameError')
         //   ? { message: parseTemplate(c.INVALID_DISTINGUISHED_NAME_ERROR, createLdapUserDto), newUser }
         //   : error;
-        debugger;
         reject(error);
       }
     });
@@ -352,29 +347,14 @@ export class LdapService {
   addOrDeleteUserToGroup(dn: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-// "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
-// "memberOf": [
-//   "CN=C3Student,OU=Groups,DC=c3edu,DC=online"
-// ],
-// "controls": [],
-// "objectCategory": "CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online",
-        // "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
-const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
-// const changeDN = `ou=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
-// const changeDN = `cn=${addUserToGroupDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
-
-// TODO OK createUser
-// const member = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
-// Todo we must opt for on group here, to work when we create a user or when we add a member to group
-const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
-// search by member
-const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
-// TODO addGroup fails
-// const member = addUserToGroupDto.dn;
-        debugger;
+        const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+        // Todo we must opt for on group here, to work when we create a user or when we add a member to group
+        const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
+        // search by member
+        const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
         const groupChange = new ldap.Change({
           operation: dn,
-          modification: { 
+          modification: {
             member,
           }
         });
@@ -396,17 +376,16 @@ const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${t
   /**
    * delete user
    */
-  deleteUserRecord(username: string): Promise<void> {
+  deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      // TODO hardCoded "defaultGroup" : "c3administrator"
-      const delDN = `cn=${username},ou=c3student,${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      const delDN = `cn=${deleteUserRecordDto.username},ou=${deleteUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {
             reject(error);
           } else {
             // update cache
-            await this.updateCachedUser(UpdateCacheOperation.DELETE, username);
+            await this.updateCachedUser(UpdateCacheOperation.DELETE, deleteUserRecordDto.username);
             resolve();
           }
         });
@@ -419,10 +398,10 @@ const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${t
   /**
    * change user record
    */
-  changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
+  changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           return new ldap.Change({

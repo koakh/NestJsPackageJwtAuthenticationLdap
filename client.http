@@ -26,12 +26,12 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  // "username": "c3",
-  // "password": "root"
+  "username": "c3",
+  "password": "root"
   // "username": "mario",
   // "password": "root"
-  "username": "user14",
-  "password": "secret"
+  // "username": "user14",
+  // "password": "secret"
   // "username": "putz",
   // "password": "secret!!"
 }
@@ -52,8 +52,9 @@ POST {{uri}}/auth/revoke-refresh-token HTTP/1.1
 Content-Type: {{contentType}}
 
 {
+  // note this works with inMemory store, if we used a valid token and restart server user is missing in userStore
   // change user to revoke it'// s token, increment version
-  "username":"mario"
+  "username": "c3"
 }
 
 ### authLogOut
@@ -77,7 +78,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "user14",
+  "username": "user17",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
@@ -96,15 +97,17 @@ Authorization: Bearer {{authToken}}
 ### ldapChangeUserRecord
 // @name ldapChangeUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@changeUsername = mario
+@changeUsername = user15
 
-PUT {{uri}}/ldap/user/{{changeUsername}} HTTP/1.1
+PUT {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 // array of modifications, send one attribute only to prevent error `message:'Only one attribute per Change allowed'`
 // you can pass in a single Change or an array of Change objects
 {
+  "username": "{{addMemberUsername}}",
+  "defaultGroup" : "c3student",
   "changes": [
     {
       // replace, add, delete
@@ -144,7 +147,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = user14
+@getUsername = user1
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -156,7 +159,7 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = user14
+@addMemberUsername = user1
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
@@ -173,7 +176,7 @@ Authorization: Bearer {{authToken}}
 ### ldapAddMemberToGroup
 // @name ldapDeleteMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = user14
+@addMemberUsername = user1
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
@@ -190,18 +193,15 @@ Authorization: Bearer {{authToken}}
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = root1
+@deleteUsername = user1
 
-DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
+DELETE {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  // TODO
-  "username": "{{addMemberUsername}}",
-  // TODO
-  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
-  "defaultGroup" : "c3administrator",
+  "username": "{{deleteUsername}}",
+  "defaultGroup" : "c3student"
 }
 
 ### ldapInitUserRecordsCache
@@ -272,6 +272,8 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  "username": "{{deleteUsername}}",
+  "defaultGroup" : "c3student",
   "changes": [
     {
       // replace, add, delete
