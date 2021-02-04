@@ -7,7 +7,7 @@ import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, record
 import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { CreateLdapUserModel } from './models';
 
@@ -158,7 +158,7 @@ export class LdapService {
    */
   // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
-    filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
+    filter: string = '(objectCategory=OU=People,DC=c3edu,DC=online)',
     pageSize: number = 1000
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
@@ -315,15 +315,22 @@ export class LdapService {
       };
 
       try {
-        const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online
+        // ex cn=user,c3student,ou=People,dc=c3edu,dc=online
+        const newDN = `cn=${cn},ou=${createLdapUserDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        debugger;
         this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
             reject(error);
           } else {
-            // must add new user to group
-            await this.addDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: 'c3student' });
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
+            // must add new user to group after update cache, it can crash if group doesn't exists
+            debugger;
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, dnPrefix: `cn=${newUser.cn},ou=${createLdapUserDto.defaultGroup}`, group: createLdapUserDto.defaultGroup })
+              .catch((error) => {
+                reject(error);
+              });
             resolve();
           }
         });
@@ -331,25 +338,36 @@ export class LdapService {
         // const message = (error && error.name === 'InvalidDistinguishedNameError')
         //   ? { message: parseTemplate(c.INVALID_DISTINGUISHED_NAME_ERROR, createLdapUserDto), newUser }
         //   : error;
+        debugger;
         reject(error);
       }
     });
   };
 
   /**
-   * add group/role to user
+   * add or delete group/role to user/member
+   * dnPrefix is the prefixed of ND ex `CN=peter,OU=C3Student,OU=People,DC=c3edu,DC=online` prefixDn is `CN=peter,OU=C3Student`
    */
-  addDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddDeleteUserToGroupDto): Promise<any> {
+  addOrDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
+// "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
+// "memberOf": [
+//   "CN=C3Student,OU=Groups,DC=c3edu,DC=online"
+// ],
+// "controls": [],
+// "objectCategory": "CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online",
+        // "dn": "CN=user1,OU=C3Student,OU=People,DC=c3edu,DC=online",
+const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
+// const changeDN = `ou=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+// const changeDN = `cn=${addUserToGroupDto.username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const member = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+        debugger;
         const groupChange = new ldap.Change({
           operation,
-          modification: {
-            member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
-          }
+          modification: { member }
         });
-        this.ldapClient.modify(groupDN, groupChange, async (error) => {
+        this.ldapClient.modify(changeDN, groupChange, async (error) => {
           if (error) {
             reject(error);
           } else {
@@ -389,7 +407,7 @@ export class LdapService {
   /**
    * change user record
    */
-  changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
+  changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
@@ -417,7 +435,7 @@ export class LdapService {
   /**
    * change user password
    */
-  changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<any> {
+  changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
         const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
