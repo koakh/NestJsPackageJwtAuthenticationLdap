@@ -4,7 +4,7 @@ import { SearchUserRecordDto } from '../dto';
 export interface Cache {
   // last update initialized date
   lastUpdate: number,
-  totalUsers: number,
+  totalRecords: number,
   status: number,
   // hashMap of cached users
   users: Record<string, SearchUserRecordDto>,

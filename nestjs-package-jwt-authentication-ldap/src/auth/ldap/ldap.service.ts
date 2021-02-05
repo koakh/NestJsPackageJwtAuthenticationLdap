@@ -31,7 +31,7 @@ export class LdapService {
     // init cache object
     this.cache = {
       lastUpdate: undefined,
-      totalUsers: undefined,
+      totalRecords: undefined,
       elapsedTime: undefined,
       memoryUsage: undefined,
       status: undefined,
@@ -158,15 +158,17 @@ export class LdapService {
    */
   // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
-    filter: string = '(objectCategory=OU=People,DC=c3edu,DC=online)',
+    // if empty in payload use default
+    filter: string,
     pageSize: number = 1000
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
+      const showDebug = false;
       try {
+        // if filter is undefined, use default filter
+        filter = filter ? filter : this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX);
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
-        // countUsers sums on searchEntry event
-        let countUsers = 0;
         // recordsFound sums on page event
         let recordsFound = 0;
         let currentPage = 0;
@@ -183,10 +185,12 @@ export class LdapService {
         }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
           res.on('searchEntry', (entry) => {
-            countUsers++;
+            recordsFound++;
             const dn = entry.object.dn as string;
-            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-            // Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
+            if (showDebug) {
+              Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+              Logger.log(`entry.object: [${entry.object.dn}: ${recordsFound}]`, LdapService.name);
+            }
             user = {
               // extract username from string | array
               dn,
@@ -214,14 +218,16 @@ export class LdapService {
             // assign only if null
             if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
             // NOTE: debug stuff: leave it here for future development
-            const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
-            // const {_value: {size: recordsSize} } = (result.controls as any);
-            // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
-            // tslint:disable-next-line: max-line-length
-            // Logger.log(`page end event: currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
-            // use the page event to continue with next page if the sizeLimit (of page) is reached.
-            // tslint:disable-next-line: max-line-length
-            // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+            if (showDebug) {
+              const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
+              // const {_value: {size: recordsSize} } = (result.controls as any);
+              Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
+              // tslint:disable-next-line: max-line-length
+              Logger.log(`page end event: currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+              // use the page event to continue with next page if the sizeLimit (of page) is reached.
+              // tslint:disable-next-line: max-line-length
+              // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+            }
             if (onPageCallback) { onPageCallback(); };
           });
           res.on('error', (error) => {
@@ -240,14 +246,14 @@ export class LdapService {
             if (cachedUsersLength > 0 && Array.isArray(Object.values(this.cache.users))) {
               // update cache object
               // tslint:disable-next-line: max-line-length
-              this.cache = { ...this.cache, lastUpdate: Date.now(), totalUsers: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
+              this.cache = { ...this.cache, lastUpdate: Date.now(), totalRecords: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
               // get paginatorResult: used for debug purposes only
               // const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
               // Logger.log(`paginatorResult: [${JSON.stringify(paginatorResult, undefined, 2)}]`);
               // resolve promise
               resolve({
                 lastUpdate: this.cache.lastUpdate,
-                totalUsers: this.cache.totalUsers,
+                totalRecords: this.cache.totalRecords,
                 elapsedTime: this.cache.elapsedTime,
                 memoryUsage: this.cache.memoryUsage,
                 status: this.cache.status
@@ -429,7 +435,7 @@ export class LdapService {
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
           throw new Error('you must pass a valid oldPassword and newPassword properties')
         }

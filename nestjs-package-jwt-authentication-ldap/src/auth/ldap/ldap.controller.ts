@@ -5,7 +5,7 @@ import { Roles as UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation } from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
@@ -175,10 +175,11 @@ export class LdapController {
   async changeUserProfileRecord(
     @Request() req,
     @Response() res,
-    @Body() changeUserRecordDto: ChangeUserRecordDto,
+    @Body() changeUserProfileDto: ChangeUserProfileDto,
   ): Promise<void> {
     this.checkAuthUser(req);
-    this.ldapService.changeUserRecord(req.user.username, changeUserRecordDto)
+    // convert ChangeUserProfileDto into ChangeUserRecordDto with injected user and pass to changeUserRecord
+    this.ldapService.changeUserRecord({...changeUserProfileDto, username: req.user.username})
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })
