@@ -6,7 +6,7 @@ import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CreateLdapUserModel } from './models';

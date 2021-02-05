@@ -1,11 +1,11 @@
 import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../decorators/roles.decorator';
-import { Roles as UserRoles } from '../enums';
+import { UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation } from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
@@ -25,7 +25,7 @@ export class LdapController {
 
   @Post('/user')
   // @Roles and @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
@@ -47,7 +47,7 @@ export class LdapController {
   }
 
   @Post('/group/:operation')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: 'operation', enum: ['add', 'delete'] })
@@ -68,7 +68,7 @@ export class LdapController {
   }
 
   @Get('/user/:username')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
@@ -85,7 +85,7 @@ export class LdapController {
   }
 
   @Post('/cache/init')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
@@ -102,7 +102,7 @@ export class LdapController {
   }
 
   @Post('/cache/search')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecords(
@@ -119,7 +119,7 @@ export class LdapController {
   }
 
   @Delete('/user')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
@@ -136,7 +136,7 @@ export class LdapController {
   }
 
   @Put('/user')
-  @Roles(UserRoles.C3_ADMINISTRATOR)
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
@@ -179,7 +179,7 @@ export class LdapController {
   ): Promise<void> {
     this.checkAuthUser(req);
     // convert ChangeUserProfileDto into ChangeUserRecordDto with injected user and pass to changeUserRecord
-    this.ldapService.changeUserRecord({...changeUserProfileDto, username: req.user.username})
+    this.ldapService.changeUserRecord({ ...changeUserProfileDto, username: req.user.username })
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })
