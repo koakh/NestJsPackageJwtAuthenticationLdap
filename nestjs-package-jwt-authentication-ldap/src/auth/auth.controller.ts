@@ -53,7 +53,7 @@ export class AuthController {
     // don't delete sensitive properties here, this is a reference to moke user data
     // if we delete password, we deleted it from moke user
     // return LoginUserResponseDto
-    return res.send({ user: { id: userId, username, email, roles }, accessToken });
+    return res.send({ user: { dn: userId, username, email, roles }, accessToken });
   }
 
   /**
