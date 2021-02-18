@@ -26,15 +26,15 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  // "username": "c3",
-  // "password": "root"
+  "username": "c3",
+  "password": "root"
   // "username": "mario",
   // "password": "root"
   // student
-  "username": "user14",
+  // "username": "user14",
   // administratot
   // "username": "user16",
-  "password": "secret!"
+  // "password": "secret!"
   // "username": "putz",
   // "password": "secret!!"
 }
