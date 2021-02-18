@@ -42,12 +42,12 @@ export class AuthController {
       ? this.authService.getRolesFromMemberOf(memberOf)
       : [];
     // payload for accessToken
-    const SignJwtToken: SignJwtToken = { username, userId, roles };
-    const { accessToken } = await this.authService.signJwtToken(SignJwtToken);
+    const signJwtToken: SignJwtToken = { username, userId, roles };
+    const { accessToken } = await this.authService.signJwtToken(signJwtToken);
     // get incremented tokenVersion
     const tokenVersion = this.authService.usersStore.incrementTokenVersion(username);
     // refreshToken
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(SignJwtToken, tokenVersion);
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtToken, tokenVersion);
     // send jid cookie refresh token to client (browser, insomnia etc)
     this.authService.sendRefreshToken(res, refreshToken);
     // don't delete sensitive properties here, this is a reference to moke user data
@@ -93,8 +93,8 @@ export class AuthController {
     }
 
     // accessToken: add some user data to it, like id and roles
-    const SignJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };
-    const { accessToken }: AccessToken = await this.authService.signJwtToken(SignJwtToken);
+    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };
+    const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
     const tokenVersion: number = this.authService.usersStore.getTokenVersion(user.username);
@@ -103,7 +103,7 @@ export class AuthController {
     }
 
     // we don't increment tokenVersion here, only when we login, this way refreshToken is always valid until we login again
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(SignJwtToken, tokenVersion);
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtToken, tokenVersion);
     // send refreshToken in response/setCookie
     this.authService.sendRefreshToken(res, refreshToken);
     res.send({ valid: true, accessToken });
