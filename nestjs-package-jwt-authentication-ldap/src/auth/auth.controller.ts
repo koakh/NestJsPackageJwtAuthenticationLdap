@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Logger, Param, Post, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -86,11 +86,11 @@ export class AuthController {
 
     // user from ldapService
     const { user }: SearchUserRecordResponseDto = await this.ldapService.getUserRecord(payload.username);
-    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
     // check jid token
     if (!user) {
       return invalidPayload();
     }
+    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
 
     // accessToken: add some user data to it, like id and roles
     const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };

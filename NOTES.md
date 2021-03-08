@@ -429,3 +429,27 @@ LDAP_SEARCH_BASE="dc=c3edu,dc=online"
 to
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
 ```
+
+## Run unit tests
+# Prerequisites
+
+```shell
+$ npm i @golevelup/ts-jest
+$ npm i -D jest-mock-req-res
+```
+
+Execution:
+```shell
+# Terminal 1:
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm run start:dev
+
+# Terminal 2:
+# consumer app (api)
+$ cd nestjs-package-jwt-authentication-ldap-consumer
+$ npm run start:debug
+
+# Terminal 3:
+$ cd nestjs-package-jwt-authentication-ldap
+$ jest (--coverage)
+```

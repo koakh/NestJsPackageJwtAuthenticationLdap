@@ -5,10 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { envConstants } from '../common/constants/env';
-import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
-import { hashPassword } from './utils/util';
 import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
+import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
+import { hashPassword } from './utils/util';
 
 @Injectable()
 export class AuthService {
@@ -63,7 +63,7 @@ export class AuthService {
   }
 
   getRolesFromMemberOf(memberOf: string[]): string[] {
-    if (memberOf.length < 0) {
+    if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
       return [];
     }
     // if memberOf is a string, in case of ldap have only one group, we must modify memberOf to be an array, else it fails on map

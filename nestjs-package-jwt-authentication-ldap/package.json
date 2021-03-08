@@ -38,6 +38,7 @@
     "@nestjs/common": "^7.0.0"
   },
   "dependencies": {
+    "@golevelup/ts-jest": "^0.3.1",
     "@nest-middlewares/cookie-parser": "^6.0.0",
     "@nestjs/config": "^0.5.0",
     "@nestjs/jwt": "^7.1.0",
@@ -67,6 +68,7 @@
     "@types/passport-local": "^1.0.33",
     "@types/supertest": "^2.0.10",
     "jest": "^26.4.2",
+    "jest-mock-req-res": "^1.0.2",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
     "supertest": "^5.0.0",
