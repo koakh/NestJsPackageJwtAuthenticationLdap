@@ -23,6 +23,10 @@
     - [Bootstrap](#bootstrap)
     - [Add @ApiProperty() to schemas](#add-apiproperty-to-schemas)
   - [unexpected number of matches (2) for "c3" username](#unexpected-number-of-matches-2-for-c3-username)
+  - [Unit Tests](#unit-tests)
+    - [Config File](#config-file)
+    - [Install prerequisites](#install-prerequisites)
+    - [Run unit tests](#run-unit-tests)
 
 ## Starter Project
 
@@ -417,7 +421,6 @@ to solve use `@ApiBody({ type: [LoginDto] })`
 
 - [NestJS, Modules and Swagger best practices](https://cimpleo.com/blog/nestjs-modules-and-swagger-best-practices/)
 
-
 ## unexpected number of matches (2) for "c3" username
 
 `.env`
@@ -430,26 +433,54 @@ to
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
 ```
 
-## Run unit tests
-# Prerequisites
+## Unit Tests
+
+### Config File
 
 ```shell
-$ npm i @golevelup/ts-jest
-$ npm i -D jest-mock-req-res
+# jwt
+ACCESS_TOKEN_JWT_SECRET='secretKeyAccessToken'
+ACCESS_TOKEN_EXPIRES_IN='15m'
+REFRESH_TOKEN_JWT_SECRET='secretKeyRefreshToken'
+REFRESH_TOKEN_EXPIRES_IN='7d'
+REFRESH_TOKEN_SKIP_INCREMENT_VERSION='false'
+# # ldap
+LDAP_URL='c3edu.online'
+LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
+LDAP_BIND_CREDENTIALS='Root123...'
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+LDAP_SEARCH_FILTER='(cn={{username}})'
+LDAP_SEARCH_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
+LDAP_SEARCH_CACHE_FILTER='(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'
+AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
+LDAP_BASE_DN='dc=c3edu,dc=online'
+LDAP_NEW_USER_DN_POSTFIX='ou=People'
 ```
 
+### Install prerequisites
+
+```shell
+# enter path
+$ cd nestjs-package-jwt-authentication-ldap
+# install prerequisites
+$ npm i @golevelup/ts-jest
+$ npm i -D jest-mock-req-res
+```
+
+### Run unit tests
+
 Execution:
+
 ```shell
 # Terminal 1:
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
 
-# Terminal 2:
-# consumer app (api)
-$ cd nestjs-package-jwt-authentication-ldap-consumer
-$ npm run start:debug
-
 # Terminal 3:
 $ cd nestjs-package-jwt-authentication-ldap
-$ jest (--coverage)
+$ npx jest
+# or 
+$ or npm run test
+# using coverage
+$ npx jest --coverage
 ```
