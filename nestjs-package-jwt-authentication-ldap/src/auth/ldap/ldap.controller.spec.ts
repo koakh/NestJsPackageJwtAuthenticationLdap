@@ -117,45 +117,45 @@ describe('LdapController', () => {
   })
 
   describe(' /user/:username', () => {
-  it('should test getUserRecord - Successfully', async () => {
-    const res = mockResponse();
-    const username = 'c3';
-    const spyUserRecord: SearchUserRecordResponseDto = {
-      user: {
-        dn: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
-        memberOf: [
-          'CN=C3Administrator,OU=Groups,DC=c3edu,DC=online',
-          'CN=C3Teacher,OU=Groups,DC=c3edu,DC=online',
-          'CN=C3Parent,OU=Groups,DC=c3edu,DC=online',
-          'CN=C3Student,OU=Groups,DC=c3edu,DC=online',
-          'CN=Domain Admins,CN=Users,DC=c3edu,DC=online',
-        ],
-        controls: [
-        ],
-        objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
-        userAccountControl: '66056',
-        lastLogonTimestamp: '132576251909012870',
-        username: 'c3',
-        email: undefined,
-        displayName: 'C3_Test',
-        gender: undefined,
-        mail: undefined,
-        C3UserRole: undefined,
-        dateOfBirth: undefined,
-        studentID: undefined,
-        telephoneNumber: undefined,
-      },
-      status: 1
-    };
-    jest
-      .spyOn(service, 'getUserRecord')
-      .mockImplementationOnce(async () => spyUserRecord);
-    await controller.getUserRecord(res, username)
-      .then(() => {
-        expect(service.getUserRecord).toHaveBeenCalledWith(username);
-      });
-    expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
-  })
+    it('should test getUserRecord - Successfully', async () => {
+      const res = mockResponse();
+      const username = 'c3';
+      const spyUserRecord: SearchUserRecordResponseDto = {
+        user: {
+          dn: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
+          memberOf: [
+            'CN=C3Administrator,OU=Groups,DC=c3edu,DC=online',
+            'CN=C3Teacher,OU=Groups,DC=c3edu,DC=online',
+            'CN=C3Parent,OU=Groups,DC=c3edu,DC=online',
+            'CN=C3Student,OU=Groups,DC=c3edu,DC=online',
+            'CN=Domain Admins,CN=Users,DC=c3edu,DC=online',
+          ],
+          controls: [
+          ],
+          objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
+          userAccountControl: '66056',
+          lastLogonTimestamp: '132576251909012870',
+          username: 'c3',
+          email: undefined,
+          displayName: 'C3_Test',
+          gender: undefined,
+          mail: undefined,
+          C3UserRole: undefined,
+          dateOfBirth: undefined,
+          studentID: undefined,
+          telephoneNumber: undefined,
+        },
+        status: 1
+      };
+      jest
+        .spyOn(service, 'getUserRecord')
+        .mockImplementationOnce(async () => spyUserRecord);
+      await controller.getUserRecord(res, username)
+        .then(() => {
+          expect(service.getUserRecord).toHaveBeenCalledWith(username);
+        });
+      expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    })
 
     it('should test getUserRecord - Error', async () => {
       const res = mockResponse();
@@ -287,11 +287,11 @@ describe('LdapController', () => {
       const res = mockResponse();
       const input: DeleteUserRecordDto = {
         username: 'c3',
-        defaultGroup : 'c3student'
+        defaultGroup: 'c3student'
       };
       jest
         .spyOn(service, 'deleteUserRecord')
-        .mockImplementationOnce(() => {return Promise.resolve()});
+        .mockImplementationOnce(() => { return Promise.resolve() });
       await controller.deleteUserRecord(res, input)
         .then(() => {
           expect(service.deleteUserRecord).toHaveBeenCalledWith(input);
@@ -303,7 +303,7 @@ describe('LdapController', () => {
       const res = mockResponse();
       const input: DeleteUserRecordDto = {
         username: 'c3',
-        defaultGroup : 'c3student'
+        defaultGroup: 'c3student'
       };
       jest
         .spyOn(service, 'deleteUserRecord')
