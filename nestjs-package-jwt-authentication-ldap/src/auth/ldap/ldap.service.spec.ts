@@ -174,7 +174,11 @@ describe('LdapService', () => {
         status: 0
       };
       await ldapService.getUserRecord('c3').then((res) => {
-        expect(res).toStrictEqual(result);
+        expect(res.user.dn).toStrictEqual(result.user.dn);
+        expect(res.user.memberOf).toStrictEqual(result.user.memberOf);
+        expect(res.user.objectCategory).toStrictEqual(result.user.objectCategory);
+        expect(res.user.username).toStrictEqual(result.user.username);
+        expect(res.user.displayName).toStrictEqual(result.user.displayName);
       });
     });
 
@@ -412,16 +416,19 @@ describe('LdapService', () => {
 
     it('should test addOrDeleteUserToGroup - Successfully', async () => {
       const operation: ChangeUserRecordOperation = ChangeUserRecordOperation.ADD;
-      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { useCN=user_test,OU=C3Administrator,
-        firstName: 'Nuno',
-        lastName: 'Bento',
-        displayName: 'Nuno Bento',
+      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { username: 'user19', defaultGroup: 'c3student', group: 'c3teacher' };
+      const inputCreateUser: CreateUserRecordDto = {
+        username: 'user19',
+        password: '1234',
+        firstName: 'Joao',
+        lastName: 'Pedro',
+        displayName: 'Joao Pedro',
         objectClass: 'User',
         defaultGroup: 'c3student',
-        mail: 'nuno.bento@critical-links.com',
+        mail: 'test@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',
-        telephoneNumber: '+351936202288',
+        telephoneNumber: '+35193000000',
         studentID: '34273462836a'
       };
       await ldapService.initUserRecordsCache(undefined);
