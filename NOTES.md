@@ -27,6 +27,7 @@
     - [Config File](#config-file)
     - [Install prerequisites](#install-prerequisites)
     - [Run unit tests](#run-unit-tests)
+  - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
 
 ## Starter Project
 
@@ -483,4 +484,34 @@ $ npx jest
 $ or npm run test
 # using coverage
 $ npx jest --coverage
+```
+
+## [ExceptionsHandler] unexpected number of matches (2) for "c3" username
+
+seems this error occurs when we use a wrong `LDAP_SEARCH_BASE` and we can see the root cause in c3-backend because we don't see nothing in logs, ony the response with error 500
+
+response on consumer app
+
+```json
+{
+  "statusCode": 500,
+  "message": "Internal server error"
+}
+```
+
+response on c3-backend
+
+```json
+{  
+  "statusCode": 500,  
+  "path": "/v1/auth/login",  
+  "errorType": "Error" 
+}
+```
+
+```env
+# OK
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+# KO: gives [ExceptionsHandler] unexpected number of matches (2) for "c3" username. error: {  "statusCode": 500,  "path": "/v1/auth/login",  "errorType": "Error" }
+# LDAP_SEARCH_BASE='dc=c3edu,dc=online'
 ```
