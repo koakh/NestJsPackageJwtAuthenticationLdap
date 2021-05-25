@@ -510,8 +510,8 @@ response on c3-backend
 ```
 
 ```env
-# OK
-LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
 # KO: gives [ExceptionsHandler] unexpected number of matches (2) for "c3" username. error: {  "statusCode": 500,  "path": "/v1/auth/login",  "errorType": "Error" }
 # LDAP_SEARCH_BASE='dc=c3edu,dc=online'
+# OK
+LDAP_SEARCH_FILTER='(cn={{username}})'
 ```
