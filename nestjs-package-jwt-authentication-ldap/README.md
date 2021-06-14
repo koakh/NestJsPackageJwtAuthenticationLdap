@@ -104,7 +104,7 @@ $ curl --request POST \
       "key": "value"
     }
   },
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwic3ViIjoiZWZlZWQzZWItYzBhMi00YjNlLTgxNmYtMmE0MmNhODQ1MWIzIiwicm9sZXMiOlsiVVNFUiIsIkFETUlOIl0sImlhdCI6MTYwMjI2MDk3NywiZXhwIjoxNjAyMjYxODc3fQ.-n6-xmrKIObquE10bKHnKRgzDvIFClkOQiVJMy8w0ew"
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9........"
 }
 ```
 
