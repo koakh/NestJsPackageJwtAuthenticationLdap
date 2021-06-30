@@ -225,7 +225,6 @@ describe('LdapController', () => {
       await controller.initUserRecordsCache(res, input)
         .catch((err) => {
           expect(err).toBeInstanceOf(Error);
-          test
           expect(service.initUserRecordsCache).toHaveBeenCalledWith(input.filter);
         })
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
