@@ -308,21 +308,28 @@ export class LdapService {
         cn,
         name: createLdapUserDto.username,
         givenname: createLdapUserDto.firstName,
-        sn: createLdapUserDto.lastName,
         // tslint:disable-next-line: max-line-length
-        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName} ${createLdapUserDto.firstName}`,
+        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName}${createLdapUserDto.lastName ? ` ${createLdapUserDto.lastName}` : ''}`,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.password),
         sAMAccountName: createLdapUserDto.username,
-        userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
-        // optionals
-        mail: createLdapUserDto.mail,
-        dateOfBirth: createLdapUserDto.dateOfBirth,
-        gender: createLdapUserDto.gender,
-        telephoneNumber: createLdapUserDto.telephoneNumber,
-        studentID: createLdapUserDto.studentID,
+        userAccountControl: UserAccountControl.NORMAL_ACCOUNT
       };
+
+      // optionals must be included outside the above object, otherwise the following error is shown {"error":"Cannot read property 'toString' of null"}
+      if (createLdapUserDto.lastName)
+        newUser.sn = createLdapUserDto.lastName;
+      if (createLdapUserDto.mail)
+        newUser.mail = createLdapUserDto.mail;
+      if (createLdapUserDto.dateOfBirth)
+        newUser.dateOfBirth = createLdapUserDto.dateOfBirth;
+      if (createLdapUserDto.gender)
+        newUser.gender = createLdapUserDto.gender;
+      if (createLdapUserDto.telephoneNumber)
+        newUser.telephoneNumber = createLdapUserDto.telephoneNumber;
+      if (createLdapUserDto.studentID)
+        newUser.studentID = createLdapUserDto.studentID;
 
       try {
         // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online

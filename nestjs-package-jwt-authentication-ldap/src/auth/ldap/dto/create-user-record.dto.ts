@@ -3,26 +3,27 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserRecordDto {
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   // ldap: name
   @ApiProperty()
   username: string;
 
   @IsDefined()
-  @Length(3, 50)
+  @Length(4, 50)
   @ApiProperty()
   password: string;
 
   // firstName
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   // ldap: givenname
   @ApiProperty()
   firstName: string;
 
   // lastName
   @IsDefined()
-  @Length(3, 50)
+  @IsOptional()
+  @Length(1, 50)
   // ldap: sn
   @ApiProperty()
   lastName: string;

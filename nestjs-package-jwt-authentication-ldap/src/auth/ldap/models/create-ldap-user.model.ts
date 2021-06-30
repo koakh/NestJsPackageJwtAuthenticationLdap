@@ -3,26 +3,21 @@ import { UserAccountControl } from '../enums';
 
 export class CreateLdapUserModel {
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   cn: string;
 
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   name: string;
 
   // firstName
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   givenname: string;
-
-  // lastName
-  @IsDefined()
-  @Min(3)
-  sn: string;
 
   // firstName + lastName
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   displayName: string;
 
   @IsDefined()
@@ -47,6 +42,11 @@ export class CreateLdapUserModel {
   userAccountControl: UserAccountControl;
 
   // optionals
+
+  // lastName
+  @IsOptional()
+  @Min(1)
+  sn?: string;
 
   @IsOptional()
   @IsEmail()
