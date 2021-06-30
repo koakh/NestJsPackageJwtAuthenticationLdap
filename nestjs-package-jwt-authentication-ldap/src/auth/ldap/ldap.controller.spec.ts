@@ -4,7 +4,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mockRequest, mockResponse } from 'jest-mock-req-res';
 import { mockedConfigService } from '../utils/mocks/config.service';
 // tslint:disable-next-line:max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { CreateUserRecordDto } from './dto/create-user-record.dto';
 import { ChangeUserRecordOperation } from './enums';
 import { LdapController } from './ldap.controller';
@@ -113,6 +113,22 @@ describe('LdapController', () => {
         })
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(res.send).toHaveBeenCalled();
+    })
+  })
+
+  describe('PUT /defaultGroup', () => {
+    it('should test updateDefaultGroup - Successfully', async () => {
+      const res = mockResponse();
+      const changeDefaultGroupDto: ChangeDefaultGroupDto = { username: 'user1', defaultGroup: 'c3student' };
+      jest
+        .spyOn(service, 'updateDefaultGroup')
+        .mockImplementationOnce(async () => Promise.resolve());
+      await controller.updateDefaultGroup(res, changeDefaultGroupDto)
+        .then(() => {
+          expect(service.updateDefaultGroup).toHaveBeenCalledWith(changeDefaultGroupDto);
+        });
+      expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+
     })
   })
 

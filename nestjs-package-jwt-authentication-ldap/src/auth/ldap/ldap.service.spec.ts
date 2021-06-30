@@ -2,7 +2,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as utils from '../../common/utils/util';
 // tslint:disable-next-line:max-line-length
-import { AddOrDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
 import { LdapService } from './ldap.service';
 
@@ -446,6 +446,37 @@ describe('LdapService', () => {
         )
       });
       await ldapService.deleteUserRecord({ username: inputCreateUser.username, defaultGroup: inputCreateUser.defaultGroup })
+    });
+  });
+
+  describe(' updateDefaultGroup()', () => {
+    it('should test updateDefaultGroup - Successfully', async () => {
+      const changeDefaultGroup: ChangeDefaultGroupDto = { username: 'user19', defaultGroup: 'c3student' };
+      const inputCreateUser: CreateUserRecordDto = {
+        username: 'user19',
+        password: '1234',
+        firstName: 'Joao',
+        lastName: 'Pedro',
+        displayName: 'Joao Pedro',
+        objectClass: 'User',
+        defaultGroup: 'c3student',
+        mail: 'test@critical-links.com',
+        dateOfBirth: 19711219,
+        gender: 'M',
+        telephoneNumber: '+35193000000',
+        studentID: '34273462836a'
+      };
+
+      await ldapService.initUserRecordsCache(undefined);
+      await ldapService.createUserRecord(inputCreateUser);
+      await ldapService.updateDefaultGroup(changeDefaultGroup);
+      await ldapService.getUserRecord(inputCreateUser.username).then((res) => {
+        expect(res.user.dn).toBe(`CN=${inputCreateUser.username},OU=C3Teacher,OU=People,DC=c3edu,DC=online`)
+        expect(res.user.memberOf).toEqual(
+          expect.arrayContaining(['CN=C3Student,OU=Groups,DC=c3edu,DC=online', 'CN=C3Teacher,OU=Groups,DC=c3edu,DC=online'])
+        )
+      });
+      await ldapService.deleteUserRecord({ username: inputCreateUser.username, defaultGroup: changeDefaultGroup.defaultGroup })
     });
   });
 

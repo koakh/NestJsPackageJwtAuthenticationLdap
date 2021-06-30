@@ -1,7 +1,7 @@
 import { IsDefined, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class AddOrDeleteUserToGroupDto {
+export class ChangeDefaultGroupDto {
   @IsDefined()
   @Length(1, 50)
   @ApiProperty()
@@ -10,10 +10,5 @@ export class AddOrDeleteUserToGroupDto {
   @IsDefined()
   @Length(3, 50)
   @ApiProperty()
-  group: string;
-
-  // optional used when add member to group only
-  @Length(3, 50)
-  @ApiProperty()
-  defaultGroup?: string;
+  defaultGroup: string;
 }

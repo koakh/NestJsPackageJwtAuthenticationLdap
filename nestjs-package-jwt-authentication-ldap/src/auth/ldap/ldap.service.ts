@@ -6,7 +6,7 @@ import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CreateLdapUserModel } from './models';
@@ -391,6 +391,34 @@ export class LdapService {
   };
 
   /**
+   * update defaultGroup
+   */
+  updateDefaultGroup(changeDefaultGroupDto: ChangeDefaultGroupDto): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.username)).user;
+        const newDn: string = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
+
+        this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
+          if (error)
+            return reject(error);
+
+          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => {reject(error);});
+
+          const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.configService.get(e.LDAP_BASE_DN)}`.toLowerCase();
+          const notMember: boolean = user.memberOf.filter((group: string) => {return group.toLowerCase()==defaultGroupDn;}).length==0;
+          if (notMember)
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD,{ username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup}).catch((error) => {reject(error);});
+
+          resolve();
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  /**
    * delete user
    */
   deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
@@ -421,6 +449,9 @@ export class LdapService {
         const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
+          if (change.modification.unicodePwd)
+            change.modification.unicodePwd=encodeAdPassword(change.modification.unicodePwd);
+
           return new ldap.Change({
             operation: change.operation,
             modification: change.modification

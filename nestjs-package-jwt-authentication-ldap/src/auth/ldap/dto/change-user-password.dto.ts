@@ -10,12 +10,12 @@ export class ChangeUserPasswordDto {
   defaultGroup: string;
 
   @IsDefined()
-  @Length(3, 50)
+  @Length(4, 50)
   @ApiProperty()
   oldPassword: string;
 
   @IsDefined()
-  @Length(3, 50)
+  @Length(4, 50)
   @ApiProperty()
   newPassword: string;
 }

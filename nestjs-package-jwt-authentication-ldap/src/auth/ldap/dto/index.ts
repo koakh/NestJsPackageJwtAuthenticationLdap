@@ -1,5 +1,6 @@
 export * from './add-delete-user-to-group.dto';
 export * from './cache-response.dto';
+export * from './change-default-group.dto';
 export * from './change-user-password.dto';
 export * from './change-user-profile.dto';
 export * from './change-user-record.dto';
