@@ -6,7 +6,7 @@ import { mockedConfigService } from '../utils/mocks/config.service';
 // tslint:disable-next-line:max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { CreateUserRecordDto } from './dto/create-user-record.dto';
-import { ChangeUserRecordOperation } from './enums';
+import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
 import { LdapController } from './ldap.controller';
 import { LdapService } from './ldap.service';
 
@@ -225,10 +225,27 @@ describe('LdapController', () => {
       await controller.initUserRecordsCache(res, input)
         .catch((err) => {
           expect(err).toBeInstanceOf(Error);
+          test
           expect(service.initUserRecordsCache).toHaveBeenCalledWith(input.filter);
         })
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(res.send).toHaveBeenCalled();
+    })
+  })
+
+  describe('POST /cache/update', () => {
+    it('should test updateUserRecordsCache - Successfully', async () => {
+      const res = mockResponse();
+      const payload: string[] = ['user1','user2','user3'];
+      jest
+        .spyOn(service, 'updateCachedUser')
+        .mockImplementationOnce(async () => Promise.resolve());
+      await controller.updateUserRecordsCache(res, payload)
+        .then(() => {
+          for (let i=0;i<payload.length;i++)
+            expect(service.updateCachedUser).toHaveBeenCalledWith(UpdateCacheOperation.CREATE,payload[i]);
+        });
+      expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     })
   })
 

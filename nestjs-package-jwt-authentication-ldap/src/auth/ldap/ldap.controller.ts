@@ -8,7 +8,6 @@ import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation} from './enums';
-
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 
@@ -118,6 +117,23 @@ export class LdapController {
       .catch((error) => {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
+  }
+
+  @Post('/cache/update')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async updateUserRecordsCache(
+    @Response() res,
+    @Body() payload: string[],
+  ): Promise<void> {
+    for (let i=0;i<payload.length;i++)
+    {
+      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE,payload[i]).catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+    }
+    res.status(HttpStatus.CREATED).send({});
   }
 
   @Post('/cache/search')
