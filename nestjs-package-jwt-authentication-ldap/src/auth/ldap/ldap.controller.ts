@@ -10,6 +10,9 @@ import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, Cha
 import { ChangeUserRecordOperation, UpdateCacheOperation} from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
+import { config } from 'dotenv';
+
+config();
 
 @Controller('ldap')
 @ApiTags('ldap')
