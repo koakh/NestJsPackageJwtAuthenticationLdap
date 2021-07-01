@@ -5,3 +5,8 @@ export * from './common/filters/http-exception.filter';
 export * from './auth/auth.module';
 export * from './auth/auth.service';
 export * from './auth/auth.controller';
+export { CacheResponseDto } from './auth/ldap/dto/cache-response.dto';
+// ldap
+export { LdapService } from './auth/ldap/ldap.service';
+// guards
+export { JwtAuthGuard, RolesAuthGuard } from './auth/guards';

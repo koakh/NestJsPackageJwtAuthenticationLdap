@@ -4,3 +4,4 @@ nestjs-package-jwt-authentication-ldap-consumer/dist/**
 .trash
 .bak
 test
+test.env

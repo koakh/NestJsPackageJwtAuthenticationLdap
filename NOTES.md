@@ -22,6 +22,12 @@
     - [Installation](#installation)
     - [Bootstrap](#bootstrap)
     - [Add @ApiProperty() to schemas](#add-apiproperty-to-schemas)
+  - [unexpected number of matches (2) for "c3" username](#unexpected-number-of-matches-2-for-c3-username)
+  - [Unit Tests](#unit-tests)
+    - [Config File](#config-file)
+    - [Install prerequisites](#install-prerequisites)
+    - [Run unit tests](#run-unit-tests)
+  - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
 
 ## Starter Project
 
@@ -207,6 +213,7 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
         searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
         searchFilter: configService.get(envConstants.LDAP_SEARCH_FILTER),
         searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(','),
+        ldapSearchCacheFilter: configService.get(envConstants.LDAP_SEARCH_CACHE_FILTER),
       },
     }, async (req: Request, user: any, done) => {
       // add user to request
@@ -286,7 +293,7 @@ Client.modify(userDN, [
 
 ```shell
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
-$ npm install --save @nestjs/swagger swagger-ui-express
+$ npm i @nestjs/swagger swagger-ui-express
 ```
 
 ### Bootstrap
@@ -296,7 +303,9 @@ Once the installation process is complete, open the main.ts file and initialize 
 ```typescript
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  // global prefix
+  app.setGlobalPrefix('v1');
+  // openApi
   const options = new DocumentBuilder()
     .setTitle('Cats example')
     .setDescription('The cats API description')
@@ -320,7 +329,7 @@ bootstrap();
 ```shell
 # add @nestjs/swagger to package to use `@ApiProperty()`
 $ cd nestjs-package-jwt-authentication-ldap
-$ npm install --save @nestjs/swagger
+$ npm i @nestjs/swagger
 ```
 
 get schemas, add `@ApiProperty()`
@@ -413,5 +422,97 @@ to solve use `@ApiBody({ type: [LoginDto] })`
 
 - [NestJS, Modules and Swagger best practices](https://cimpleo.com/blog/nestjs-modules-and-swagger-best-practices/)
 
+## unexpected number of matches (2) for "c3" username
 
+`.env`
 
+```shell
+occurs in new iso and the problem is in 
+change
+LDAP_SEARCH_BASE="dc=c3edu,dc=online"
+to
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+```
+
+## Unit Tests
+
+### Config File
+
+```shell
+# jwt
+ACCESS_TOKEN_JWT_SECRET='secretKeyAccessToken'
+ACCESS_TOKEN_EXPIRES_IN='15m'
+REFRESH_TOKEN_JWT_SECRET='secretKeyRefreshToken'
+REFRESH_TOKEN_EXPIRES_IN='7d'
+REFRESH_TOKEN_SKIP_INCREMENT_VERSION='false'
+# # ldap
+LDAP_URL='c3edu.online'
+LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
+LDAP_BIND_CREDENTIALS='Root123...'
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+LDAP_SEARCH_FILTER='(cn={{username}})'
+LDAP_SEARCH_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
+LDAP_SEARCH_CACHE_FILTER='(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'
+AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
+LDAP_BASE_DN='dc=c3edu,dc=online'
+LDAP_NEW_USER_DN_POSTFIX='ou=People'
+```
+
+### Install prerequisites
+
+```shell
+# enter path
+$ cd nestjs-package-jwt-authentication-ldap
+# install prerequisites
+$ npm i @golevelup/ts-jest
+$ npm i -D jest-mock-req-res
+```
+
+### Run unit tests
+
+Execution:
+
+```shell
+# Terminal 1:
+$ cd nestjs-package-jwt-authentication-ldap
+$ npm run start:dev
+
+# Terminal 3:
+$ cd nestjs-package-jwt-authentication-ldap
+$ npx jest
+# or 
+$ or npm run test
+# using coverage
+$ npx jest --coverage
+```
+
+## [ExceptionsHandler] unexpected number of matches (2) for "c3" username
+
+seems this error occurs when we use a wrong `LDAP_SEARCH_BASE` and we can see the root cause in c3-backend because we don't see nothing in logs, ony the response with error 500
+
+response on consumer app
+
+```json
+{
+  "statusCode": 500,
+  "message": "Internal server error"
+}
+```
+
+response on c3-backend
+
+```json
+{  
+  "statusCode": 500,  
+  "path": "/v1/auth/login",  
+  "errorType": "Error" 
+}
+```
+
+```env
+# leaves this not here
+# KO: gives [ExceptionsHandler] unexpected number of matches (2) for "c3" username. error: {  "statusCode": 500,  "path": "/v1/auth/login",  "errorType": "Error" }
+# LDAP_SEARCH_BASE='dc=c3edu,dc=online'
+# OK
+LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+```

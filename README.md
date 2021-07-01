@@ -28,9 +28,35 @@ $ npm run start:dev
 ```shell
 # in terminal #2
 $ cd nestjs-package-jwt-authentication-ldap-consumer
-# start in dev or debug
-$ npm run start:dev
-$ npm run start:debug
+# DEPRECATED
+# start in dev or debug (this will debug consumer app)
+# $ npm run start:dev
+# $ npm run start:debug
+# this will debug package and comsumer app ate same time
+press F5 or launch debugger
+```
+
+to test consumer app uncomment `hashPassword` and launch debugger and fire `curl http://localhost:3010/v1`
+
+```typescript
+// sample: test debugger consumer app with `curl http://localhost:3010/v1`
+@Get()
+@ApiOkResponse({ description: 'The request has succeeded' })
+hashPassword(): string {
+  debugger;
+  const password = 'some fake data';
+  return this.appService.hashPassword(password);
+}
+```
+
+to test package add a `debugger;` in login, and launch debugger and fire `curl -X POST --url http://localhost:3010/v1/auth/login --header 'content-type: application/json' --data '{"username": "c3","password": "root"}'`
+
+```typescript
+async login(
+  @Request() req: LoginDto,
+  @Response() res,
+): Promise<LoginResponseDto> {
+  debugger;
 ```
 
 ## Develop both projects
@@ -40,3 +66,17 @@ Now develop nestjs package and consumer app with hot reload
 ## Test all endpoints with client.http file
 
 > Note: required the awesome [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client)
+
+## Create Admin User
+
+```shell
+$ USER="mario"
+$ sudo samba-tool user list
+$ sudo samba-tool user create ${USER} password
+# test user auth ${​USER}​:root
+$ ldapsearch -H ldap://localhost:389 -x -D "cn=${​USER}​,cn=users,dc=c3edu,dc=online" -w "root" -b ou=passport-ldapauth "(uid=${​USER}​)"
+# show user
+$ sudo samba-tool user show ${​USER}​
+$ sudo samba-tool group addmembers "C3Administrator" ${​USER}​
+$ sudo samba-tool group listmembers "C3Administrator"
+```
