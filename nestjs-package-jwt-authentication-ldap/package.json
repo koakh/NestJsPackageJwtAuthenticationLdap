@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -56,7 +56,7 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@nestjs/common": "^7.4.4",
+    "@nestjs/common": "^7.6.18",
     "@nestjs/core": "^7.4.4",
     "@nestjs/platform-express": "^7.4.4",
     "@nestjs/testing": "^7.4.4",
