@@ -9,10 +9,11 @@ export class AppController {
     private readonly appService: AppService,
   ) { }
 
-  // sample
+  // sample: test debugger consumer app with `curl http://localhost:3010/v1`
   // @Get()
   // @ApiOkResponse({ description: 'The request has succeeded' })
   // hashPassword(): string {
+  //   debugger;
   //   const password = 'some fake data';
   //   return this.appService.hashPassword(password);
   // }

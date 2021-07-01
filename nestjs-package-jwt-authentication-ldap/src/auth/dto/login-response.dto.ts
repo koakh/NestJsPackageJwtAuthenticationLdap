@@ -6,6 +6,7 @@ export class LoginResponseDto {
   @IsDefined()
   @ApiProperty()
   user: {
+    dn: string
     username: string | string[],
     email: string,
     roles: string[],

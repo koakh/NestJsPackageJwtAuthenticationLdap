@@ -1,4 +1,4 @@
-import { Body, Controller, HttpStatus, Logger, Param, Post, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -42,18 +42,18 @@ export class AuthController {
       ? this.authService.getRolesFromMemberOf(memberOf)
       : [];
     // payload for accessToken
-    const SignJwtToken: SignJwtToken = { username, userId, roles };
-    const { accessToken } = await this.authService.signJwtToken(SignJwtToken);
+    const signJwtToken: SignJwtToken = { username, userId, roles };
+    const { accessToken } = await this.authService.signJwtToken(signJwtToken);
     // get incremented tokenVersion
     const tokenVersion = this.authService.usersStore.incrementTokenVersion(username);
     // refreshToken
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(SignJwtToken, tokenVersion);
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtToken, tokenVersion);
     // send jid cookie refresh token to client (browser, insomnia etc)
     this.authService.sendRefreshToken(res, refreshToken);
     // don't delete sensitive properties here, this is a reference to moke user data
     // if we delete password, we deleted it from moke user
     // return LoginUserResponseDto
-    return res.send({ user: { id: userId, username, email, roles }, accessToken });
+    return res.send({ user: { dn: userId, username, email, roles }, accessToken });
   }
 
   /**
@@ -86,15 +86,15 @@ export class AuthController {
 
     // user from ldapService
     const { user }: SearchUserRecordResponseDto = await this.ldapService.getUserRecord(payload.username);
-    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
     // check jid token
     if (!user) {
       return invalidPayload();
     }
+    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
 
     // accessToken: add some user data to it, like id and roles
-    const SignJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };
-    const { accessToken }: AccessToken = await this.authService.signJwtToken(SignJwtToken);
+    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };
+    const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
     const tokenVersion: number = this.authService.usersStore.getTokenVersion(user.username);
@@ -103,7 +103,7 @@ export class AuthController {
     }
 
     // we don't increment tokenVersion here, only when we login, this way refreshToken is always valid until we login again
-    const refreshToken: AccessToken = await this.authService.signRefreshToken(SignJwtToken, tokenVersion);
+    const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtToken, tokenVersion);
     // send refreshToken in response/setCookie
     this.authService.sendRefreshToken(res, refreshToken);
     res.send({ valid: true, accessToken });
@@ -112,12 +112,18 @@ export class AuthController {
   // Don't expose this resolver, only used in development environments
   @Post('/revoke-refresh-token')
   async revokeUserRefreshToken(
-    @Param('username') username: string,
+    // @Param('username') username: string,
+    @Body() user: { username: string },
   ): Promise<RevokeRefreshTokenResponseDto> {
     // invalidate user tokens increasing tokenVersion, this way last tokenVersion of refreshToken will be invalidate
     // when user tries to use it in /refresh-token and current version is greater than refreshToken.tokenVersion
-    const version = this.authService.usersStore.incrementTokenVersion(username);
-    return { version };
+    // note to prevent security issues hide `invalid username` message and throw a 500 error
+    try {
+      const version = this.authService.usersStore.incrementTokenVersion(user.username);
+      return { version };
+    } catch (error) {
+      Logger.error(error.message ? error.message : error, null, AuthController.name);
+    }
   }
 
   @Post('/logout')
@@ -128,6 +134,6 @@ export class AuthController {
     // send empty refreshToken, with same name jid, etc, better than res.clearCookie
     // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
     this.authService.sendRefreshToken(res, { accessToken: '' });
-    return res.send({ logOut: true });
+    return res.status(HttpStatus.OK).send({ logOut: true });
   }
 }
