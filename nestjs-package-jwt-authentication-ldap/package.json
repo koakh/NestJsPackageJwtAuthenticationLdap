@@ -46,7 +46,7 @@
     "@nestjs/swagger": "^4.7.16",
     "bcrypt": "^5.0.0",
     "class-validator": "^0.12.2",
-    "ldapjs": "^2.2.3",
+    "ldapjs": "^2.3.0",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
     "passport-ldapauth": "^2.1.4",
