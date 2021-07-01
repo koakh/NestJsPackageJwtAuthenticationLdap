@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { envConstants as e } from '../../common/constants/env';
+import { envConstants as e } from '../../../common/constants/env';
 
 @Injectable()
 export class LdapUpdateUsersGuard implements CanActivate {
