@@ -31,6 +31,14 @@ export class SearchUserRecordDto {
   @ApiProperty()
   username: string;
 
+  @IsDefined()
+  @ApiProperty()
+  firstName: string;
+
+  @IsDefined()
+  @ApiProperty()
+  lastName: string;
+
   // userPrincipalName
   @IsDefined()
   @ApiProperty()

@@ -4,11 +4,11 @@ import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
-import { Cache } from './interfaces';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddDeleteUserToGroupDto, ChangeUserRecordDto, CreateUserRecordDto, CacheResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, ChangeUserPasswordDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
+import { Cache } from './interfaces';
 import { CreateLdapUserModel } from './models';
 
 /**
@@ -31,7 +31,7 @@ export class LdapService {
     // init cache object
     this.cache = {
       lastUpdate: undefined,
-      totalUsers: undefined,
+      totalRecords: undefined,
       elapsedTime: undefined,
       memoryUsage: undefined,
       status: undefined,
@@ -123,6 +123,8 @@ export class LdapService {
               userAccountControl: entry.object.userAccountControl as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
               username: entry.object.cn as string,
+              firstName: entry.object.givenName as string,
+              lastName: entry.object.sn as string,
               email: entry.object.userPrincipalName as string,
               displayName: entry.object.displayName as string,
               gender: entry.object.gender as string,
@@ -158,17 +160,17 @@ export class LdapService {
    */
   // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
-    // TODO: optional add to controller payload, currently we are using this defaults
-    filter: string = '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)',
-    // TODO: optional add to controller payload, currently we are using this defaults
+    // if empty in payload use default
+    filter: string,
     pageSize: number = 1000
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
+      const showDebug = false;
       try {
+        // if filter is undefined, use default filter
+        filter = filter ? filter : this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX);
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
-        // countUsers sums on searchEntry event
-        let countUsers = 0;
         // recordsFound sums on page event
         let recordsFound = 0;
         let currentPage = 0;
@@ -185,10 +187,12 @@ export class LdapService {
         }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
           res.on('searchEntry', (entry) => {
-            countUsers++;
+            recordsFound++;
             const dn = entry.object.dn as string;
-            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-            // Logger.log(`entry.object: [${entry.object.dn}: ${countUsers}]`, LdapService.name);
+            if (showDebug) {
+              Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+              Logger.log(`entry.object: [${entry.object.dn}: ${recordsFound}]`, LdapService.name);
+            }
             user = {
               // extract username from string | array
               dn,
@@ -198,6 +202,8 @@ export class LdapService {
               userAccountControl: entry.object.userAccountControl as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
               username: entry.object.cn as string,
+              firstName: entry.object.givenName as string,
+              lastName: entry.object.sn as string,
               email: entry.object.userPrincipalName as string,
               displayName: entry.object.displayName as string,
               gender: entry.object.gender as string,
@@ -216,14 +222,16 @@ export class LdapService {
             // assign only if null
             if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
             // NOTE: debug stuff: leave it here for future development
-            const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
-            // const {_value: {size: recordsSize} } = (result.controls as any);
-            // Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
-            // tslint:disable-next-line: max-line-length
-            // Logger.log(`page end event: currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
-            // use the page event to continue with next page if the sizeLimit (of page) is reached.
-            // tslint:disable-next-line: max-line-length
-            // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+            if (showDebug) {
+              const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
+              // const {_value: {size: recordsSize} } = (result.controls as any);
+              Logger.log(`page end result.controls: ${JSON.stringify(result.controls, undefined, 2)}`, LdapService.name);
+              // tslint:disable-next-line: max-line-length
+              Logger.log(`page end event: currentPage: '${currentPage}', recordsFound: '${recordsFound}', totalPageRecords: '${totalPageRecords}'`, LdapService.name);
+              // use the page event to continue with next page if the sizeLimit (of page) is reached.
+              // tslint:disable-next-line: max-line-length
+              // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
+            }
             if (onPageCallback) { onPageCallback(); };
           });
           res.on('error', (error) => {
@@ -242,14 +250,14 @@ export class LdapService {
             if (cachedUsersLength > 0 && Array.isArray(Object.values(this.cache.users))) {
               // update cache object
               // tslint:disable-next-line: max-line-length
-              this.cache = { ...this.cache, lastUpdate: Date.now(), totalUsers: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
+              this.cache = { ...this.cache, lastUpdate: Date.now(), totalRecords: recordsFound, elapsedTime, status: result.status, memoryUsage: { cache: cacheMemoryUsage, system: endMemoryUsage } };
               // get paginatorResult: used for debug purposes only
               // const paginatorResult = paginator(Object.values(this.cache.users), 1, 100);
               // Logger.log(`paginatorResult: [${JSON.stringify(paginatorResult, undefined, 2)}]`);
               // resolve promise
               resolve({
                 lastUpdate: this.cache.lastUpdate,
-                totalUsers: this.cache.totalUsers,
+                totalRecords: this.cache.totalRecords,
                 elapsedTime: this.cache.elapsedTime,
                 memoryUsage: this.cache.memoryUsage,
                 status: this.cache.status
@@ -300,32 +308,44 @@ export class LdapService {
         cn,
         name: createLdapUserDto.username,
         givenname: createLdapUserDto.firstName,
-        sn: createLdapUserDto.lastName,
         // tslint:disable-next-line: max-line-length
-        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName} ${createLdapUserDto.firstName}`,
+        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName}${createLdapUserDto.lastName ? ` ${createLdapUserDto.lastName}` : ''}`,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.password),
         sAMAccountName: createLdapUserDto.username,
-        userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
-        // optionals
-        mail: createLdapUserDto.mail,
-        dateOfBirth: createLdapUserDto.dateOfBirth,
-        gender: createLdapUserDto.gender,
-        telephoneNumber: createLdapUserDto.telephoneNumber,
-        studentID: createLdapUserDto.studentID,
+        userAccountControl: UserAccountControl.NORMAL_ACCOUNT
       };
 
+      // optionals must be included outside the above object, otherwise the following error is shown {"error":"Cannot read property 'toString' of null"}
+      if (createLdapUserDto.lastName)
+        newUser.sn = createLdapUserDto.lastName;
+      if (createLdapUserDto.mail)
+        newUser.mail = createLdapUserDto.mail;
+      if (createLdapUserDto.dateOfBirth)
+        newUser.dateOfBirth = createLdapUserDto.dateOfBirth;
+      if (createLdapUserDto.gender)
+        newUser.gender = createLdapUserDto.gender;
+      if (createLdapUserDto.telephoneNumber)
+        newUser.telephoneNumber = createLdapUserDto.telephoneNumber;
+      if (createLdapUserDto.studentID)
+        newUser.studentID = createLdapUserDto.studentID;
+
       try {
-        const newDN = `cn=${cn},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online
+        // ex cn=user,c3student,ou=People,dc=c3edu,dc=online
+        const newDN = `cn=${cn},ou=${createLdapUserDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
             reject(error);
           } else {
-            // must add new user to group
-            await this.addDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: 'c3student' });
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
+            // must add new user to group after update cache, it can crash if group doesn't exists
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: createLdapUserDto.defaultGroup })
+              .catch((error) => {
+                reject(error);
+              });
             resolve();
           }
         });
@@ -339,19 +359,23 @@ export class LdapService {
   };
 
   /**
-   * add group/role to user
+   * add or delete group/role to user/member
    */
-  addDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddDeleteUserToGroupDto): Promise<any> {
+  addOrDeleteUserToGroup(dn: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const groupDN = `cn=${addUserToGroupDto.group},ou=Groups,dc=c3edu,dc=online`;
+        const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+        // Todo we must opt for on group here, to work when we create a user or when we add a member to group
+        const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
+        // search by member
+        const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
         const groupChange = new ldap.Change({
-          operation,
+          operation: dn,
           modification: {
-            member: `cn=${addUserToGroupDto.username},ou=C3Student,ou=People,dc=c3edu,dc=online`
+            member,
           }
         });
-        this.ldapClient.modify(groupDN, groupChange, async (error) => {
+        this.ldapClient.modify(changeDN, groupChange, async (error) => {
           if (error) {
             reject(error);
           } else {
@@ -367,18 +391,46 @@ export class LdapService {
   };
 
   /**
+   * update defaultGroup
+   */
+  updateDefaultGroup(changeDefaultGroupDto: ChangeDefaultGroupDto): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.username)).user;
+        const newDn: string = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
+
+        this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
+          if (error)
+            return reject(error);
+
+          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => {reject(error);});
+
+          const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.configService.get(e.LDAP_BASE_DN)}`.toLowerCase();
+          const notMember: boolean = user.memberOf.filter((group: string) => {return group.toLowerCase()==defaultGroupDn;}).length==0;
+          if (notMember)
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD,{ username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup}).catch((error) => {reject(error);});
+
+          resolve();
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  /**
    * delete user
    */
-  deleteUserRecord(username: string): Promise<void> {
+  deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      const delDN = `cn=${deleteUserRecordDto.username},ou=${deleteUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {
             reject(error);
           } else {
             // update cache
-            await this.updateCachedUser(UpdateCacheOperation.DELETE, username);
+            await this.updateCachedUser(UpdateCacheOperation.DELETE, deleteUserRecordDto.username);
             resolve();
           }
         });
@@ -391,12 +443,15 @@ export class LdapService {
   /**
    * change user record
    */
-  changeUserRecord(username: string, changeUserRecordDto: ChangeUserRecordDto): Promise<any> {
+  changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
+          if (change.modification.unicodePwd)
+            change.modification.unicodePwd=encodeAdPassword(change.modification.unicodePwd);
+
           return new ldap.Change({
             operation: change.operation,
             modification: change.modification
@@ -419,10 +474,10 @@ export class LdapService {
   /**
    * change user password
    */
-  changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<any> {
+  changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
           throw new Error('you must pass a valid oldPassword and newPassword properties')
         }

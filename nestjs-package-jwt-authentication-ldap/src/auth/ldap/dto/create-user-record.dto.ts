@@ -3,37 +3,47 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserRecordDto {
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   // ldap: name
+  @ApiProperty()
   username: string;
 
   @IsDefined()
-  @Length(3, 50)
+  @Length(4, 50)
   @ApiProperty()
   password: string;
 
   // firstName
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   // ldap: givenname
   @ApiProperty()
   firstName: string;
 
   // lastName
   @IsDefined()
-  @Length(3, 50)
+  @IsOptional()
+  @Length(1, 50)
   // ldap: sn
   @ApiProperty()
   lastName: string;
+
+  // defaultGroup is the group that is defined on createUser and will be in dn
+  // ex "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  @IsDefined()
+  @Length(3, 50)
+  @ApiProperty()
+  defaultGroup: string;
+
+  @IsDefined()
+  @Length(3, 50)
+  @ApiProperty()
+  objectClass: string;
 
   // firstName + lastName, if omitted automatically combine `firstName + lastName`
   @IsOptional()
   @ApiProperty()
   displayName: string;
-
-  @Length(3, 50)
-  @ApiProperty()
-  objectClass: string;
 
   @IsOptional()
   @ApiProperty()

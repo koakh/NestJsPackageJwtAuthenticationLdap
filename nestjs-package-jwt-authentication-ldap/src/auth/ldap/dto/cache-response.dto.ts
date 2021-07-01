@@ -8,7 +8,7 @@ export class CacheResponseDto {
 
   @IsDefined()
   @ApiProperty()
-  totalUsers: number;
+  totalRecords: number;
 
   @IsDefined()
   @ApiProperty()

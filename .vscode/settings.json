@@ -8,6 +8,7 @@
     "YYYYMMDD",
     "dtos",
     "givenname",
+    "golevelup",
     "ldap",
     "ldapauth",
     "ldapjs",
@@ -16,6 +17,7 @@
     "middlewares",
     "nestjs",
     "plusplus",
+    "prestart",
     "ssha"
   ],
   "workbench.colorCustomizations": {

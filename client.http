@@ -17,6 +17,7 @@
 //   "message": "jwt expired",
 //   "expiredAt": "2020-10-20T14:31:36.000Z"
 // }
+// "jwt expired" comes from jsonwebtoken/verify.js
 
 ### authLogInLdap
 // @name authLogInLdap
@@ -25,8 +26,15 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "username": "mario",
+  "username": "c3",
   "password": "root"
+  // "username": "mario",
+  // "password": "root"
+  // student
+  // "username": "user14",
+  // administratot
+  // "username": "user16",
+  // "password": "secret!"
   // "username": "putz",
   // "password": "secret!!"
 }
@@ -47,8 +55,9 @@ POST {{uri}}/auth/revoke-refresh-token HTTP/1.1
 Content-Type: {{contentType}}
 
 {
+  // note this works with inMemory store, if we used a valid token and restart server user is missing in userStore
   // change user to revoke it'// s token, increment version
-  "username":"mario"
+  "username": "c3"
 }
 
 ### authLogOut
@@ -72,12 +81,14 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "nick6",
+  "username": "user18",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
   "displayName": "Nuno Bento",
   "objectClass": "User",
+  // "defaultGroup": "c3administrator",
+  "defaultGroup": "c3student",
   // optional
   "mail":"nuno.bento@critical-links.com",
   "dateOfBirth": 19711219,
@@ -89,15 +100,17 @@ Authorization: Bearer {{authToken}}
 ### ldapChangeUserRecord
 // @name ldapChangeUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@changeUsername = nick6
+@changeUsername = user10
 
-PUT {{uri}}/ldap/user/{{changeUsername}} HTTP/1.1
+PUT {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 // array of modifications, send one attribute only to prevent error `message:'Only one attribute per Change allowed'`
 // you can pass in a single Change or an array of Change objects
 {
+  "username": "{{changeUsername}}",
+  "defaultGroup" : "c3student",
   "changes": [
     {
       // replace, add, delete
@@ -137,7 +150,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = nick6
+@getUsername = user10
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -149,41 +162,49 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = nick6
+@addUserToGroup = user10
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
+  "username": "{{addUserToGroup}}",
+  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  "defaultGroup" : "c3student",
+  // add a member to group
+  "group" : "c3teacher"
 }
 
 ### ldapAddMemberToGroup
 // @name ldapDeleteMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addMemberUsername = nick6
+@deleteUserFromGroup = user10
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "username": "{{addMemberUsername}}",
-  "group" : "c3administrator"
+  "username": "{{deleteUserFromGroup}}",
+  // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
+  "defaultGroup" : "c3student",
+  // add a member to group
+  "group" : "c3teacher"  
 }
 
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = nick6
+@deleteUsername = user2
 
-DELETE {{uri}}/ldap/user/{{deleteUsername}} HTTP/1.1
+DELETE {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  "username": "{{deleteUsername}}",
+  "defaultGroup" : "c3student"
 }
 
 ### ldapInitUserRecordsCache
@@ -195,6 +216,10 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  // optional override LDAP_SEARCH_CACHE_FILTER
+  // "filter": "(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
+  // get it from a user record property "objectCategory": "CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online"
+  "filter": "(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
 }
 
 ### ldapGetUserRecords
@@ -207,13 +232,13 @@ Authorization: Bearer {{authToken}}
 
 {
   "page": 1,
-  "perPage": 100,
+  "perPage": 25,
   // optional
   "searchAttributes": [{
     // fields
     "username": {
       // must match string
-      "exact": "nick6"
+//       "exact": "nick6"
 //      "exact": "mario",
       // must contain string
 //      "includes": "mario",
@@ -254,12 +279,14 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
+  "defaultGroup" : "c3student",
+  // "defaultGroup" : "c3administrator",
   "changes": [
     {
       // replace, add, delete
       "operation": "replace",
       "modification": {
-        "displayName": "Changed Display Name in Profile Endpoint...change2"
+        "displayName": "Changed Display Name in Profile Endpoint..."
       }
     }
   ]
@@ -274,10 +301,12 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "oldPassword": "secret!",
+  "defaultGroup" : "c3student",
+  // "defaultGroup" : "c3administrator",  
+  "oldPassword": "secret",
   // newPassword must not be used in history, else
   // 0000052D: Constraint violation - check_password_restrictions: the password was already used (in history)!
-  "newPassword": "secret!!"
+  "newPassword": "secret!"
 }
 
 ### ldapGreeting WIP to be used to paginate
