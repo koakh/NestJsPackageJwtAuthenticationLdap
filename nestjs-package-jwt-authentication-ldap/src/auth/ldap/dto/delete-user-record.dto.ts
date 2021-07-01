@@ -3,7 +3,7 @@ import { IsDefined, Length } from 'class-validator';
 
 export class DeleteUserRecordDto {
   @IsDefined()
-  @Length(3, 50)
+  @Length(1, 50)
   // ldap: name
   @ApiProperty()
   username: string;

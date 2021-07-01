@@ -3,12 +3,16 @@ import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
+import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation } from './enums';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { ChangeUserRecordOperation, UpdateCacheOperation} from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
+import { config } from 'dotenv';
+
+config();
 
 @Controller('ldap')
 @ApiTags('ldap')
@@ -67,6 +71,23 @@ export class LdapController {
       });
   }
 
+  @Put('/defaultGroup')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async updateDefaultGroup(
+    @Response() res,
+    @Body() changeDefaultGroupDto: ChangeDefaultGroupDto,
+  ): Promise<void> {
+    this.ldapService.updateDefaultGroup(changeDefaultGroupDto)
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
   @Get('/user/:username')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
@@ -101,6 +122,23 @@ export class LdapController {
       });
   }
 
+  @Post('/cache/update')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async updateUserRecordsCache(
+    @Response() res,
+    @Body() payload: string[],
+  ): Promise<void> {
+    for (let i=0;i<payload.length;i++)
+    {
+      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE,payload[i]).catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+    }
+    res.status(HttpStatus.CREATED).send({});
+  }
+
   @Post('/cache/search')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
@@ -120,6 +158,7 @@ export class LdapController {
 
   @Delete('/user')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(LdapDeleteUsersGuard)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
@@ -137,6 +176,7 @@ export class LdapController {
 
   @Put('/user')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
@@ -171,6 +211,7 @@ export class LdapController {
   }
 
   @Put('/profile')
+  @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserProfileRecord(
     @Request() req,
@@ -189,6 +230,7 @@ export class LdapController {
   }
 
   @Put('/profile/password')
+  @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserProfilePassword(
     @Request() req,

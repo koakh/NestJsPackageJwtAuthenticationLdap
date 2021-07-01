@@ -30,7 +30,7 @@ import { LdapController } from './ldap/ldap.controller';
     },
     JwtStrategy, LdapStrategy, RolesStrategy, AuthService, LdapService,
   ],
-  exports: [AuthService],
+  exports: [AuthService, LdapService],
   controllers: [AuthController, LdapController],
 })
 

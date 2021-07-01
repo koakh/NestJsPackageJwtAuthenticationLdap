@@ -4,9 +4,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { mockRequest, mockResponse } from 'jest-mock-req-res';
 import { mockedConfigService } from '../utils/mocks/config.service';
 // tslint:disable-next-line:max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { CreateUserRecordDto } from './dto/create-user-record.dto';
-import { ChangeUserRecordOperation } from './enums';
+import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
 import { LdapController } from './ldap.controller';
 import { LdapService } from './ldap.service';
 
@@ -116,6 +116,22 @@ describe('LdapController', () => {
     })
   })
 
+  describe('PUT /defaultGroup', () => {
+    it('should test updateDefaultGroup - Successfully', async () => {
+      const res = mockResponse();
+      const changeDefaultGroupDto: ChangeDefaultGroupDto = { username: 'user1', defaultGroup: 'c3student' };
+      jest
+        .spyOn(service, 'updateDefaultGroup')
+        .mockImplementationOnce(async () => Promise.resolve());
+      await controller.updateDefaultGroup(res, changeDefaultGroupDto)
+        .then(() => {
+          expect(service.updateDefaultGroup).toHaveBeenCalledWith(changeDefaultGroupDto);
+        });
+      expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+
+    })
+  })
+
   describe(' /user/:username', () => {
     it('should test getUserRecord - Successfully', async () => {
       const res = mockResponse();
@@ -136,6 +152,8 @@ describe('LdapController', () => {
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
+          firstName: 'C3',
+          lastName: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
@@ -214,6 +232,22 @@ describe('LdapController', () => {
     })
   })
 
+  describe('POST /cache/update', () => {
+    it('should test updateUserRecordsCache - Successfully', async () => {
+      const res = mockResponse();
+      const payload: string[] = ['user1','user2','user3'];
+      jest
+        .spyOn(service, 'updateCachedUser')
+        .mockImplementationOnce(async () => Promise.resolve());
+      await controller.updateUserRecordsCache(res, payload)
+        .then(() => {
+          for (let i=0;i<payload.length;i++)
+            expect(service.updateCachedUser).toHaveBeenCalledWith(UpdateCacheOperation.CREATE,payload[i]);
+        });
+      expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+    })
+  })
+
   describe(' /cache/search', () => {
     it('should test getUserRecords - Successfully', async () => {
       const res = mockResponse();
@@ -242,6 +276,8 @@ describe('LdapController', () => {
           userAccountControl: '66056',
           lastLogonTimestamp: '132586652461591400',
           username: 'c3',
+          firstName: 'C3',
+          lastName: '',
           email: '',
           displayName: 'C3',
           gender: '',
@@ -392,6 +428,8 @@ describe('LdapController', () => {
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
+          firstName: 'C3',
+          lastName: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
@@ -469,6 +507,8 @@ describe('LdapController', () => {
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
+          firstName: 'C3',
+          lastName: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
