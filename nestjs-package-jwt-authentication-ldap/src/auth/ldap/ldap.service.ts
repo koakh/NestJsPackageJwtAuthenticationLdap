@@ -447,10 +447,24 @@ export class LdapService {
     return new Promise((resolve, reject) => {
       try {
         const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
-          if (change.modification.unicodePwd)
-            change.modification.unicodePwd=encodeAdPassword(change.modification.unicodePwd);
+          if (change.modification.firstName)
+          {
+            change.modification.givenName=change.modification.firstName;
+            delete change.modification.firstName;
+          }
+          else if (change.modification.lastName)
+          {
+            change.modification.sn=change.modification.lastName;
+            delete change.modification.lastName;
+          }
+          else if (change.modification.password)
+          {
+            change.modification.unicodePwd=encodeAdPassword(change.modification.password);
+            delete change.modification.password;
+          }
 
           return new ldap.Change({
             operation: change.operation,
@@ -458,10 +472,11 @@ export class LdapService {
           });
         });
 
-        this.ldapClient.modify(changeDN, changes, (error) => {
+        this.ldapClient.modify(changeDN, changes, async (error) => {
           if (error) {
             reject(error);
           } else {
+            await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeUserRecordDto.username);
             resolve();
           }
         });
