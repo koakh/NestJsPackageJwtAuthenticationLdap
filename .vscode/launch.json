@@ -18,6 +18,7 @@
     //     "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/dist/**/*.js"
     //   ]
     // },
+    // just launch debugger and toggle to `debug console`
     {
       "type": "node",
       "request": "launch",

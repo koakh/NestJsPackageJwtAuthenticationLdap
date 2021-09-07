@@ -47,15 +47,20 @@ project used node version `node/v12.8.1`
 
 ### Create tunnel to connect to c3 LDAP
 
+> Optional, if we use remote development in c3 we can skip bellow step
+
 ```shell
 # open a new window and connect to c3, in c3
 $ ssh c3@c3edu.online
 $ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
+$ ssh -f -N clkjump@cloudvpn.critical-links.com -R 2210:localhost:389
 # or use one line
 $ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
 ```
 
 ### Change .env to use tunnel
+
+> Optional, if we use remote development in c3 we can skip bellow step
 
 ```shell
 # ldap
@@ -298,7 +303,7 @@ $ npm i @nestjs/swagger swagger-ui-express
 
 ### Bootstrap
 
-Once the installation process is complete, open the main.ts file and initialize Swagger using the SwaggerModule class:
+Once the installation process is complete, open the `main.ts` file and initialize Swagger using the SwaggerModule class:
 
 ```typescript
 async function bootstrap() {

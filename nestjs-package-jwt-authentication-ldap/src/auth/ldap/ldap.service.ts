@@ -6,10 +6,10 @@ import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
 import { encodeAdPassword } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
-import { CreateLdapUserModel } from './models';
+import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
 
 /**
  * user model
@@ -403,12 +403,12 @@ export class LdapService {
           if (error)
             return reject(error);
 
-          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => {reject(error);});
+          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => { reject(error); });
 
           const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.configService.get(e.LDAP_BASE_DN)}`.toLowerCase();
-          const notMember: boolean = user.memberOf.filter((group: string) => {return group.toLowerCase()==defaultGroupDn;}).length==0;
+          const notMember: boolean = user.memberOf.filter((group: string) => { return group.toLowerCase() == defaultGroupDn; }).length == 0;
           if (notMember)
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD,{ username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup}).catch((error) => {reject(error);});
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
 
           resolve();
         });
@@ -450,19 +450,16 @@ export class LdapService {
 
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
-          if (change.modification.firstName)
-          {
-            change.modification.givenName=change.modification.firstName;
+          if (change.modification.firstName) {
+            change.modification.givenName = change.modification.firstName;
             delete change.modification.firstName;
           }
-          else if (change.modification.lastName)
-          {
-            change.modification.sn=change.modification.lastName;
+          else if (change.modification.lastName) {
+            change.modification.sn = change.modification.lastName;
             delete change.modification.lastName;
           }
-          else if (change.modification.password)
-          {
-            change.modification.unicodePwd=encodeAdPassword(change.modification.password);
+          else if (change.modification.password) {
+            change.modification.unicodePwd = encodeAdPassword(change.modification.password);
             delete change.modification.password;
           }
 
@@ -526,6 +523,113 @@ export class LdapService {
       }
     });
   };
+
+   /**
+   * create group
+   */
+  createGroupRecord(createLdapGroupDto: CreateGroupRecordDto): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const cn = createLdapGroupDto.groupName;
+      const newGroup: CreateLdapGroupModel = {
+        cn,
+        name: createLdapGroupDto.groupName,
+        objectclass: 'group',
+        sAMAccountName: createLdapGroupDto.groupName,
+      };
+
+      try {
+        const newDN = `cn=${createLdapGroupDto.groupName},CN=Users,${this.configService.get(e.LDAP_BASE_DN)}`;
+        this.ldapClient.add(newDN, newGroup, async (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  /**
+   * delete group
+   */
+  deleteGroupRecord(deleteGroupRecordDto: DeleteGroupRecordDto): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const delDN = `cn=${deleteGroupRecordDto.groupName},CN=Users,${this.configService.get(e.LDAP_BASE_DN)}`;
+      // dn: CN=newGroup,CN=Users,DC=c3edu,DC=online
+      try {
+        this.ldapClient.del(delDN, async (error) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve();
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  // TODO groupName is empty
+//   export interface SearchOptions {
+//     /** Defaults to base */
+//     scope?: "base" | "one" | "sub" | undefined;
+//     /**  Defaults to (objectclass=*) */
+//     filter?: string | Filter | undefined;
+//     /** Defaults to the empty set, which means all attributes */
+//     attributes?: string | string[] | undefined;
+//     /** Defaults to 0 (unlimited) */
+//     sizeLimit?: number | undefined;
+//     /** Timeout in seconds. Defaults to 10. Lots of servers will ignore this! */
+//     timeLimit?: number | undefined;
+//     derefAliases?: number | undefined;
+//     typesOnly?: boolean | undefined;
+//     paged?: boolean | {
+//         pageSize?: number | undefined;
+//         pagePause?: boolean | undefined;
+//     } | undefined
+// }  
+  getGroupRecord = (groupName: string): Promise<SearchGroupRecordResponseDto> => {
+    return new Promise((resolve, reject) => {
+      try {
+        // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
+        let group: SearchGroupRecordDto;
+        // note to work we must use the scope sub else it won't work
+        // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
+        this.ldapClient.search('CN=newGroup,CN=Users,DC=c3edu,DC=online', { /*attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})`*/ }, (err, res) => {
+      // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
+          if (err) Logger.log(err);
+          res.on('searchEntry', (entry) => {
+// TODO
+// Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            group = {
+              dn: entry.object.dn as string,
+              cn: entry.object.cn as string,
+              name: entry.object.name as string,
+            };
+          });
+          res.on('error', (error) => {
+            throw error;
+          });
+          res.on('end', (result: ldap.LDAPResult) => {
+            // Logger.log(`status: [${result.status}]`, LdapService.name);
+            // responsePayload.result = result;
+            // resolve promise
+            group
+              ? resolve({ group, status: result.status })
+              : reject({ message: `group not found`, status: result.status });
+          });
+        });
+      } catch (error) {
+        // Logger.error(`error: [${error.message}]`, LdapService.name);
+        // reject promise
+        reject(error);
+      }
+    })
+  };  
 
   // STUB promise template
   // createUserRecord(createLdapUserDto: CreateLdapUserDto): Promise<any> {

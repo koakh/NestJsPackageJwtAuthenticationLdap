@@ -2,6 +2,8 @@ import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { envConstants as e } from '../../../common/constants/env';
 
+// this guard is to prevent delete the user LDAP_ROOT_USER
+
 @Injectable()
 export class LdapDeleteUsersGuard implements CanActivate {
   constructor(private readonly configService: ConfigService) { }

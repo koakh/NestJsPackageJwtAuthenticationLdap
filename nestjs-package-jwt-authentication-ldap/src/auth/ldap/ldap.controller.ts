@@ -6,8 +6,8 @@ import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
-import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation, UpdateCacheOperation} from './enums';
+import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
+import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
 import { config } from 'dotenv';
@@ -130,9 +130,8 @@ export class LdapController {
     @Response() res,
     @Body() payload: string[],
   ): Promise<void> {
-    for (let i=0;i<payload.length;i++)
-    {
-      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE,payload[i]).catch((error) => {
+    for (let i = 0; i < payload.length; i++) {
+      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE, payload[i]).catch((error) => {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
     }
@@ -246,4 +245,77 @@ export class LdapController {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
+
+  @Post('/group')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async createGroupRecord(
+    @Response() res,
+    @Body() createLdapGroupDto: CreateGroupRecordDto,
+  ): Promise<void> {
+    this.ldapService.createGroupRecord(createLdapGroupDto)
+      .then(() => {
+        res.status(HttpStatus.CREATED).send({
+          message: parseTemplate(c.GROUP_CREATED, createLdapGroupDto), group: {
+            ...createLdapGroupDto
+          }
+        });
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
+  @Delete('/group')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async deleteGroupRecord(
+    @Response() res,
+    @Body() deleteGroupRecordDto: DeleteGroupRecordDto,
+  ): Promise<void> {
+    this.ldapService.deleteGroupRecord(deleteGroupRecordDto)
+      .then(() => {
+        res.status(HttpStatus.NO_CONTENT).send();
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+
+  @Get('/group/:groupName')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(RolesAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async getGroupRecord(
+    @Response() res,
+    @Param('groupName') groupName: string,
+  ): Promise<void> {
+    this.ldapService.getGroupRecord()
+      .then((user: SearchGroupRecordResponseDto) => {
+        res.status(HttpStatus.CREATED).send(user);
+      })
+      .catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+      });
+  }
+  
+  // TODO:
+  // @Get('/group/:groupName')
+  // @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  // @UseGuards(RolesAuthGuard)
+  // @UseGuards(JwtAuthGuard)
+  // async getGroupRecord(
+  //   @Response() res,
+  //   @Param('groupName') groupName: string,
+  // ): Promise<void> {
+  //   this.ldapService.getGroupRecord(groupName)
+  //     .then((user: SearchUserRecordResponseDto) => {
+  //       res.status(HttpStatus.CREATED).send(user);
+  //     })
+  //     .catch((error) => {
+  //       res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+  //     });
+  // }  
 }
