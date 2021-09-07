@@ -3,8 +3,6 @@ import * as bcrypt from 'bcrypt';
 const bcryptSaltRounds: number = 10;
 
 /**
- * // TODO: can be removed, is not used in ldap
- * old bcrypt hashPassword
  * @param password 
  */
 export const hashPassword = (password: string): string => {
@@ -38,4 +36,15 @@ export const encodeAdPassword = (utf8) => {
   utf16le += quoteEncoded;
 
   return utf16le;
+}
+
+/**
+ * helper to filter valid groups
+ * @param group
+ * @param ldapSearchGroupPrefix 
+ * @param ldapSearchGroupExcludeGroups 
+ */
+export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[]): boolean => {
+  const excluded = !groupExcludeGroups.findIndex(e => e === group);
+  return (group.startsWith(groupPrefix) && !excluded);
 }

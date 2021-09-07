@@ -12,5 +12,13 @@ export class SearchGroupRecordDto {
 
   @IsDefined()
   @ApiProperty()
-  name: string;  
+  name: string;
+
+  @IsDefined()
+  @ApiProperty()
+  objectCategory: string;
+
+  @IsDefined()
+  @ApiProperty()
+  distinguishedName: string;
 }

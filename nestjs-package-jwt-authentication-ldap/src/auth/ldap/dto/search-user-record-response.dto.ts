@@ -3,7 +3,7 @@ import { SearchUserRecordDto } from './search-user-record.dto';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
- * must match LDAP_SEARCH_ATTRIBUTES properties
+ * must match LDAP_SEARCH_USER_ATTRIBUTES properties
  */
 export class SearchUserRecordResponseDto {
   @IsDefined()

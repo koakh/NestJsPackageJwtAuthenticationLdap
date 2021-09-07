@@ -1,6 +1,6 @@
-nestjs-package-jwt-authentication-ldap/node_modules/**
-nestjs-package-jwt-authentication-ldap-consumer/node_modules/**
-nestjs-package-jwt-authentication-ldap-consumer/dist/**
+nestjs-package-jwt-authentication-ldap/node_modules
+nestjs-package-jwt-authentication-ldap-consumer/node_modules
+nestjs-package-jwt-authentication-ldap-consumer/dist
 .trash
 .bak
 test

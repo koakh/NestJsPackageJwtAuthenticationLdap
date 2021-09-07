@@ -20,6 +20,10 @@ export class SearchUserRecordDto {
 
   @IsDefined()
   @ApiProperty()
+  distinguishedName: string;
+
+  @IsDefined()
+  @ApiProperty()
   userAccountControl: string;
 
   @IsDefined()

@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDefined } from 'class-validator';
 
 /**
- * must match LDAP_SEARCH_ATTRIBUTES properties
+ * must match LDAP_SEARCH_USER_ATTRIBUTES properties
  */
 export class SearchUserRecordsResponseDto {
   @IsDefined()

@@ -4,7 +4,7 @@ import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { envConstants as e } from '../../common/constants/env';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
-import { encodeAdPassword } from '../utils';
+import { encodeAdPassword, includeLdapGroup } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
@@ -20,7 +20,10 @@ import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
 export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
-  private searchAttributes: string;
+  private searchAttributesUser: string;
+  private searchAttributesGroup: string;
+  private ldapSearchGroupPrefix: string;
+  private ldapSearchGroupExcludeGroups: string[];
   private cache: Cache;
 
   constructor(
@@ -48,7 +51,11 @@ export class LdapService {
     };
     // props
     this.searchBase = configService.get(e.LDAP_SEARCH_BASE);
-    this.searchAttributes = configService.get(e.LDAP_SEARCH_ATTRIBUTES).toString().split(',');
+    this.searchAttributesUser = configService.get(e.LDAP_SEARCH_USER_ATTRIBUTES).toString().split(',');
+    this.searchAttributesGroup = configService.get(e.LDAP_SEARCH_GROUP_ATTRIBUTES).toString().split(',');
+    this.ldapSearchGroupPrefix = configService.get(e.LDAP_SEARCH_GROUP_PREFIX);
+    this.ldapSearchGroupExcludeGroups = configService.get(e.LDAP_SEARCH_GROUP_EXCLUDE_GROUPS).toString().split(',');
+
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
     // uncomment to test getUserRecord on init
@@ -108,7 +115,11 @@ export class LdapService {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let user: SearchUserRecordDto;
         // note to work we must use the scope sub else it won't work
-        this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${username})` }, (err, res) => {
+        this.ldapClient.search(this.searchBase, { 
+          attributes: this.searchAttributesUser, 
+          scope: 'sub', 
+          filter: `(cn=${username})` 
+        }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
@@ -120,6 +131,7 @@ export class LdapService {
               memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
+              distinguishedName: entry.object.distinguishedName as string,
               userAccountControl: entry.object.userAccountControl as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
               username: entry.object.cn as string,
@@ -158,7 +170,6 @@ export class LdapService {
   /**
    * init/update inMemory cache
    */
-  // tslint:disable-next-line: max-line-length
   initUserRecordsCache = (
     // if empty in payload use default
     filter: string,
@@ -179,7 +190,9 @@ export class LdapService {
         const startMemoryUsage = getMemoryUsage();
         // start search by filter
         this.ldapClient.search(this.searchBase, {
-          attributes: this.searchAttributes, scope: 'sub', filter,
+          attributes: this.searchAttributesUser, 
+          scope: 'sub', 
+          filter,
           paged: {
             pageSize,
             pagePause: true
@@ -199,6 +212,7 @@ export class LdapService {
               memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
+              distinguishedName: entry.object.distinguishedName as string,
               userAccountControl: entry.object.userAccountControl as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
               username: entry.object.cn as string,
@@ -301,7 +315,7 @@ export class LdapService {
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_ATTRIBUTES);
+      // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_USER_ATTRIBUTES);
       // const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
       const cn = createLdapUserDto.username;
       const newUser: CreateLdapUserModel = {
@@ -538,7 +552,7 @@ export class LdapService {
       };
 
       try {
-        const newDN = `cn=${createLdapGroupDto.groupName},CN=Users,${this.configService.get(e.LDAP_BASE_DN)}`;
+        const newDN = `cn=${createLdapGroupDto.groupName},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
         this.ldapClient.add(newDN, newGroup, async (error) => {
           if (error) {
             reject(error);
@@ -557,7 +571,7 @@ export class LdapService {
    */
   deleteGroupRecord(deleteGroupRecordDto: DeleteGroupRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteGroupRecordDto.groupName},CN=Users,${this.configService.get(e.LDAP_BASE_DN)}`;
+      const delDN = `cn=${deleteGroupRecordDto.groupName},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
       // dn: CN=newGroup,CN=Users,DC=c3edu,DC=online
       try {
         this.ldapClient.del(delDN, async (error) => {
@@ -573,53 +587,54 @@ export class LdapService {
     });
   };
 
-  // TODO groupName is empty
-//   export interface SearchOptions {
-//     /** Defaults to base */
-//     scope?: "base" | "one" | "sub" | undefined;
-//     /**  Defaults to (objectclass=*) */
-//     filter?: string | Filter | undefined;
-//     /** Defaults to the empty set, which means all attributes */
-//     attributes?: string | string[] | undefined;
-//     /** Defaults to 0 (unlimited) */
-//     sizeLimit?: number | undefined;
-//     /** Timeout in seconds. Defaults to 10. Lots of servers will ignore this! */
-//     timeLimit?: number | undefined;
-//     derefAliases?: number | undefined;
-//     typesOnly?: boolean | undefined;
-//     paged?: boolean | {
-//         pageSize?: number | undefined;
-//         pagePause?: boolean | undefined;
-//     } | undefined
-// }  
+// TODO: add LDAP_SEARCH_GROUP_ATTRIBUTES
+/**
+ * must match LDAP_SEARCH_USER_ATTRIBUTES properties
+ */
+//  export class SearchGroupRecordResponseDto {
+
   getGroupRecord = (groupName: string): Promise<SearchGroupRecordResponseDto> => {
     return new Promise((resolve, reject) => {
+      const showDebug = false;
+      const groups: SearchGroupRecordDto[] = [];
+
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
-        let group: SearchGroupRecordDto;
+        let group: SearchGroupRecordDto;        
         // note to work we must use the scope sub else it won't work
         // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
-        this.ldapClient.search('CN=newGroup,CN=Users,DC=c3edu,DC=online', { /*attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})`*/ }, (err, res) => {
+        this.ldapClient.search(`ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`, { 
+          attributes: this.searchAttributesGroup, 
+          scope: 'sub', 
+          filter: groupName ? `(cn=${groupName})` : undefined,
+        }, (err, res) => {
       // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
-// TODO
-// Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            const dn = entry.object.dn as string;
+            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            if (showDebug) {
+              Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            }
             group = {
-              dn: entry.object.dn as string,
+              dn,
               cn: entry.object.cn as string,
               name: entry.object.name as string,
+              objectCategory: entry.object.objectCategory as string,
+              distinguishedName: entry.object.distinguishedName as string,
             };
+            // if not a exclude group push it to result array
+            if (includeLdapGroup(entry.object.name as string, this.ldapSearchGroupPrefix, this.ldapSearchGroupExcludeGroups)) {
+              groups.push(group);
+            }
           });
           res.on('error', (error) => {
             throw error;
           });
           res.on('end', (result: ldap.LDAPResult) => {
             // Logger.log(`status: [${result.status}]`, LdapService.name);
-            // responsePayload.result = result;
-            // resolve promise
-            group
-              ? resolve({ group, status: result.status })
+            groups
+              ? resolve({ groups, status: result.status })
               : reject({ message: `group not found`, status: result.status });
           });
         });

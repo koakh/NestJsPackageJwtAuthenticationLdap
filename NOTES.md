@@ -216,8 +216,8 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
         bindDN: configService.get(envConstants.LDAP_BIND_DN),
         bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
         searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
-        searchFilter: configService.get(envConstants.LDAP_SEARCH_FILTER),
-        searchAttributes: configService.get(envConstants.LDAP_SEARCH_ATTRIBUTES).toString().split(','),
+        searchFilter: configService.get(envConstants.LDAP_SEARCH_USER_FILTER),
+        searchAttributes: configService.get(envConstants.LDAP_SEARCH_USER_ATTRIBUTES).toString().split(','),
         ldapSearchCacheFilter: configService.get(envConstants.LDAP_SEARCH_CACHE_FILTER),
       },
     }, async (req: Request, user: any, done) => {
@@ -455,8 +455,8 @@ LDAP_URL='c3edu.online'
 LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
 LDAP_BIND_CREDENTIALS='Root123...'
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
-LDAP_SEARCH_FILTER='(cn={{username}})'
-LDAP_SEARCH_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
+LDAP_SEARCH_USER_FILTER='(cn={{username}})'
+LDAP_SEARCH_USER_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
 LDAP_SEARCH_CACHE_FILTER='(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'
 AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
 LDAP_BASE_DN='dc=c3edu,dc=online'

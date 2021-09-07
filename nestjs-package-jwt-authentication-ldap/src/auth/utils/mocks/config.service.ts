@@ -9,7 +9,7 @@ export const mockedConfigService = {
         return 'true'
       case envConstants.LDAP_SEARCH_BASE:
         return 'ou=Test,dc=c3edu,dc=online'
-      case envConstants.LDAP_SEARCH_ATTRIBUTES:
+      case envConstants.LDAP_SEARCH_USER_ATTRIBUTES:
         return 'cn,userPrincipalName'
       case envConstants.REFRESH_TOKEN_SKIP_INCREMENT_VERSION:
         return true;

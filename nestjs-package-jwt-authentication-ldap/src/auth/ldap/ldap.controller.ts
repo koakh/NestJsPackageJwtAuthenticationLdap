@@ -284,7 +284,7 @@ export class LdapController {
       });
   }
 
-  @Get('/group/:groupName')
+  @Get('/group/:groupName?')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
@@ -292,7 +292,7 @@ export class LdapController {
     @Response() res,
     @Param('groupName') groupName: string,
   ): Promise<void> {
-    this.ldapService.getGroupRecord()
+    this.ldapService.getGroupRecord(groupName)
       .then((user: SearchGroupRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
       })

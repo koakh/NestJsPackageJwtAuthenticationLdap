@@ -3,12 +3,12 @@ import { IsDefined } from 'class-validator';
 import { SearchGroupRecordDto } from './search-group-record.dto';
 
 /**
- * must match LDAP_SEARCH_ATTRIBUTES properties
+ * must match LDAP_SEARCH_GROUP_ATTRIBUTES properties
  */
 export class SearchGroupRecordResponseDto {
   @IsDefined()
   @ApiProperty()
-  group: SearchGroupRecordDto;
+  groups: SearchGroupRecordDto[];
 
   @IsDefined()
   @ApiProperty()

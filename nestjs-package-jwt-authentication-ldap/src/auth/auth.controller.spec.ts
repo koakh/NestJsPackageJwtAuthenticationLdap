@@ -162,6 +162,7 @@ describe('AuthController', () => {
           controls: [
           ],
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
+          distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
@@ -239,6 +240,7 @@ describe('AuthController', () => {
           controls: [
           ],
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
+          distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
@@ -335,6 +337,7 @@ describe('AuthController', () => {
           controls: [
           ],
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
+          distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
           username: 'c3',
