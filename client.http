@@ -8,9 +8,14 @@
 @userLoginPassword = 12345678
 @userIdAdmin = efeed3eb-c0a2-4b3e-816f-2a42ca8451b3
 @userJohnDoe = 520c2eb5-e83b-4ef5-a343-85756bcce149
-@groupAdministrator = C3Administrator
-@groupStudent = C3Student
-@groupNewGroup = C3NewGroup
+# groups
+@groupC3Development = C3Development
+@groupC3Guests = C3Guests
+@groupC3Parent = C3Parent
+@groupC3Administrator = C3Administrator
+@groupC3Teacher = C3Teacher
+@groupC3Student = C3Student
+@groupC3NewGroup = C3NewGroup
 
 // NOTE: watch out for expired token problems when we use `{{authLogIn`. or `{{authLogInLdap.`, check for dates in error
 // NOTE: amother problem seem to use accessToken and both endpoints, to prevent this kind of rest client problems, never use same variables is both cases
@@ -31,15 +36,8 @@ Content-Type: {{contentType}}
 {
   "username": "c3",
   "password": "root"
-  // "username": "mario",
-  // "password": "root"
-  // student
-  // "username": "user14",
-  // administratot
-  // "username": "user16",
-  // "password": "secret!"
-  // "username": "putz",
-  // "password": "secret!!"
+  // "username": "helder.pereira",
+  // "password": "secret"
 }
 
 ### authRefreshTokenLdap
@@ -153,7 +151,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = user10
+@getUsername = helder.pereira
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -165,7 +163,7 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addUserToGroup = user10
+@addUserToGroup = helder.pereira
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
@@ -174,15 +172,15 @@ Authorization: Bearer {{authToken}}
 {
   "username": "{{addUserToGroup}}",
   // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
-  "defaultGroup" : "c3student",
+  "defaultGroup" : "{{groupC3Student}}",
   // add a member to group
-  "group" : "c3teacher"
+  "group" : "{{groupC3Teacher}}"
 }
 
 ### ldapAddMemberToGroup
 // @name ldapDeleteMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUserFromGroup = user10
+@deleteUserFromGroup = helder.pereira
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
@@ -191,9 +189,9 @@ Authorization: Bearer {{authToken}}
 {
   "username": "{{deleteUserFromGroup}}",
   // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
-  "defaultGroup" : "c3student",
+  "defaultGroup" : "{{groupC3Student}}",
   // add a member to group
-  "group" : "c3teacher"  
+  "group" : "{{groupC3Development}}"
 }
 
 ### ldapDeleteUserRecord
@@ -241,7 +239,7 @@ Authorization: Bearer {{authToken}}
     // fields
     "username": {
       // must match string
-//       "exact": "nick6"
+      "exact": "c3"
 //      "exact": "mario",
       // must contain string
 //      "includes": "mario",
@@ -321,7 +319,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "groupName": "{{groupNewGroup}}"
+  "groupName": "{{groupC3NewGroup}}"
 }
 
 ### ldapDeleteGroupRecord
@@ -333,15 +331,14 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "groupName": "{{groupNewGroup}}"
+  "groupName": "{{groupC3NewGroup}}"
 }
 
 ### ldapGetGroupRecord
 // @name ldapGetGroupRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 
-
-GET {{uri}}/ldap/group/{{groupStudent}} HTTP/1.1
+GET {{uri}}/ldap/group/{{groupC3Student}} HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
@@ -353,14 +350,12 @@ Authorization: Bearer {{authToken}}
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
 
 
-# GET {{uri}}/ldap/group/{{groupStudent}} HTTP/1.1
 GET {{uri}}/ldap/group HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
 }
-
 
 ### ldapGreeting WIP to be used to paginate
 

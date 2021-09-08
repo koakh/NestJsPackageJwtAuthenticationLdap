@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 const bcryptSaltRounds: number = 10;
@@ -14,8 +15,8 @@ export const hashPassword = (password: string): string => {
 
 /**
  * simple template parser
- * @param stringTemplate
- * @param obj
+ * @param stringTemplate ex (cn=${groupName})
+ * @param obj pass a object ex { groupName }
  */
 export const parseTemplate = (stringTemplate: string, obj: any) => stringTemplate.replace(/\${(.*?)}/g, (x, g) => obj[g]);
 
@@ -40,11 +41,16 @@ export const encodeAdPassword = (utf8) => {
 
 /**
  * helper to filter valid groups
- * @param group
- * @param ldapSearchGroupPrefix 
- * @param ldapSearchGroupExcludeGroups 
+ * @param group current group to act on
+ * @param ldapSearchGroupPrefix ex `C3` or empty `` for (all)
+ * @param ldapSearchGroupExcludeGroups `C3Development,C3Administrator` or empty `` for (all)
  */
-export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[]): boolean => {
-  const excluded = !groupExcludeGroups.findIndex(e => e === group);
+export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[], debug: boolean = false): boolean => {
+  const excluded = groupExcludeGroups.length > 0 && groupExcludeGroups.findIndex(e => e === group) >= 0;
+  if (excluded && debug) {
+    Logger.log(`includeLdapGroup excluded group :${group}`, 'Util');
+  }
   return (group.startsWith(groupPrefix) && !excluded);
 }
+
+
