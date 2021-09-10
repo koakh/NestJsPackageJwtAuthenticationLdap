@@ -43,7 +43,7 @@ export class AuthController {
       ? this.authService.getRolesFromMemberOf(memberOf)
       : [];
     // metaData
-    const metaData = { profile: getProfileFromDefaultGroup(userId, this.configService.get(envConstants.LDAP_SEARCH_BASE)) };
+    const metaData = { profile: getProfileFromDefaultGroup(userId) };
     // payload for accessToken
     const signJwtToken: SignJwtToken = { username, userId, roles, metaData };
     const { accessToken } = await this.authService.signJwtToken(signJwtToken);
@@ -94,9 +94,11 @@ export class AuthController {
       return invalidPayload();
     }
     const roles = this.authService.getRolesFromMemberOf(user.memberOf);
+    // metaData
+    const metaData = { profile: getProfileFromDefaultGroup(user.dn) };
 
     // accessToken: add some user data to it, like id and roles
-    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles };
+    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles, metaData };
     const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token

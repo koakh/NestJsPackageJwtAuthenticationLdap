@@ -610,7 +610,7 @@ export class LdapService {
         let filter = groupName ? parseTemplate(this.ldapSearchGroupFilter, { groupName }) : undefined;
         // note to work we must use the scope sub else it won't work
         // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
-        this.ldapClient.search(`ou=Groups,${this.ldapBaseDn})`, {
+        this.ldapClient.search(`ou=Groups,${this.ldapBaseDn}`, {
           attributes: this.searchAttributesGroup,
           scope: 'sub',
           filter: groupName ? filter : undefined,

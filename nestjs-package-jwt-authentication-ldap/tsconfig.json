@@ -12,6 +12,6 @@
     "rootDir": "./src",
     "baseUrl": "./"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/auth/enums/roles.enum.ts_DELETE"],
   "exclude": ["node_modules"]
 }

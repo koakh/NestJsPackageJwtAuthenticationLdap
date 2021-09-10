@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -9,7 +9,7 @@ import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { hashPassword } from './utils/util';
-
+import { constants } from './ldap/ldap.constants';
 @Injectable()
 export class AuthService {
   // init usersStore
@@ -22,7 +22,7 @@ export class AuthService {
   ) { }
   async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
-    const payload = { username: user.username, sub: user.userId, roles: user.roles };
+    const payload = { username: user.username, sub: user.userId, roles: user.roles, metaData: user.metaData };
     return {
       // generate JWT from a subset of the user object properties
       accessToken: this.jwtService.sign(payload, options),
@@ -30,7 +30,7 @@ export class AuthService {
   }
 
   async signRefreshToken(user: any, tokenVersion: number, options?: SignOptions): Promise<AccessToken> {
-    const payload = { username: user.username, sub: user.userId, roles: user.roles, tokenVersion };
+    const payload = { username: user.username, sub: user.userId, roles: user.roles, metaData: user.metaData, tokenVersion };
     return {
       // generate JWT from a subset of the user object properties
       accessToken: this.jwtService.sign(payload, {
@@ -63,6 +63,10 @@ export class AuthService {
   }
 
   getRolesFromMemberOf(memberOf: string[]): string[] {
+    const groupExcludeGroupsArray = this.configService.get(envConstants.LDAP_SEARCH_GROUP_EXCLUDE_GROUPS).split(',');
+    // extract CN=
+    const excludeGroupsArray = groupExcludeGroupsArray;//groupExcludeGroupsArray.map(e => e.split('=')[0]);
+
     if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
       return [];
     }
@@ -70,12 +74,17 @@ export class AuthService {
     if (typeof memberOf === 'string') {
       memberOf = [memberOf];
     }
-    const roles: string[] = memberOf.map((e: string) => {
+    const roles: string[] = [];
+    memberOf.forEach((e: string) => {
       const memberOfRole: string[] = e.split(',');
+      const groupName = memberOfRole[0].split('=')[1];
+      const excluded = excludeGroupsArray.length > 0 && excludeGroupsArray.findIndex(e => e === groupName) >= 0;
+      const isDeveloper = groupName === constants.AUTH_DEVELOPER_ROLE_CAMEL_CASE;
       // get first group, and only add c3 prefixed roles
-      return (memberOfRole[0].includes('='))
-        ? memberOfRole[0].split('=')[1].replace('C3','C3_').replace(' ','_').toUpperCase()
-        : undefined
+      // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
+      if (memberOfRole[0].includes('=') && (!excluded || isDeveloper)) {
+        roles.push(groupName.replace('C3', 'C3_').replace(' ', '_').toUpperCase());
+      }
     });
     return roles;
   }

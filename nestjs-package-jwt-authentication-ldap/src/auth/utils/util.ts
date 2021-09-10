@@ -51,7 +51,7 @@ export const encodeAdPasswordBase64 = (adPassword: string): string => {
  * helper to filter valid groups
  * @param group current group to act on
  * @param ldapSearchGroupPrefix ex `C3` or empty `` for (all)
- * @param ldapSearchGroupExcludeGroups `C3Development,C3Administrator` or empty `` for (all)
+ * @param ldapSearchGroupExcludeGroups `C3Developer,C3Administrator` or empty `` for (all)
  */
 export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[], debug: boolean = false): boolean => {
   const excluded = groupExcludeGroups.length > 0 && groupExcludeGroups.findIndex(e => e === group) >= 0;
@@ -62,15 +62,13 @@ export const includeLdapGroup = (group: string, groupPrefix: string, groupExclud
 }
 
 /**
- * get profile from user dn/defaultGroup
+ * get profile from user dn/defaultGroup, ASSUMES that 2 item is defaultGroup
  * @param dn ex "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online"
- * @param ldapSearchBase 
  * @returns extracted profile input "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online" output "C3Administrator"
  */
-export const getProfileFromDefaultGroup = (dn: string, ldapSearchBase: string): string => {
+export const getProfileFromDefaultGroup = (dn: string): string => {
   try {
-    const input = dn.replace(ldapSearchBase, '');
-    const inputArray = input.substr(0, input.length - 1).split(',');
+    const inputArray = dn.split(',');
     const inputArrayProfile = inputArray[1].split('=');
     const profile = inputArrayProfile[1];
     return profile;

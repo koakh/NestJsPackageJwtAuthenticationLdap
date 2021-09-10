@@ -1,8 +1,0 @@
-// default groups exported to be used in consumer apps
-export enum Roles {
-  C3_DEVELOPER = 'C3_DEVELOPER',
-  C3_ADMINISTRATOR = 'C3_ADMINISTRATOR',
-  C3_TEACHER = 'C3_TEACHER',
-  C3_PARENT = 'C3_PARENT',
-  C3_STUDENT = 'C3_STUDENT',
-};
