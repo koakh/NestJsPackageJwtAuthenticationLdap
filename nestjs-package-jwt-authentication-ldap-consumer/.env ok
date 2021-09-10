@@ -1,4 +1,3 @@
-# server
 HTTP_SERVER_PORT='3010'
 # jwt
 ACCESS_TOKEN_JWT_SECRET='secretKeyAccessToken'
@@ -7,12 +6,6 @@ ACCESS_TOKEN_EXPIRES_IN='30m'
 REFRESH_TOKEN_JWT_SECRET='secretKeyRefreshToken'
 REFRESH_TOKEN_EXPIRES_IN='7d'
 REFRESH_TOKEN_SKIP_INCREMENT_VERSION='false'
-# OpenApi
-OPENAPI_TITLE='Consumer App'
-OPENAPI_DESCRIPTION='Koakh NestJS Jwt Authentication Package LDAP Consumer App'
-OPENAPI_VERSION='1.0.0'
-OPENAPI_TAG='nestjs, typescript, ldap, auth, security'
-
 # ldap
 # LDAP_URL='127.0.0.1'
 # ldap using tunnel
@@ -20,30 +13,16 @@ OPENAPI_TAG='nestjs, typescript, ldap, auth, security'
 # LDAP_URL='192.168.122.64'
 # LDAP_URL='192.168.1.175'
 LDAP_URL='192.168.122.247'
-
-# TODO: ou=People,${baseDn} BASE_DN
-LDAP_BASE_DN='dc=c3edu,dc=online'
-# LDAP_BASE_DN='qwerty,dc=schoolinabox'
-
-LDAP_ROOT_USER='c3'
-
-# TODO new var
-LDAP_BASE_ADMIN='cn=administrator,cn=users'
-
-# TODO:
 LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
-# TODO get value from 'bindDn:LDAP_BASE_ADMIN,baseDn:LDAP_BASE_DN'
-# LDAP_BIND_DN='${bindDn},${baseDn}'
-
 LDAP_BIND_CREDENTIALS='Root123...'
 # leaves this not here
 # KO: gives [ExceptionsHandler] unexpected number of matches (2) for "c3" username. error: {  "statusCode": 500,  "path": "/v1/auth/login",  "errorType": "Error" }
 # LDAP_SEARCH_BASE='dc=c3edu,dc=online'
 # OK
+AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
-# used in ldap strategy, don't use parseTemplate here, we must inject this in PassportStrategy and it uses plain `(cn={{username}})`
-LDAP_SEARCH_USER_FILTER_STRATEGY='(cn={{username}})'
-LDAP_SEARCH_USER_FILTER='(cn=${username})'
+# don't use parseTemplate here, we must inject this in PassportStrategy and it uses plain `(cn={{username}})`
+LDAP_SEARCH_USER_FILTER='(cn={{username}})'
 LDAP_SEARCH_USER_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
 LDAP_SEARCH_GROUP_FILTER='(cn=${groupName})'
 LDAP_SEARCH_GROUP_ATTRIBUTES='dn,cn,name,memberOf,objectCategory,distinguishedName'
@@ -56,6 +35,12 @@ LDAP_SEARCH_CACHE_FILTER='(objectCategory=CN=Person,CN=Schema,CN=Configuration,D
 # LDAP_ADD_DEFAULT_NAME_POSTFIX='cn=users,dc=c3edu,dc=online'
 # OK : WHAT I USED BEFORE
 # LDAP_NEW_USER_DN_POSTFIX='cn=Users,dc=c3edu,dc=online'
+LDAP_BASE_DN='dc=c3edu,dc=online'
 # ou=${defaultGroup},ou=People,${ldapBaseDn}, defaultGroup is the defaultGroup passed in request and LDAP_BASE_DN will be added to last part
 LDAP_NEW_USER_DN_POSTFIX='ou=People'
-AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
+
+# OpenApi
+OPENAPI_TITLE='Consumer App'
+OPENAPI_DESCRIPTION='Koakh NestJS Jwt Authentication Package LDAP Consumer App'
+OPENAPI_VERSION='1.0.0'
+OPENAPI_TAG='nestjs, typescript, ldap, auth, security'

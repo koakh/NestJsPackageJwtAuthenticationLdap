@@ -4,12 +4,8 @@
 @uri = {{uriBase}}
 @contentType = application/json
 
-@userLoginUsername = admin
-@userLoginPassword = 12345678
-@userIdAdmin = efeed3eb-c0a2-4b3e-816f-2a42ca8451b3
-@userJohnDoe = 520c2eb5-e83b-4ef5-a343-85756bcce149
 # groups
-@groupC3Development = C3Development
+@groupC3Developer = C3Developer
 @groupC3Guests = C3Guests
 @groupC3Parent = C3Parent
 @groupC3Administrator = C3Administrator
@@ -34,10 +30,11 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "username": "c3",
-  "password": "root"
-  // "username": "helder.pereira",
-  // "password": "secret"
+  // "username": "c3",
+  // "password": "root"
+  "username": "helder.pereira",
+  "username": "dev1",
+  "password": "secret"
 }
 
 ### authRefreshTokenLdap
@@ -82,19 +79,45 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "username": "helder.pereira",
+  "username": "dev1",
   "password": "secret",
   "firstName": "Nuno",
   "lastName": "Bento",
   "displayName": "Nuno Bento",
   "objectClass": "User",
   // "defaultGroup": "c3administrator",
-  "defaultGroup": "c3student",
+  "defaultGroup": "{{groupC3Administrator}}",
   // optional
   "mail":"nuno.bento@critical-links.com",
   "dateOfBirth": 19711219,
   "gender": "M",
-  "telephoneNumber": "+351936202288",
+  "telephoneNumber": "+351936202228",
+  "studentID": "34273462836a"
+}
+
+### ldapCreateUserDevRecord
+// @name ldapCreateUserDevRecord
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+
+POST {{uri}}/ldap/user HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
+  "username": "dev",
+  "password": "clkzzvt86",
+  "firstName": "Linus",
+  "lastName": "Torvalds",
+  "displayName": "Linux Torvalds",
+  "objectClass": "User",
+  // "defaultGroup": "c3administrator",
+  "defaultGroup": "{{groupC3Developer}}",
+  // optional
+  "mail":"nuno.bento@critical-links.com",
+  "dateOfBirth": 19711219,
+  "gender": "M",
+  "telephoneNumber": "+351936202228",
   "studentID": "34273462836a"
 }
 
@@ -191,7 +214,7 @@ Authorization: Bearer {{authToken}}
   // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
   "defaultGroup" : "{{groupC3Student}}",
   // add a member to group
-  "group" : "{{groupC3Development}}"
+  "group" : "{{groupC3Developer}}"
 }
 
 ### ldapDeleteUserRecord

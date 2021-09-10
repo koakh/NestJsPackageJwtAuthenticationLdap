@@ -24,9 +24,7 @@ export const parseTemplate = (stringTemplate: string, obj: any) => stringTemplat
  * encode ldapPassword
  * @param utf8
  */
-export const encodeAdPassword = (utf8) => {
-  // const quoteEncoded = '"' + '\000';
-  // const quoteEncoded = '"' + '\\000';
+export const encodeAdPassword = (utf8: string): string => {
   const quoteEncoded = '"' + '\u0000';
   let utf16le = quoteEncoded;
   // eslint-disable-next-line no-plusplus
@@ -37,6 +35,16 @@ export const encodeAdPassword = (utf8) => {
   utf16le += quoteEncoded;
 
   return utf16le;
+}
+
+/**
+ * encode ldapPassword in base64 format / unicodePwd
+ * used to encode passwords and use it in iso file staticfiles/usr/share/samba/setup/c3/users.ldif
+ * @param utf8
+ */
+export const encodeAdPasswordBase64 = (adPassword: string): string => {
+  // 1234 = `IgAxADIAMwA0ACIA` in iso `unicodePwd:: IgAxADIAMwA0ACIA`
+  return Buffer.from(encodeAdPassword(adPassword)).toString('base64')
 }
 
 /**
@@ -53,4 +61,20 @@ export const includeLdapGroup = (group: string, groupPrefix: string, groupExclud
   return (group.startsWith(groupPrefix) && !excluded);
 }
 
-
+/**
+ * get profile from user dn/defaultGroup
+ * @param dn ex "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online"
+ * @param ldapSearchBase 
+ * @returns extracted profile input "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online" output "C3Administrator"
+ */
+export const getProfileFromDefaultGroup = (dn: string, ldapSearchBase: string): string => {
+  try {
+    const input = dn.replace(ldapSearchBase, '');
+    const inputArray = input.substr(0, input.length - 1).split(',');
+    const inputArrayProfile = inputArray[1].split('=');
+    const profile = inputArrayProfile[1];
+    return profile;
+  } catch (err) {
+    return '';
+  }
+}

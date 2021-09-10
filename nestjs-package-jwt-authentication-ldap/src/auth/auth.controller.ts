@@ -10,6 +10,7 @@ import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
+import { getProfileFromDefaultGroup } from './utils';
 
 /**
  * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken
@@ -30,7 +31,7 @@ export class AuthController {
   // require @ApiBody else LoginDto is not exposed in swagger api
   async login(
     @Request() req: LoginDto,
-    // TODO add LoginResponseDto 
+    // TODO add LoginResponseDto
     @Response() res,
   ): Promise<LoginResponseDto> {
     // authenticate user
@@ -41,8 +42,10 @@ export class AuthController {
       // check roles to prevent crash
       ? this.authService.getRolesFromMemberOf(memberOf)
       : [];
+    // metaData
+    const metaData = { profile: getProfileFromDefaultGroup(userId, this.configService.get(envConstants.LDAP_SEARCH_BASE)) };
     // payload for accessToken
-    const signJwtToken: SignJwtToken = { username, userId, roles };
+    const signJwtToken: SignJwtToken = { username, userId, roles, metaData };
     const { accessToken } = await this.authService.signJwtToken(signJwtToken);
     // get incremented tokenVersion
     const tokenVersion = this.authService.usersStore.incrementTokenVersion(username);
@@ -53,7 +56,7 @@ export class AuthController {
     // don't delete sensitive properties here, this is a reference to moke user data
     // if we delete password, we deleted it from moke user
     // return LoginUserResponseDto
-    return res.send({ user: { dn: userId, username, email, roles }, accessToken });
+    return res.send({ user: { dn: userId, username, email, roles, metaData }, accessToken });
   }
 
   /**

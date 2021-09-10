@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  debugger;
   // require return type to prevent bellow error
   // tslint:disable-next-line: max-line-length
   // The inferred type of 'canActivate' cannot be named without a reference to '../../../../../../../../../../media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap/node_modules/rxjs'. This is likely not portable. A type annotation is necessary.ts(2742)

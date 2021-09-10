@@ -20,10 +20,14 @@ import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
 export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
+  private searchUserFilter: string;
   private searchAttributesUser: string;
+  private ldapSearchGroupFilter: string;
   private searchAttributesGroup: string;
   private ldapSearchGroupPrefix: string;
   private ldapSearchGroupExcludeGroups: string[];
+  private ldapNewUserDnPostfix: string;
+  private ldapBaseDn: string;
   private cache: Cache;
 
   constructor(
@@ -51,10 +55,14 @@ export class LdapService {
     };
     // props
     this.searchBase = configService.get(e.LDAP_SEARCH_BASE);
+    this.searchUserFilter = configService.get(e.LDAP_SEARCH_USER_FILTER);
     this.searchAttributesUser = configService.get(e.LDAP_SEARCH_USER_ATTRIBUTES).toString().split(',');
+    this.ldapSearchGroupFilter = configService.get(e.LDAP_SEARCH_GROUP_FILTER);
     this.searchAttributesGroup = configService.get(e.LDAP_SEARCH_GROUP_ATTRIBUTES).toString().split(',');
     this.ldapSearchGroupPrefix = configService.get(e.LDAP_SEARCH_GROUP_PREFIX);
     this.ldapSearchGroupExcludeGroups = configService.get(e.LDAP_SEARCH_GROUP_EXCLUDE_GROUPS).toString().split(',');
+    this.ldapNewUserDnPostfix = configService.get(e.LDAP_NEW_USER_DN_POSTFIX);
+    this.ldapBaseDn = configService.get(e.LDAP_BASE_DN);
 
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
@@ -114,7 +122,7 @@ export class LdapService {
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let user: SearchUserRecordDto;
-        let filter = parseTemplate(this.configService.get(e.LDAP_SEARCH_USER_FILTER), { username });
+        let filter = parseTemplate(this.searchUserFilter, { username });
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, {
           attributes: this.searchAttributesUser,
@@ -180,7 +188,7 @@ export class LdapService {
       const showDebug = false;
       try {
         // if filter is undefined, use default filter
-        filter = filter ? filter : this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX);
+        filter = filter ? filter : this.ldapNewUserDnPostfix;
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
         // recordsFound sums on page event
@@ -316,8 +324,6 @@ export class LdapService {
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      // const defaultNamePostfix = this.configService.get(e.LDAP_SEARCH_USER_ATTRIBUTES);
-      // const cn = `${createLdapUserDto.firstName} ${createLdapUserDto.lastName}`;
       const cn = createLdapUserDto.username;
       const newUser: CreateLdapUserModel = {
         cn,
@@ -349,7 +355,7 @@ export class LdapService {
       try {
         // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online
         // ex cn=user,c3student,ou=People,dc=c3edu,dc=online
-        const newDN = `cn=${cn},ou=${createLdapUserDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const newDN = `cn=${cn},ou=${createLdapUserDto.defaultGroup},${this.ldapNewUserDnPostfix},${this.ldapBaseDn}`;
         this.ldapClient.add(newDN, newUser, async (error) => {
           if (error) {
             reject(error);
@@ -379,11 +385,11 @@ export class LdapService {
   addOrDeleteUserToGroup(dn: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.ldapBaseDn}`;
         // Todo we must opt for on group here, to work when we create a user or when we add a member to group
         const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
         // search by member
-        const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
+        const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.ldapBaseDn}`;
         const groupChange = new ldap.Change({
           operation: dn,
           modification: {
@@ -412,7 +418,7 @@ export class LdapService {
     return new Promise(async (resolve, reject) => {
       try {
         const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.username)).user;
-        const newDn: string = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.configService.get(e.LDAP_BASE_DN)}`;
+        const newDn: string = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.ldapBaseDn}`;
 
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
           if (error)
@@ -420,7 +426,7 @@ export class LdapService {
 
           await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => { reject(error); });
 
-          const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.configService.get(e.LDAP_BASE_DN)}`.toLowerCase();
+          const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.ldapBaseDn}`.toLowerCase();
           const notMember: boolean = user.memberOf.filter((group: string) => { return group.toLowerCase() == defaultGroupDn; }).length == 0;
           if (notMember)
             await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
@@ -438,7 +444,7 @@ export class LdapService {
    */
   deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteUserRecordDto.username},ou=${deleteUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+      const delDN = `cn=${deleteUserRecordDto.username},ou=${deleteUserRecordDto.defaultGroup},${this.ldapNewUserDnPostfix},${this.ldapBaseDn}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {
@@ -461,7 +467,7 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.ldapNewUserDnPostfix},${this.ldapBaseDn}`;
 
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
@@ -504,7 +510,7 @@ export class LdapService {
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.configService.get(e.LDAP_NEW_USER_DN_POSTFIX)},${this.configService.get(e.LDAP_BASE_DN)}`;
+        const changeDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.ldapNewUserDnPostfix},${this.ldapBaseDn}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
           throw new Error('you must pass a valid oldPassword and newPassword properties')
         }
@@ -553,7 +559,7 @@ export class LdapService {
       };
 
       try {
-        const newDN = `cn=${createLdapGroupDto.groupName},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+        const newDN = `cn=${createLdapGroupDto.groupName},ou=Groups,${this.ldapBaseDn}`;
         this.ldapClient.add(newDN, newGroup, async (error) => {
           if (error) {
             reject(error);
@@ -572,7 +578,7 @@ export class LdapService {
    */
   deleteGroupRecord(deleteGroupRecordDto: DeleteGroupRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteGroupRecordDto.groupName},ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`;
+      const delDN = `cn=${deleteGroupRecordDto.groupName},ou=Groups,${this.ldapBaseDn}`;
       // dn: CN=newGroup,CN=Users,DC=c3edu,DC=online
       try {
         this.ldapClient.del(delDN, async (error) => {
@@ -601,10 +607,10 @@ export class LdapService {
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let group: SearchGroupRecordDto;
-        let filter = groupName ? parseTemplate(this.configService.get(e.LDAP_SEARCH_GROUP_FILTER), { groupName }) : undefined;
+        let filter = groupName ? parseTemplate(this.ldapSearchGroupFilter, { groupName }) : undefined;
         // note to work we must use the scope sub else it won't work
         // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
-        this.ldapClient.search(`ou=Groups,${this.configService.get(e.LDAP_BASE_DN)}`, {
+        this.ldapClient.search(`ou=Groups,${this.ldapBaseDn})`, {
           attributes: this.searchAttributesGroup,
           scope: 'sub',
           filter: groupName ? filter : undefined,

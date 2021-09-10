@@ -521,3 +521,36 @@ response on c3-backend
 # OK
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
 ```
+
+## DEBUG auth Login problems
+
+
+```shell
+HTTP/1.1 401 Unauthorized
+X-Powered-By: Express
+Content-Type: application/json; charset=utf-8
+Content-Length: 104
+ETag: W/"68-n38ZIEWtm4qOZZ9ZT9m8SgutsDU"
+Date: Thu, 09 Sep 2021 16:32:40 GMT
+Connection: close
+
+{
+  "statusCode": 401,
+  "path": "/v1/auth/login",
+  "timestamp": "2021-09-09T16:32:40.187Z",
+  "error": "Unauthorized"
+}
+```
+
+
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class LdapAuthGuard extends AuthGuard('ldap') { }
+
+
+
+
+LDAP_SEARCH_USER_FILTER='(cn=${username})'
+# LDAP_SEARCH_USER_FILTER='(cn={{username}})'
