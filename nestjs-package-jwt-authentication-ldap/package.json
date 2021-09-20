@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -11,8 +11,9 @@
     "*.md"
   ],
   "scripts": {
-    "start:dev": "tsc -w",
     "build": "tsc",
+    "start:dev": "nest build --watch",
+    "start:debug": "nest build --debug --watch",
     "prepare": "npm run build",
     "format": "prettier --write \"src/**/*.ts\"",
     "lint": "tslint -p tsconfig.json -c tslint.json",
@@ -38,9 +39,10 @@
     "@nestjs/common": "^8.0.4"
   },
   "dependencies": {
+    "@golevelup/nestjs-modules": "^0.4.2",
     "@golevelup/ts-jest": "^0.3.1",
     "@nest-middlewares/cookie-parser": "^6.0.0",
-    "@nestjs/config": "^1.0.0",
+    "@nestjs/config": "^1.0.1",
     "@nestjs/jwt": "^8.0.0",
     "@nestjs/passport": "^8.0.0",
     "@nestjs/swagger": "^5.0.4",

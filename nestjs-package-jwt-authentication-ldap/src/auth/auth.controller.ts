@@ -1,8 +1,9 @@
-import { Body, Controller, HttpStatus, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Body, Controller, HttpStatus, Inject, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import * as passport from 'passport';
+import { CONFIG_SERVICE } from '../common/constants';
+import { ModuleOptionsConfig } from '../common/interfaces';
 import { envConstants } from '../common/constants/env';
 import { AuthService } from './auth.service';
 import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto } from './dto';
@@ -20,10 +21,11 @@ import { getProfileFromDefaultGroup } from './utils';
 @ApiTags('auth')
 export class AuthController {
   constructor(
-    private readonly configService: ConfigService,
     private readonly authService: AuthService,
     private readonly jwtService: JwtService,
     private readonly ldapService: LdapService,
+    @Inject(CONFIG_SERVICE)
+    private readonly config: ModuleOptionsConfig,
   ) { }
   @Post('/login')
   @UseGuards(LdapAuthGuard)
@@ -31,7 +33,6 @@ export class AuthController {
   // require @ApiBody else LoginDto is not exposed in swagger api
   async login(
     @Request() req: LoginDto,
-    // TODO add LoginResponseDto
     @Response() res,
   ): Promise<LoginResponseDto> {
     // authenticate user
@@ -81,7 +82,7 @@ export class AuthController {
 
     try {
       // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
-      payload = this.jwtService.verify(token, { secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET) });
+      payload = this.jwtService.verify(token, { secret: this.config.jwt.refreshTokenJwtSecret });
     } catch (error) {
       Logger.error(error, AuthController.name);
       return invalidPayload();

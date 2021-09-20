@@ -1,12 +1,15 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { envConstants as e } from '../../../common/constants/env';
+import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
+import { ModuleOptionsConfig } from '../../../common/interfaces';
+import { CONFIG_SERVICE } from '../../../common/constants';
 
 // this guard is to prevent delete the user LDAP_ROOT_USER
 
 @Injectable()
 export class LdapDeleteUsersGuard implements CanActivate {
-  constructor(private readonly configService: ConfigService) { }
+  constructor(
+    @Inject(CONFIG_SERVICE)
+    private readonly config: ModuleOptionsConfig,
+  ) { }
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
@@ -14,6 +17,7 @@ export class LdapDeleteUsersGuard implements CanActivate {
       return false;
     }
 
-    return request.body.username!=this.configService.get(e.LDAP_ROOT_USER) && request.body.username!=request.user.username;
+    // protect delete user if is the root user or current logged user
+    return request.body.username != this.config.ldap.rootUser && request.body.username != request.user.username;
   }
 }

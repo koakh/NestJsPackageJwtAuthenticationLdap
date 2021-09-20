@@ -1,60 +1,329 @@
-# TODO
+Todo:
 
-☐ EndPoints
-  ☐ Auth
-    ☐ ldapLogin
-      ✔ /auth/login-ldap @done(20-11-30 10:59)
-      ✔ change endpoint to `/auth/login` @done(20-11-30 12:06)
-    ☐ ldapRefreshToken
-      ✔ /auth/refresh-token-ldap @done(20-11-30 11:00)
-      ✔ change endpoint to `/auth/refresh-token` @done(20-11-30 12:06)
-    ✔ revokeUserRefreshToken @done(20-11-30 11:04)
-      ✔ /revoke-refresh-token @done(20-11-30 11:03)
-    ✔ logOut @done(20-11-30 11:04)
+Lib:
+  ✔ EndPoints @done(21-09-15 15:41)
+    ✔ Auth @done(21-09-15 15:41)
+      ✔ ldapLogin @done(21-09-15 15:41)
+        ✔ /auth/login-ldap @done(20-11-30 10:59)
+        ✔ change endpoint to `/auth/login` @done(20-11-30 12:06)
+      ✔ ldapRefreshToken @done(21-09-15 15:41)
+        ✔ /auth/refresh-token-ldap @done(20-11-30 11:00)
+        ✔ change endpoint to `/auth/refresh-token` @done(20-11-30 12:06)
+      ✔ revokeUserRefreshToken @done(20-11-30 11:04)
+        ✔ /revoke-refresh-token @done(20-11-30 11:03)
+      ✔ logOut @done(20-11-30 11:04)
       ✔ /auth/logout @done(20-11-30 11:04)
+  ☐ DynamiCModules
+    ☐ @critical TODO must get rid of configService, this must come from consumerApp option
+      current @nestjs/config is in project only to pass unit test's
+      unistall package from package.json
+    ☐ @critical remove/delete
+      nestjs-package-jwt-authentication-ldap-consumer/src/app.controller.ts
+      nestjs-package-jwt-authentication-ldap-consumer/src/app.service.ts
+    ✔ Inject stuff @done(21-09-17 18:11)
+    ☐ remove nestjs-package-jwt-authentication-ldap/src/common/constants/env.ts
+    ✔ remove all // TODO: @done(21-09-17 18:10)
+    ✔ remove all AUTH_SECRET @done(21-09-17 17:03)
+    @critical @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN) ???? hardCoded roles? in ldapController
+    
+Misc:
+  ☐ add user but fails group
+  ☐ add a group to a menber that is in that group crashb and we can't see the exception
+  ☐ addMember(s)
+    ☐ @critical addMembers foi feito a correr o import da shell porque pelo ldapjs era mais lento. Depois tem de se verificar se continua ou não. 
+    ☐ @critical entao se calhar e melhor ficar com addMembers (array simples) e um importMembers() q usa esse metodo
+  ☐ TODAY
+    ☐ convert roles to CONSTANT ex SERVER_OPERATORS
+    ☐ use @Roles(UserRoles.ADMINISTRATOR) @UseGuards(RolesAuthGuard) roles in every endpoint
+    ☐ initCache have role?
+    ☐ cacheStatus endpoint
+    ☐ temove all user module stuff and @critical local.strategy.ts to
+    ☐ return init cache before use endPoint in ldapGetUserRecords
+    ☐ memoryUsage helper function
+    ✔ remove group @done(21-09-15 15:41)
+    ☐ update password
+    ☐ roles, all endpoint protected with roles, ONLY login, logout, and changeUser profile or change user record may PASS
 
-    /auth/revoke-refresh-token
 
-  ☐ logOut
+  NewFromMeeting:
+    ☐ @critical todo HIDE C3Developer from LIST GROUPS endpoint
+    ☐ when create groups, cehck if group is Prefixed by C3, if not prefix group with C3, ex user create group Supervisor, api create C3Supervisor
+    ☐ hide prefix C3 in user Interface?
+      thin better if prefix is a good way to solve the problem
 
+    {
+      "user": {
+        "dn": "CN=mario,OU=C3Student,OU=People,DC=c3edu,DC=online",
+        "username": "mario",
+        "roles": [
+          Teacher
+        ],
+        "profiles": [
+          Wireless
+          Firewall
+        ]
+        "metaData": {
+          // NOTE: this is required in case of one group only rule, if user is only memberOf one group this 
+          // NOTE: dynamic property can comes from "roles": ["C3_STUDENT"] 
+          // NOTE: and not from "CN=mario,OU=C3Student,OU=People,DC=c3edu,DC=online"
+          "profile": "C3Student"
+        }
+      },
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hcmlvIiwic3ViIjoiQ049bWFyaW8sT1U9QzNTdHVkZW50LE9VPVBlb3BsZSxEQz1jM2VkdSxEQz1vbmxpbmUiLCJyb2xlcyI6WyJDM19TVFVERU5UIl0sIm1ldGFEYXRhIjp7InByb2ZpbGUiOiJDM1N0dWRlbnQifSwiaWF0IjoxNjMxODk2OTUxLCJleHAiOjE2MzE4OTg3NTF9.YVPnDNP8AI4UZKZ_wgTzn5jF73PrOK37eGCzlhD282w"
+    }
+    
 
-☐ add user but fails group
-☐ add a group to a menber that is in that group crashb and we can't see the exception
-☐ addMember(s)
-  ☐ @critical addMembers foi feito a correr o import da shell porque pelo ldapjs era mais lento. Depois tem de se verificar se continua ou não. 
-  ☐ @critical entao se calhar e melhor ficar com addMembers (array simples) e um importMembers() q usa esse metodo
+TODO: H - cada user so pode ter um grupo
+    
+$ sudo samba-tool ou list
+OU=C3Parent,OU=People
+OU=C3Student,OU=People
+OU=C3Teacher,OU=People
+OU=C3Administrator,OU=People
+OU=Groups
+OU=People
+OU=Users_Backup
+OU=Domain Controllers
 
+    c3edu.online
+    parent1- People
+       - C3Administrator
+         * c3               CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online
+       - C3Teacher
+         * teacher1         CN=teacher1,OU=C3Teacher,OU=People,DC=c3edu,DC=online
+       - C3Student          
+         * student1         CN=student1,OU=C3Student,OU=People,DC=c3edu,DC=online
+       - C3Parent           
+         *  parent1         CN=parent1,OU=C3Parent,OU=People,DC=c3edu,DC=online
+       - C3Developer        
+         * dev              CN=dev,OU=C3Developer,OU=People,DC=c3edu,DC=online
+    - Groups
+       + C3Administrator
+       + C3Developer
+       + C3Teacher
+       + C3Student
+       + C3Parent
+    
+    NOTE: ask RULES so se pode estar num grupo, de momento pode se estar em mais, mas no UI so permite criar um grupo
+    yes | no
 
-c3@c3:/usr/share/backend$ sudo npm run debug
+    NOTE: implement UI to change User LDAP Group memberOf and OU ex 
+    "CN=mario,OU=C3Student,OU=People,DC=c3edu,DC=online",
+    "username": "mario",
+    "roles": [
+      "C3_STUDENT"
+    ],
 
-now 
-npm run start:debug starts working in consumer app.....
+    change to C3Teach"C3_TEACHER"er
 
-Debugger attached.
+    "CN=mario,OU=C3Teacher,OU=People,DC=c3edu,DC=online",
+    "username": "mario",
+    "roles": [
+      "C3_TEACHER"
+    ],
 
+    Future LDAP Groups
+      InternetAccess
+      Whitelisting
+      Caching
+      Wireless
+      Firewall
+      LocalAreaNetwork
+      GPO
+      BandwidthLimits
+      ActiveDirectory
+      RemoteServices
+      TimeConfiguration
+      Update
+      Liense
+      Users
+        NOTE ask can view, but when visble can edit too? no it can't we must solve this
+      Content
+      Apps
 
-☐ TODAY
-  ☐ convert roles to CONSTANT ex SERVER_OPERATORS
-  ☐ use @Roles(UserRoles.ADMINISTRATOR) @UseGuards(RolesAuthGuard) roles in every endpoint
-  ☐ initCache have role?
-  ☐ cacheStatus endpoint
-  ☐ temove all user module stuff and @critical local.strategy.ts to
-  ☐ return init cache before use endPoint in ldapGetUserRecords
-  ☐ memoryUsage helper function
-  ☐ remove group
-  ☐ update password
-  ☐ roles, all endpoint protected with roles, ONLY login, logout, and changeUser profile or change user record may PASS
-  ☐ 
+    hide C3 Prefix????? e se removesse mos o Prefixo e so mostrasses mos determiandos Groups baseados num array?
+    ou property do ldap ex c3visible true|false
 
-ldapGetUserRecords  is same has -> return init cache before use endPoint
-  {
-    "total": 110022,
-    "elapsedTime": "47.740",
-    "memoryUsage": {
-      "rss": "465.38 MB -> Resident Set Size - total memory allocated for the process execution",
-      "heapTotal": "366.74 MB -> total size of the allocated heap",
-      "heapUsed": "198.43 MB -> actual memory used during the execution",
-      "external": "1.57 MB -> V8 external memory"
-    },
-    "status": 0
-  }
+{
+  "user": {
+    "dn": "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online",
+    "username": "c3",
+    "roles": [
+      "ADMINISTRATOR",            prop: groupType: role
+    ],
+    permissions: [
+      "ROLE_INTERNET_ACCESS"      prop: groupType: permission
+      "ROLE_WHITELISTING"
+      "ROLE_CACHING"
+      "ROLE_WIRELESS"
+      "ROLE_FIREWALL"
+      "ROLE_LOCAL_AREA_NETWORK"      "profile": "C3Administrator"
+
+      "ROLE_GPO"
+      "ROLE_BANDWIDTH_LIMITS"
+      "ROLE_ACTIVE_DIRECTORY"
+      "ROLE_REMOTE_SERVICES"
+      "ROLE_TIME_CONFIGURATION"
+      "ROLE_UPDATE"
+      "ROLE_LIENSE"
+      "ROLE_USERS"                can view, but when visble can edit too? no it can't we must solve this
+      "ROLE_CONTENT"
+      "ROLE_APPS"
+    ]
+    "metaData": {
+      "profile": "C3Administrator"
+    }
+  },
+  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImMzIiwic3ViIjoiQ049YzMsT1U9QzNBZG1pbmlzdHJhdG9yLE9VPVBlb3BsZSxEQz1jM2VkdSxEQz1vbmxpbmUiLCJyb2xlcyI6WyJDM19BRE1JTklTVFJBVE9SIiwiQzNfVEVBQ0hFUiIsIkMzX1BBUkVOVCIsIkMzX1NUVURFTlQiLCJDM19ERVZFTE9QRVIiXSwibWV0YURhdGEiOnsicHJvZmlsZSI6IkMzQWRtaW5pc3RyYXRvciJ9LCJpYXQiOjE2MzE4OTE4NDcsImV4cCI6MTYzMTg5MzY0N30.kTNzv6wd6iIWZUVKX4Gv7yW5_PsMX53sD1on4q-F2LE"
+}
+
+------------------------------------------------
+C3 current groups
+-------memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:
+  memberOf:-----------------------------------------
+Account Operators
+Network Configuration Operators
+Enterprise Read-only Domain Controllers
+Guests
+DnsAdmins
+Cert Publishers
+Group Policy Creator Owners
+Incoming Forest Trust Builders
+Administrators
+Domain Controllers
+Performance Monitor Users
+RAS and IAS Servers
+Domain Computers
+Denied RODC Password Replication Group
+Domain Admins
+Server Operators
+Users
+Domain Users
+Print Operators
+Distributed COM Users
+Domain Guests
+DnsUpdateProxy
+Allowed RODC Password Replication Group
+Read-only Domain Controllers
+Backup Operators
+Performance Log Users
+Windows Authorization Access Group
+Remote Desktop Users
+Enterprise Admins
+Event Log Readers
+Cryptographic Operators
+IIS_IUSRS
+Certificate Service DCOM Access
+Terminal Server License Servers
+Pre-Windows 2000 Compatible Access
+Schema Admins
+Replicator
+------------------------------------------------
+C3 current groups, used as roles
+------------------------------------------------
+Developer
+Administrator
+Teacher
+Parent
+Student
+------------------------------------------------
+nest c3 users, will be used as permissions
+------------------------------------------------
+TODO: add bellow groups(permissions) to groups(roles)
+InternetAccess
+Whitelisting
+Caching
+Wireless
+Firewall
+LocalAreaNetwork
+GPO
+BandwidthLimits
+ActiveDirectory
+RemoteServices
+TimeConfiguration
+Update
+Liense
+Users
+Content
+Apps
+Kiosk *NOVA
+------------------------------------------------
+NOTE: how we split it in roles and permisisons
+
+Teacher
+  Wireless
+  Firewall
+
+teacher1
+  memberOf:Teacher
+  memberOf:Wireless
+  memberOf:Firewall
+
+student2
+  memberOf:Teacher
+  memberOf:Wireless
+  memberOf:Firewall
+
+    C3Student
+    
+    - [X] read contents
+    - [-] create contents
+    - [-] delete contents
+    - [-] consult student grades
+    - [-] create ldap users
+    
+    C3StudentSuper
+    
+    - [-] read contents
+    - [-] create contents
+    - [-] delete contents
+    - [-] consult student grades
+    - [-] create ldap users
+    - [X] change email
+    
+    C3Teacher
+    
+    - [-] read contents
+    - [-] create contents
+    - [-] delete contents
+    - [X] consult student grades
+    - [-] create ldap users
+    
+    C3Adminstrator
+    
+    - [X] read contents
+    - [X] create contents
+    - [X] delete contents
+    - [X] consult student grades
+    - [-] create ldap users
+    
+    C3Developer  C3Adminstrator
+    
+    - [-] read contents
+    - [-] create contents
+    - [-] delete contents
+    - [-] consult student grades
+    - [X] create ldap users
+    
+    dev
+      C3Adminstrator
+      C3Developer
+      - [X] read contents
+      - [X] create contents
+      - [X] delete contents
+      - [X] consult student grades
+      - [X] create ldap users    

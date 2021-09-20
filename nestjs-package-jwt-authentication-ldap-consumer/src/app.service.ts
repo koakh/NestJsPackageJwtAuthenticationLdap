@@ -7,6 +7,7 @@ export class AppService {
     private readonly authService: AuthService,
   ) { }
 
+  // test use authService from library
   hashPassword(password: string): string {
     return this.authService.hashPassword(password);
   }

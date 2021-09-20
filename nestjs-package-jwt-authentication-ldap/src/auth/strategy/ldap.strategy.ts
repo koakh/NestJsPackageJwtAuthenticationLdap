@@ -1,25 +1,28 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import * as Strategy from 'passport-ldapauth';
-import { envConstants } from '../../common/constants';
+import { CONFIG_SERVICE } from '../../common/constants';
+import { ModuleOptionsConfig } from '../../common/interfaces';
 
 @Injectable()
 export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    @Inject(CONFIG_SERVICE)
+    private readonly config: ModuleOptionsConfig,
+  ) {
     super({
       // allows us to pass back the entire request to the callback
       passReqToCallback: true,
       server: {
         // ldapOptions
-        url: `ldap://${configService.get(envConstants.LDAP_URL)}`,
-        bindDN: configService.get(envConstants.LDAP_BIND_DN),
-        bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
-        searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
+        url: `ldap://${config.ldap.address}:${config.ldap.port}`,
+        bindDN: config.ldap.bindDN,
+        bindCredentials: config.ldap.bindCredentials,
+        searchBase: config.ldap.searchBase,
         // don't change searchFilter and searchAttributes variables name, this is a options object to be used in ldap server
-        searchFilter: configService.get(envConstants.LDAP_SEARCH_USER_FILTER_STRATEGY),
-        searchAttributes: configService.get(envConstants.LDAP_SEARCH_USER_ATTRIBUTES).toString().split(','),
+        searchFilter: config.ldap.searchUserFilterStrategy,
+        searchAttributes: config.ldap.searchUserAttributes.toString().split(','),
       },
     }, async (req: Request, user: any, done) => {
       // add user to request

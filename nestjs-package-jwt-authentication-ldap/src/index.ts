@@ -1,6 +1,7 @@
 // export public api from here
 export * from './common/constants';
-export * from './common/filters/http-exception.filter';
+export * from './common/filters';
+export * from './common/interfaces';
 // auth
 export * from './auth/auth.module';
 export * from './auth/auth.service';

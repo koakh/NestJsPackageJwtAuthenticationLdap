@@ -18,7 +18,9 @@
     "nestjs",
     "plusplus",
     "prestart",
-    "ssha"
+    "somesecretpassword",
+    "ssha",
+    "useraccountcontrol"
   ],
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#1f6fd0",

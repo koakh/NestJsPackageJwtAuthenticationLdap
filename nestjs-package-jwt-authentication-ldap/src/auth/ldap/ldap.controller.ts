@@ -71,7 +71,7 @@ export class LdapController {
       });
   }
 
-  @Put('/defaultGroup')
+  @Put('/default-group')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
@@ -300,22 +300,4 @@ export class LdapController {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
-  
-  // TODO:
-  // @Get('/group/:groupName')
-  // @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  // @UseGuards(RolesAuthGuard)
-  // @UseGuards(JwtAuthGuard)
-  // async getGroupRecord(
-  //   @Response() res,
-  //   @Param('groupName') groupName: string,
-  // ): Promise<void> {
-  //   this.ldapService.getGroupRecord(groupName)
-  //     .then((user: SearchUserRecordResponseDto) => {
-  //       res.status(HttpStatus.CREATED).send(user);
-  //     })
-  //     .catch((error) => {
-  //       res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
-  //     });
-  // }  
 }

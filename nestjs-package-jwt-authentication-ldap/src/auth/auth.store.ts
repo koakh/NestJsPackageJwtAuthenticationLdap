@@ -1,5 +1,4 @@
-import { ConfigService } from '@nestjs/config';
-import { envConstants } from '../common/constants/env';
+import { ModuleOptionsConfig } from '../common/interfaces';
 
 /**
  * inMemory userStore to manage token versions
@@ -13,7 +12,7 @@ interface User {
 export class AuthStore {
   store: User[];
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly config: ModuleOptionsConfig) {
     this.store = new Array<User>();
   }
 
@@ -40,7 +39,7 @@ export class AuthStore {
 
   incrementTokenVersion(username: string): number {
     const user: User = this.getUser(username);
-    if (Boolean(this.configService.get(envConstants.REFRESH_TOKEN_SKIP_INCREMENT_VERSION) === 'true' ? true : false)) {
+    if (Boolean(this.config.jwt.refreshTokenSkipIncrementVersion === 'true' ? true : false)) {
       // devMode: don't increment tokenVersion
       return user.tokenVersion;
     } else {

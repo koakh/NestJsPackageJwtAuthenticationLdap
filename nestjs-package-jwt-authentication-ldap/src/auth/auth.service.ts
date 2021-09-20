@@ -1,24 +1,23 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
-import { envConstants } from '../common/constants/env';
+import { CONFIG_SERVICE } from '../common/constants';
+import { ModuleOptionsConfig } from '../common/interfaces';
 import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { hashPassword } from './utils/util';
-import { constants } from './ldap/ldap.constants';
 @Injectable()
 export class AuthService {
   // init usersStore
-  usersStore: AuthStore = new AuthStore(this.configService);
+  usersStore: AuthStore = new AuthStore(this.config);
 
   constructor(
-    private readonly configService: ConfigService,
-    // private readonly ldapService: LdapService,
     private readonly jwtService: JwtService,
+    @Inject(CONFIG_SERVICE)
+    private readonly config: ModuleOptionsConfig,
   ) { }
   async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
@@ -36,8 +35,8 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload, {
         ...options,
         // require to use refreshTokenJwtSecret
-        secret: this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET),
-        expiresIn: this.configService.get(envConstants.REFRESH_TOKEN_EXPIRES_IN),
+        secret: this.config.jwt.refreshTokenJwtSecret,
+        expiresIn: this.config.jwt.refreshTokenExpiresIn,
       }),
     };
   }
@@ -63,9 +62,7 @@ export class AuthService {
   }
 
   getRolesFromMemberOf(memberOf: string[]): string[] {
-    const groupExcludeGroupsArray = this.configService.get(envConstants.LDAP_SEARCH_GROUP_EXCLUDE_GROUPS).split(',');
-    // extract CN=
-    const excludeGroupsArray = groupExcludeGroupsArray;//groupExcludeGroupsArray.map(e => e.split('=')[0]);
+    const groupExcludeRolesGroupArray = this.config.ldap.searchGroupExcludeRolesGroups.split(',');
 
     if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
       return [];
@@ -78,11 +75,9 @@ export class AuthService {
     memberOf.forEach((e: string) => {
       const memberOfRole: string[] = e.split(',');
       const groupName = memberOfRole[0].split('=')[1];
-      const excluded = excludeGroupsArray.length > 0 && excludeGroupsArray.findIndex(e => e === groupName) >= 0;
-      const isDeveloper = groupName === constants.AUTH_DEVELOPER_ROLE_CAMEL_CASE;
-      // get first group, and only add c3 prefixed roles
+      const excluded = groupExcludeRolesGroupArray.length > 0 && groupExcludeRolesGroupArray.findIndex(e => e === groupName) >= 0;
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
-      if (memberOfRole[0].includes('=') && (!excluded || isDeveloper)) {
+      if (memberOfRole[0].includes('=') && !excluded) {
         roles.push(groupName.replace('C3', 'C3_').replace(' ', '_').toUpperCase());
       }
     });

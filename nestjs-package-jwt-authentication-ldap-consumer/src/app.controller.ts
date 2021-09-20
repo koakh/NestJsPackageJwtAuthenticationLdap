@@ -1,27 +1,24 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiCreatedResponse, ApiOkResponse } from '@nestjs/swagger';
+import { ConsumerAppService } from '@koakh/nestjs-package-jwt-authentication-ldap';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { CreateCatDto } from './dto';
+import { HashPasswordDto } from './dto';
 @Controller()
 export class AppController {
 
   constructor(
     private readonly appService: AppService,
+    // private readonly consumerAppService: ConsumerAppService,
   ) { }
 
-  // sample: test debugger consumer app with `curl http://localhost:3010/v1`
-  // @Get()
-  // @ApiOkResponse({ description: 'The request has succeeded' })
-  // hashPassword(): string {
-  //   debugger;
-  //   const password = 'some fake data';
-  //   return this.appService.hashPassword(password);
-  // }
+  @Post('hash-password')
+  async hashPassword(@Body() { password }: HashPasswordDto) {
+    return { message: this.appService.hashPassword(password) };
+  }
 
-  // sample
-  // @Post()
-  // @ApiCreatedResponse({ description: 'Content Created' })
-  // async create(@Body() createCatDto: CreateCatDto) {
-  //   return { message: `hello ${createCatDto.name}` };
-  // }
+  // @Get('welcome/:username')
+  // async testConsumerAppService(
+  //   @Param('username') username: string,
+  // ) {
+  //   return { message: this.consumerAppService.getWelcome(username) };
+  // }  
 };

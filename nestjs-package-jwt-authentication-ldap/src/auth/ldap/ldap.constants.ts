@@ -4,6 +4,4 @@ export const constants: { [key: string]: string } = {
   GROUP_CREATED: 'group \'${groupName}\' created successfully',
   // occurs on create user that already exists
   // INVALID_DISTINGUISHED_NAME_ERROR: 'can\'t create user \'${username}\' with invalid distinguished name \'${distinguishedName}\'',
-  // used only to let it pass in getRolesFromMemberOf
-  AUTH_DEVELOPER_ROLE_CAMEL_CASE: 'C3Developer',
 }
