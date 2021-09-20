@@ -389,6 +389,16 @@ Content-Type: {{contentType}}
   "password": "12345678"
 }
 
+### apptestConsumerAppService
+// @name apptestConsumerAppService
+// test app.controller access to authService
+
+GET  {{uri}}/welcome/helder HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+}
+
 // @name ldapGreeting
 ### ldapGreeting WIP to be used to paginate
 
