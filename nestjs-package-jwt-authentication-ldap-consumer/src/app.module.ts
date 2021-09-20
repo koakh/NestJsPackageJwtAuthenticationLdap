@@ -61,7 +61,7 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
   controllers: [AppController],
   // require to use app AppService in DI
   // else Nest can't resolve dependencies of the AppController (?). Please make sure that the argument AppService at index [0] is available in the AppModule context
-  providers: [AppService],
+  providers: [AppService, ConsumerAppService],
   exports: []
 })
 

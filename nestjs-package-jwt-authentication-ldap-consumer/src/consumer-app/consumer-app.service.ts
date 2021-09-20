@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class ConsumerAppService implements ConsumerAppServiceInterface {
-  getWelcome(name: string) {
-    return `hello ${name}`;
+  getWelcome(username: string) {
+    return `hello ${username} from ${ConsumerAppService.name}`;
   }  
 }

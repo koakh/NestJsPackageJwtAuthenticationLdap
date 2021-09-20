@@ -1,14 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AuthService } from '@koakh/nestjs-package-jwt-authentication-ldap';
 
 @Injectable()
 export class AppService {
-  constructor(
-    private readonly authService: AuthService,
-  ) { }
+  constructor() { }
 
   // test use authService from library
-  hashPassword(password: string): string {
-    return this.authService.hashPassword(password);
+  getWelcome(username: string): string {
+    return `hello ${username} from ${AppService.name}`;
   }
 }
