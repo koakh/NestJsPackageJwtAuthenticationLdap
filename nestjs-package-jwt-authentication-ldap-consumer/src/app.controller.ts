@@ -1,5 +1,6 @@
-import { AuthService, LdapService } from '@koakh/nestjs-package-jwt-authentication-ldap';
+import { AuthService, CONFIG_SERVICE, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { Logger } from '@nestjs/common';
+import { Inject } from '@nestjs/common';
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ConsumerAppService } from './consumer-app/consumer-app.service';
@@ -15,6 +16,9 @@ export class AppController {
     // test package providers
     private readonly authService: AuthService,
     private readonly ldapService: LdapService,
+    // injection tokens
+    @Inject(CONFIG_SERVICE)
+    private readonly config: ModuleOptionsConfig,
   ) { }
 
   @Get('app/:username')
@@ -32,7 +36,9 @@ export class AppController {
   }
 
   @Post('hash-password')
-  async testAuthServiceHashPassword(@Body() { password }: HashPasswordDto) {
+  async testAuthServiceHashPassword(
+    @Body() { password }: HashPasswordDto
+  ) {
     return { message: this.authService.hashPassword(password) };
   }
 
@@ -42,4 +48,18 @@ export class AppController {
   ) {
     return await this.ldapService.getUserRecord(username);
   }
+
+  @Get('config/:section')
+  async testConfigService(
+    @Param('section') section: string,
+  ) {
+    return await this.config[section];
+  }
+
+  // @Post('jwt-sign')
+  // async testJwtServiceSign(
+  //   @Body() payload: any
+  // ) {
+  //   return { accessToken: this.jwtService.sign(payload) };
+  // }
 };

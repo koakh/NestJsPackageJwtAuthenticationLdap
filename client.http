@@ -417,11 +417,34 @@ Authorization: Bearer {{authToken}}
 {
 }
 
-// @name ldapGreeting
-### ldapGreeting WIP to be used to paginate
+### testConfigService
+// @name testConfigService
+// @section = ldap
+@section = jwt
 
-@authToken = {{authLogInLdap.response.body.$.accessToken}}
-@skip = 0
-@take = 50
-GET {{uri}}/ldap/{{skip}}/{{take}} HTTP/1.1
+GET {{uri}}/config/{{section}} HTTP/1.1
+Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
+
+{
+}
+
+# ### testAuthServiceHashPassword
+# // @name testAuthServiceHashPassword
+# // test app.controller access to authService
+
+# POST  {{uri}}/jwt-sign HTTP/1.1
+# Content-Type: {{contentType}}
+
+# {
+#   "password": "12345678"
+# }
+
+# // @name ldapGreeting
+# ### ldapGreeting WIP to be used to paginate
+
+# @authToken = {{authLogInLdap.response.body.$.accessToken}}
+# @skip = 0
+# @take = 50
+# GET {{uri}}/ldap/{{skip}}/{{take}} HTTP/1.1
+# Authorization: Bearer {{authToken}}
