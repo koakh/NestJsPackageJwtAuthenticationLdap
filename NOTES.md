@@ -6,6 +6,7 @@
   - [TLDR](#tldr)
     - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
     - [Change .env to use tunnel](#change-env-to-use-tunnel)
+    - [Install Nest Cli](#install-nest-cli)
     - [Debug package and consumer App](#debug-package-and-consumer-app)
     - [Test Api](#test-api)
   - [Read base Starter Notes](#read-base-starter-notes)
@@ -28,6 +29,8 @@
     - [Install prerequisites](#install-prerequisites)
     - [Run unit tests](#run-unit-tests)
   - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
+  - [DEBUG auth Login problems](#debug-auth-login-problems)
+- [LDAP_SEARCH_USER_FILTER='(cn={{username}})'](#ldap_search_user_filtercnusername)
 
 ## Starter Project
 
@@ -52,7 +55,7 @@ project used node version `node/v12.8.1`
 ```shell
 # open a new window and connect to c3, in c3
 $ ssh c3@c3edu.online
-$ ssh -f -N mario@192.168.1.1 -R 2210:localhost:389
+$ ssh -f -N mario@192.168.1.2 -R 2210:localhost:389
 $ ssh -f -N clkjump@cloudvpn.critical-links.com -R 2210:localhost:389
 # or use one line
 $ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
@@ -69,6 +72,12 @@ $ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
 LDAP_URL="192.168.1.1:2210"
 ```
 
+### Install Nest Cli
+
+```shell
+$ sudo npm install -g @nestjs/cli
+```
+
 ### Debug package and consumer App
 
 ```shell
@@ -77,6 +86,10 @@ $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
 
 # consumer app (api)
+$ cd nestjs-package-jwt-authentication-ldap-consumer/
+
+# or with debugger
+
 # now press f5 to debug consumer app (without launch npm run start:dev)
 # after changes in package, restart debugger with ctrl+shift+f5
 # wait for...in debug console

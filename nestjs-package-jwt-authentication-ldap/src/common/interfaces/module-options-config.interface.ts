@@ -24,6 +24,7 @@ export interface ModuleOptionsConfig {
     searchGroupPrefix: string;
     searchGroupExcludeGroups: string;
     searchGroupExcludeRolesGroups: string;
+    searchGroupExcludePermissionsGroups: string;
     searchCacheFilter: string;
     newUserDnPostfix: string;
     roleAdmin: string;

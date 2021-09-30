@@ -132,37 +132,37 @@ describe('AuthService', () => {
         'CN=Domain Admins,CN=Users,DC=c3edu,DC=online',
       ];
       const result: string[] = ['C3_ADMINISTRATOR', 'C3_TEACHER', 'C3_PARENT', 'C3_STUDENT', 'DOMAIN_ADMINS'];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
 
     it('should test getRolesFromMemberOf - memberOf length == 0', async () => {
       const memberOf: string[] = [];
       const result: string[] = [];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
 
     it('should test getRolesFromMemberOf - memberOf != []', async () => {
       const memberOf: any = '';
       const result: string[] = [];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
 
     it('should test getRolesFromMemberOf - memberOf undefined', async () => {
       const memberOf = undefined;
       const result: string[] = [];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
 
     it('should test getRolesFromMemberOf - memberOf as string', async () => {
       const memberOf: any = 'CN=C3Administrator,OU=Groups,DC=c3edu,DC=online';
       const result: string[] = ['C3_ADMINISTRATOR'];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
 
     it('should test getRolesFromMemberOf - invalid memberOf', async () => {
       const memberOf: any = 'test';
       const result: string[] = [undefined];
-      await expect(service.getRolesFromMemberOf(memberOf)).toEqual(result);
+      await expect(service.getRolesAndPermissionsFromMemberOf(memberOf)).toEqual(result);
     });
   });
 

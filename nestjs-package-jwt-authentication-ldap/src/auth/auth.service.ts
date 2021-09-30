@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { isArray } from 'class-validator';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { CONFIG_SERVICE } from '../common/constants';
@@ -8,6 +9,7 @@ import { ModuleOptionsConfig } from '../common/interfaces';
 import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
+import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
 @Injectable()
 export class AuthService {
@@ -16,6 +18,7 @@ export class AuthService {
 
   constructor(
     private readonly jwtService: JwtService,
+    private readonly ldapService: LdapService,
     @Inject(CONFIG_SERVICE)
     private readonly config: ModuleOptionsConfig,
   ) { }
@@ -61,26 +64,30 @@ export class AuthService {
     return hashPassword(password);
   }
 
-  getRolesFromMemberOf(memberOf: string[]): string[] {
+  getRolesAndPermissionsFromMemberOf(memberOf: string[]): [string[], string[]] {
     const groupExcludeRolesGroupArray = this.config.ldap.searchGroupExcludeRolesGroups.split(',');
+    // TODO:
+    const groupExcludePermissionsGroupArray = this.config.ldap.searchGroupExcludePermissionsGroups.split(',');
 
     if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
-      return [];
+      return [[], []];
     }
     // if memberOf is a string, in case of ldap have only one group, we must modify memberOf to be an array, else it fails on map
     if (typeof memberOf === 'string') {
       memberOf = [memberOf];
     }
     const roles: string[] = [];
+    const permissions: string[] = [];
     memberOf.forEach((e: string) => {
       const memberOfRole: string[] = e.split(',');
       const groupName = memberOfRole[0].split('=')[1];
       const excluded = groupExcludeRolesGroupArray.length > 0 && groupExcludeRolesGroupArray.findIndex(e => e === groupName) >= 0;
+// const groups = await this.ldapService.getGroupRecord('');
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
       if (memberOfRole[0].includes('=') && !excluded) {
         roles.push(groupName.replace('C3', 'C3_').replace(' ', '_').toUpperCase());
       }
     });
-    return roles;
+    return [roles, permissions];
   }
 }

@@ -209,7 +209,7 @@ describe('AuthController', () => {
       await authController.ldapRefreshToken(req, res);
       expect(jwtService.verify).toHaveBeenCalled();
       expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.username);
-      expect(authService.getRolesFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
+      expect(authService.getRolesAndPermissionsFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
       expect(authService.signJwtToken).toHaveBeenCalledWith(spySignJwtToken);
       expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.username);
       expect(authService.signRefreshToken).toHaveBeenCalledWith(spySignJwtToken, tokenVersion);
@@ -378,7 +378,7 @@ describe('AuthController', () => {
       await authController.ldapRefreshToken(req, res);
       expect(jwtService.verify).toHaveBeenCalled();
       expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.username);
-      expect(authService.getRolesFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
+      expect(authService.getRolesAndPermissionsFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
       expect(authService.signJwtToken).toHaveBeenCalledWith(spySignJwtToken);
       expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.username);
       expect(res.status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);

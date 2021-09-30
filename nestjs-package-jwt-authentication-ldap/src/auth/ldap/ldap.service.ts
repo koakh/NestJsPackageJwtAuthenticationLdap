@@ -1,3 +1,5 @@
+import { pascalCase } from "pascal-case";
+import { paramCase } from "param-case";
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
@@ -7,7 +9,7 @@ import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, record
 import { encodeAdPassword, includeLdapGroup, parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
+import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
 
@@ -322,20 +324,21 @@ export class LdapService {
     })
   };
 
-  createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<void> {
+  createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      const cn = createLdapUserDto.username;
+      const username = paramCase(createLdapUserDto.username);
+      const cn = username;
       const newUser: CreateLdapUserModel = {
         cn,
-        name: createLdapUserDto.username,
+        name: username,
         givenname: createLdapUserDto.firstName,
         // tslint:disable-next-line: max-line-length
         displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName}${createLdapUserDto.lastName ? ` ${createLdapUserDto.lastName}` : ''}`,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.password),
-        sAMAccountName: createLdapUserDto.username,
+        sAMAccountName: username,
         userAccountControl: UserAccountControl.NORMAL_ACCOUNT
       };
 
@@ -368,7 +371,7 @@ export class LdapService {
               .catch((error) => {
                 reject(error);
               });
-            resolve();
+            resolve(username);
           }
         });
       } catch (error) {
@@ -383,21 +386,21 @@ export class LdapService {
   /**
    * add or delete group/role to user/member
    */
-  addOrDeleteUserToGroup(dn: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
+  addOrDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${addUserToGroupDto.group},ou=Groups,${this.baseDN}`;
+        const changeGroupDN = `cn=${addUserToGroupDto.group},OU=Profiles,ou=Groups,${this.baseDN}`;
         // Todo we must opt for on group here, to work when we create a user or when we add a member to group
         const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
         // search by member
         const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.baseDN}`;
         const groupChange = new ldap.Change({
-          operation: dn,
+          operation: operation,
           modification: {
             member,
           }
         });
-        this.ldapClient.modify(changeDN, groupChange, async (error) => {
+        this.ldapClient.modify(changeGroupDN, groupChange, async (error) => {
           if (error) {
             reject(error);
           } else {
@@ -468,7 +471,7 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+        const changeUserDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
 
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
@@ -491,7 +494,7 @@ export class LdapService {
           });
         });
 
-        this.ldapClient.modify(changeDN, changes, async (error) => {
+        this.ldapClient.modify(changeUserDN, changes, async (error) => {
           if (error) {
             reject(error);
           } else {
@@ -511,7 +514,7 @@ export class LdapService {
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+        const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
           throw new Error('you must pass a valid oldPassword and newPassword properties')
         }
@@ -533,7 +536,7 @@ export class LdapService {
             }
           })
         ];
-        this.ldapClient.modify(changeDN, changes, (error) => {
+        this.ldapClient.modify(changeUserDN, changes, (error) => {
           if (error) {
             reject(error);
           } else {
@@ -549,23 +552,26 @@ export class LdapService {
   /**
   * create group
   */
-  createGroupRecord(createLdapGroupDto: CreateGroupRecordDto): Promise<void> {
+  createGroupRecord(createLdapGroupDto: CreateGroupRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
-      const cn = createLdapGroupDto.groupName;
+      const groupName = createLdapGroupDto.groupName.startsWith(this.searchGroupPrefix)
+        ? createLdapGroupDto.groupName
+        : `${this.searchGroupPrefix}${pascalCase(createLdapGroupDto.groupName)}`
+      const cn = groupName;
       const newGroup: CreateLdapGroupModel = {
         cn,
-        name: createLdapGroupDto.groupName,
-        objectclass: 'group',
-        sAMAccountName: createLdapGroupDto.groupName,
+        name: groupName,
+        objectclass: Objectclass.GROUP,
+        sAMAccountName: groupName,
       };
 
       try {
-        const newDN = `cn=${createLdapGroupDto.groupName},ou=Groups,${this.baseDN}`;
+        const newDN = `cn=${groupName},ou=Profiles,ou=Groups,${this.baseDN}`;
         this.ldapClient.add(newDN, newGroup, async (error) => {
           if (error) {
             reject(error);
           } else {
-            resolve();
+            resolve(groupName);
           }
         });
       } catch (error) {
@@ -579,7 +585,7 @@ export class LdapService {
    */
   deleteGroupRecord(deleteGroupRecordDto: DeleteGroupRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteGroupRecordDto.groupName},ou=Groups,${this.baseDN}`;
+      const delDN = `cn=${deleteGroupRecordDto.groupName},ou=Profiles,ou=Groups,${this.baseDN}`;
       // dn: CN=newGroup,CN=Users,DC=c3edu,DC=online
       try {
         this.ldapClient.del(delDN, async (error) => {

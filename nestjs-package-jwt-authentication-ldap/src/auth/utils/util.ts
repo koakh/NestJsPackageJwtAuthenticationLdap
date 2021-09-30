@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import { pascalCase } from "pascal-case";
 
 const bcryptSaltRounds: number = 10;
 
@@ -44,6 +45,7 @@ export const encodeAdPassword = (utf8: string): string => {
  */
 export const encodeAdPasswordBase64 = (adPassword: string): string => {
   // 1234 = `IgAxADIAMwA0ACIA` in iso `unicodePwd:: IgAxADIAMwA0ACIA`
+  // can use base64 decode to get original password
   return Buffer.from(encodeAdPassword(adPassword)).toString('base64')
 }
 
@@ -64,9 +66,9 @@ export const includeLdapGroup = (group: string, groupPrefix: string, groupExclud
 /**
  * get profile from user dn/defaultGroup, ASSUMES that 2 item is defaultGroup
  * @param dn ex "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online"
- * @returns extracted profile input "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online" output "C3Administrator"
+ * @returns extracted profile output "C3Administrator"
  */
-export const getProfileFromDefaultGroup = (dn: string): string => {
+export const getProfileFromDistinguishedName = (dn: string): string => {
   try {
     const inputArray = dn.split(',');
     const inputArrayProfile = inputArray[1].split('=');
@@ -74,5 +76,15 @@ export const getProfileFromDefaultGroup = (dn: string): string => {
     return profile;
   } catch (err) {
     return '';
+  }
+}
+
+export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {
+  try {
+    if (Array.isArray(memberOf) && memberOf.length) {
+      return pascalCase(memberOf[0]);
+    }
+  } catch (err) {
+    return 'INVALID PROFILE, user must have at least on group in it\'s memberOf to extract a valid profile';
   }
 }

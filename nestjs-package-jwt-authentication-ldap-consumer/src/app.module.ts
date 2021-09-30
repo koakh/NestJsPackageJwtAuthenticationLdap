@@ -47,6 +47,7 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               searchGroupExcludeGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_GROUPS', 'C3Developer,Domain Admins'),
               // TODO: new
               searchGroupExcludeRolesGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_ROLES_GROUPS', 'Domain Admins'),
+              searchGroupExcludePermissionsGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_PERMISSIONS_GROUPS', ''),
               searchCacheFilter: config.get<string>('LDAP_SEARCH_CACHE_FILTER', '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'),
               newUserDnPostfix: config.get<string>('LDAP_NEW_USER_DN_POSTFIX', 'ou=People'),
               roleAdmin: config.get<string>('AUTH_ADMIN_ROLE', 'C3_ADMINISTRATOR'),

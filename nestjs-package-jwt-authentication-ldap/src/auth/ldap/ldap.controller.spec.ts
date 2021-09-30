@@ -6,7 +6,7 @@ import { mockedConfigService } from '../utils/mocks/config.service';
 // tslint:disable-next-line:max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { CreateUserRecordDto } from './dto/create-user-record.dto';
-import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
+import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation } from './enums';
 import { LdapController } from './ldap.controller';
 import { LdapService } from './ldap.service';
 
@@ -49,7 +49,7 @@ describe('LdapController', () => {
         lastName: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         mail: 'vitor.joao@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',

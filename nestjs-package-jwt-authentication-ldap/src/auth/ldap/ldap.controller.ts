@@ -1,16 +1,16 @@
 import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
+import { config } from 'dotenv';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRoles } from '../enums';
 import { JwtAuthGuard, RolesAuthGuard } from '../guards';
-import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
+import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
-import { config } from 'dotenv';
 
 config();
 
@@ -37,11 +37,11 @@ export class LdapController {
     @Body() createLdapUserDto: CreateUserRecordDto,
   ): Promise<void> {
     this.ldapService.createUserRecord(createLdapUserDto)
-      .then(() => {
+      .then((username: string) => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.USER_CREATED, createLdapUserDto), user: {
+          message: parseTemplate(c.USER_CREATED, {username}), user: {
             // remove password from response
-            ...createLdapUserDto, password: undefined
+            ...createLdapUserDto, username, password: undefined
           }
         });
       })
@@ -255,10 +255,10 @@ export class LdapController {
     @Body() createLdapGroupDto: CreateGroupRecordDto,
   ): Promise<void> {
     this.ldapService.createGroupRecord(createLdapGroupDto)
-      .then(() => {
+      .then((groupName: string) => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.GROUP_CREATED, createLdapGroupDto), group: {
-            ...createLdapGroupDto
+          message: parseTemplate(c.GROUP_CREATED, { groupName }), group: {
+            groupName
           }
         });
       })

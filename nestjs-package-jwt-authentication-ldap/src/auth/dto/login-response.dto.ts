@@ -10,6 +10,7 @@ export class LoginResponseDto {
     username: string | string[],
     email: string,
     roles: string[],
+    permissions: string[],
     metaData?: any,
   };
 

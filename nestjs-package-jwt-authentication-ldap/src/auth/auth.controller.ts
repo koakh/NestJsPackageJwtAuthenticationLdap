@@ -11,7 +11,7 @@ import { JwtAuthGuard, LdapAuthGuard } from './guards';
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
-import { getProfileFromDefaultGroup } from './utils';
+import { getProfileFromFirstMemberOf } from './utils';
 
 /**
  * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken
@@ -39,12 +39,10 @@ export class AuthController {
     passport.authenticate('ldap', { session: false });
     // destruct
     const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
-    const roles = (memberOf)
-      // check roles to prevent crash
-      ? this.authService.getRolesFromMemberOf(memberOf)
-      : [];
+    // roles/permissions
+    const [roles, permissions] = this.authService.getRolesAndPermissionsFromMemberOf(memberOf)
     // metaData
-    const metaData = { profile: getProfileFromDefaultGroup(userId) };
+    const metaData = { profile: getProfileFromFirstMemberOf(roles) };
     // payload for accessToken
     const signJwtToken: SignJwtToken = { username, userId, roles, metaData };
     const { accessToken } = await this.authService.signJwtToken(signJwtToken);
@@ -57,7 +55,7 @@ export class AuthController {
     // don't delete sensitive properties here, this is a reference to moke user data
     // if we delete password, we deleted it from moke user
     // return LoginUserResponseDto
-    return res.send({ user: { dn: userId, username, email, roles, metaData }, accessToken });
+    return res.send({ user: { dn: userId, username, email, roles, permissions, metaData }, accessToken });
   }
 
   /**
@@ -94,9 +92,10 @@ export class AuthController {
     if (!user) {
       return invalidPayload();
     }
-    const roles = this.authService.getRolesFromMemberOf(user.memberOf);
+    // roles/permissions
+    const [roles, permissions] = this.authService.getRolesAndPermissionsFromMemberOf(user.memberOf);
     // metaData
-    const metaData = { profile: getProfileFromDefaultGroup(user.dn) };
+    const metaData = { profile: getProfileFromFirstMemberOf(roles) };
 
     // accessToken: add some user data to it, like id and roles
     const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles, metaData };

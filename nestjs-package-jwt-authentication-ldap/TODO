@@ -25,6 +25,10 @@ Lib:
     ✔ remove all // TODO: @done(21-09-17 18:10)
     ✔ remove all AUTH_SECRET @done(21-09-17 17:03)
     @critical @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN) ???? hardCoded roles? in ldapController
+    ☐ hide prefix C3 env variable, and hide prefix in any endpoint like users list/info, group  
+    ☐ list/search groups use optional path in body ex Profile or Permissions will end in OU=Profile,OU=Groups,DC=c3edu,DC=online
+      this way we can search for Profiles or Permissions
+    ☐ UI create user, select Profile and show read only checkboxs of default Profile, but others permissions that are not in profile can be edit and added to extraPermissions
     
 Misc:
   ☐ add user but fails group
@@ -64,7 +68,7 @@ Misc:
         ]
         "metaData": {
           // NOTE: this is required in case of one group only rule, if user is only memberOf one group this 
-          // NOTE: dynamic property can comes from "roles": ["C3_STUDENT"] 
+          // NOTE: dynamic property can comes from "roles": ["C3_STUDENT"] or the only group/profile that one user have
           // NOTE: and not from "CN=mario,OU=C3Student,OU=People,DC=c3edu,DC=online"
           "profile": "C3Student"
         }
@@ -72,6 +76,18 @@ Misc:
       "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1hcmlvIiwic3ViIjoiQ049bWFyaW8sT1U9QzNTdHVkZW50LE9VPVBlb3BsZSxEQz1jM2VkdSxEQz1vbmxpbmUiLCJyb2xlcyI6WyJDM19TVFVERU5UIl0sIm1ldGFEYXRhIjp7InByb2ZpbGUiOiJDM1N0dWRlbnQifSwiaWF0IjoxNjMxODk2OTUxLCJleHAiOjE2MzE4OTg3NTF9.YVPnDNP8AI4UZKZ_wgTzn5jF73PrOK37eGCzlhD282w"
     }
     
+
+
+
+hide Prefix and "Domain Admins"
+{
+  "dn": "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online",
+  "memberOf": [
+    "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online",
+    "CN=Domain Admins,CN=Users,DC=c3edu,DC=online"
+  ]
+
+
 
 TODO: H - cada user so pode ter um grupo
     
@@ -152,13 +168,29 @@ OU=Domain Controllers
       "ADMINISTRATOR",            prop: groupType: role
     ],
     permissions: [
-      "ROLE_INTERNET_ACCESS"      prop: groupType: permission
+      InternetAccess
+      Whitelisting
+      Caching
+      Wireless
+      Firewall
+      LocalAreaNetwork
+      GPO
+      BandwidthLimits
+      ActiveDirectory
+      RemoteServices
+      TimeConfiguration
+      Update
+      Liense
+      Users
+      Content
+      Apps
+      Kiosk
+    "ROLE_INTERNET_ACCESS"      prop: groupType: permission
       "ROLE_WHITELISTING"
       "ROLE_CACHING"
       "ROLE_WIRELESS"
       "ROLE_FIREWALL"
       "ROLE_LOCAL_AREA_NETWORK"      "profile": "C3Administrator"
-
       "ROLE_GPO"
       "ROLE_BANDWIDTH_LIMITS"
       "ROLE_ACTIVE_DIRECTORY"
@@ -235,32 +267,40 @@ Replicator
 ------------------------------------------------
 C3 current groups, used as roles
 ------------------------------------------------
-Developer
-Administrator
-Teacher
-Parent
-Student
+C3Developer
+C3Administrator
+C3Teacher
+C3Parent
+C3Student
 ------------------------------------------------
 nest c3 users, will be used as permissions
 ------------------------------------------------
 TODO: add bellow groups(permissions) to groups(roles)
-InternetAccess
-Whitelisting
-Caching
-Wireless
-Firewall
-LocalAreaNetwork
-GPO
-BandwidthLimits
-ActiveDirectory
-RemoteServices
-TimeConfiguration
-Update
-Liense
-Users
-Content
-Apps
-Kiosk *NOVA
+RPInternetAccess
+RPWhitelisting
+RPCaching
+RPWireless
+RPFirewall
+RPLocalAreaNetwork
+RPGPO
+RPBandwidthLimits
+RPActiveDirectory
+RPRemoteServices
+RPTimeConfiguration
+RPUpdate
+RPLiense
+RPUsers
+RPContent
+  RPReadContent
+  PRCreateContent
+RPLesson
+  RPReadLesson
+  PRCreateLesson
+RPClass
+  RPReadClass
+  PRCreateClass
+RPApps
+RPKiosk
 ------------------------------------------------
 NOTE: how we split it in roles and permisisons
 
@@ -278,52 +318,41 @@ student2
   memberOf:Wireless
   memberOf:Firewall
 
-    C3Student
-    
-    - [X] read contents
-    - [-] create contents
-    - [-] delete contents
-    - [-] consult student grades
-    - [-] create ldap users
-    
-    C3StudentSuper
-    
-    - [-] read contents
-    - [-] create contents
-    - [-] delete contents
-    - [-] consult student grades
-    - [-] create ldap users
-    - [X] change email
-    
-    C3Teacher
-    
-    - [-] read contents
-    - [-] create contents
-    - [-] delete contents
-    - [X] consult student grades
-    - [-] create ldap users
-    
-    C3Adminstrator
-    
-    - [X] read contents
-    - [X] create contents
-    - [X] delete contents
-    - [X] consult student grades
-    - [-] create ldap users
-    
-    C3Developer  C3Adminstrator
-    
-    - [-] read contents
-    - [-] create contents
-    - [-] delete contents
-    - [-] consult student grades
-    - [X] create ldap users
-    
-    dev
-      C3Adminstrator
-      C3Developer
-      - [X] read contents
-      - [X] create contents
-      - [X] delete contents
-      - [X] consult student grades
-      - [X] create ldap users    
+
+
+
+AG
+
+[3:39 PM] Mário Monteiro
+    a pergunta como adiciono attributos aos Users e Groups num samba configurado, restart etc para q fique a trabalhar
+​[3:41 PM] Mário Monteiro
+    depois achas q e melhor mapear por ex
+CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online
+
+para ROLES
+CN=c3,OU=Profiles,OU=People,DC=c3edu,DC=online
+
+para permissions
+CN=c3,OU=Permissions,OU=People,DC=c3edu,DC=online
+
+e q se for com esta abordagem ajuda a separar os grupos neste caso em roles/profiles e roles/permissions
+
+
+User
+  dn: "CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online"
+
+e os grupos
+  dn: "CN=C3Development,OU=Groups,DC=c3edu,DC=online"
+talvez passa se a 
+  dn:"CN=C3Development,OU=Profile,OU=Groups,DC=c3edu,DC=online"
+  dn:"CN=RPInternetAccess,OU=Persissions,OU=Groups,DC=c3edu,DC=online"
+
+TODO:
+move to TODO  
+cria a OU dos profiles
+  samba-tool ou create OU=Profile,OU=Groups,DC=c3edu,DC=online
+cria a OU dos profiles
+  samba-tool ou create OU=Permissions,OU=Groups,DC=c3edu,DC=online
+sudo samba-tool ou list
+  OU=Profile,OU=Groups
+  OU=Permissions,OU=Groups

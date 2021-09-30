@@ -3,7 +3,7 @@ import { Test } from '@nestjs/testing';
 import * as utils from '../../common/utils/util';
 // tslint:disable-next-line:max-line-length
 import { AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
+import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation } from './enums';
 import { LdapService } from './ldap.service';
 
 describe('LdapService', () => {
@@ -398,7 +398,7 @@ describe('LdapService', () => {
         lastName: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         mail: 'vitor.joao@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',
@@ -432,7 +432,7 @@ describe('LdapService', () => {
         firstName: 'Joao',
         lastName: 'Pedro',
         displayName: 'Joao Pedro',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         defaultGroup: 'c3student',
         mail: 'test@critical-links.com',
         dateOfBirth: 19711219,
@@ -461,7 +461,7 @@ describe('LdapService', () => {
         firstName: 'Joao',
         lastName: 'Pedro',
         displayName: 'Joao Pedro',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         defaultGroup: 'c3student',
         mail: 'test@critical-links.com',
         dateOfBirth: 19711219,
@@ -503,7 +503,7 @@ describe('LdapService', () => {
         lastName: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         mail: 'vitor.joao@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',
@@ -559,7 +559,7 @@ describe('LdapService', () => {
         lastName: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         mail: 'vitor.joao@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',
@@ -626,7 +626,7 @@ describe('LdapService', () => {
         lastName: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
-        objectClass: 'User',
+        objectClass: Objectclass.USER,
         mail: 'vitor.joao@critical-links.com',
         dateOfBirth: 19711219,
         gender: 'M',
