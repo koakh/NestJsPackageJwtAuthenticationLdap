@@ -18,6 +18,7 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
 @Module({
   exports: [AuthService, LdapService, CONFIG_SERVICE],
   controllers: [AuthController, LdapController],
+  providers: [AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService],
   imports: [
     JwtModule.registerAsync({
       inject: [CONFIG_SERVICE],
@@ -36,7 +37,7 @@ export class AuthModule extends createConfigurableDynamicRootModule<AuthModule, 
   // controllers: [AuthController, LdapController],
   // dynamic module injected custom providers
   providers: [
-    AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService,
+    // AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService,
     // register a global-scoped filter directly from any module
     {
       provide: APP_FILTER,
