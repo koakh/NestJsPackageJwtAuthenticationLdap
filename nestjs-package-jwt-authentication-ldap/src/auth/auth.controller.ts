@@ -52,10 +52,10 @@ export class AuthController {
     const refreshToken: AccessToken = await this.authService.signRefreshToken(signJwtToken, tokenVersion);
     // send jid cookie refresh token to client (browser, insomnia etc)
     this.authService.sendRefreshToken(res, refreshToken);
-    // don't delete sensitive properties here, this is a reference to moke user data
-    // if we delete password, we deleted it from moke user
-    // return LoginUserResponseDto
-    return res.send({ user: { dn: userId, username, email, roles, permissions, metaData }, accessToken });
+    // don't delete sensitive properties here, this is a reference to moke user data, if we delete password, we deleted it from moke user
+    // deprecated: removed to prevent bad use in frontend, now we must use the only thrusted signed prop the accessToken
+    // return res.send({ user: { dn: userId, username, email, roles, permissions, metaData }, accessToken });
+    return res.send({ accessToken });
   }
 
   /**

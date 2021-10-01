@@ -26,8 +26,10 @@ export class LdapService {
   private searchUserAttributes: string[];
   private searchGroupFilter: string;
   private searchGroupAttributes: string[];
-  private searchGroupPrefix: string;
-  private searchGroupExcludeGroups: string[];
+  private searchGroupProfilesPrefix: string;
+  private searchGroupPermissionsPrefix: string;  
+  private searchGroupExcludeProfileGroups: string[];
+  private searchGroupExcludePermissionGroups: string[];
   private newUserDnPostfix: string;
   private baseDN: string;
   private cache: Cache;
@@ -62,8 +64,10 @@ export class LdapService {
     this.searchUserAttributes = this.config.ldap.searchUserAttributes.toString().split(',');
     this.searchGroupFilter = this.config.ldap.searchGroupFilter;
     this.searchGroupAttributes = this.config.ldap.searchGroupAttributes.toString().split(',');
-    this.searchGroupPrefix = this.config.ldap.searchGroupProfilesPrefix;
-    this.searchGroupExcludeGroups = this.config.ldap.searchGroupExcludeGroups.toString().split(',');
+    this.searchGroupProfilesPrefix = this.config.ldap.searchGroupProfilesPrefix;
+    this.searchGroupPermissionsPrefix = this.config.ldap.searchGroupPermissionsPrefix;
+    this.searchGroupExcludeProfileGroups = this.config.ldap.searchGroupExcludeProfileGroups.toString().split(',');
+    this.searchGroupExcludePermissionGroups = this.config.ldap.searchGroupExcludePermissionGroups.toString().split(',');
     this.newUserDnPostfix = this.config.ldap.newUserDnPostfix;
     this.baseDN = this.config.ldap.baseDN;
 
@@ -554,9 +558,9 @@ export class LdapService {
   */
   createGroupRecord(createLdapGroupDto: CreateGroupRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
-      const groupName = createLdapGroupDto.groupName.startsWith(this.searchGroupPrefix)
+      const groupName = createLdapGroupDto.groupName.startsWith(this.searchGroupProfilesPrefix)
         ? createLdapGroupDto.groupName
-        : `${this.searchGroupPrefix}${pascalCase(createLdapGroupDto.groupName)}`
+        : `${this.searchGroupProfilesPrefix}${pascalCase(createLdapGroupDto.groupName)}`
       const cn = groupName;
       const newGroup: CreateLdapGroupModel = {
         cn,
@@ -608,7 +612,7 @@ export class LdapService {
 
   getGroupRecord = (groupName: string, groupType: GroupTypeOu): Promise<SearchGroupRecordResponseDto> => {
     return new Promise((resolve, reject) => {
-      const showDebug = true;
+      const showDebug = false;
       const groups: SearchGroupRecordDto[] = [];
 
       try {
@@ -641,14 +645,19 @@ export class LdapService {
                 objectCategory: entry.object.objectCategory as string,
                 distinguishedName: entry.object.distinguishedName as string,
               };
-              // is is a PROFILE always add to groups
-              // TODO exclude permissions
-              if (groupType === GroupTypeOu.PERMISSIONS) {
-                groups.push(group);
+              // profiles
+              if (groupType === GroupTypeOu.PROFILES) {
+                // if not a exclude group push it to result array
+                if (includeLdapGroup(entry.object.name as string, this.searchGroupProfilesPrefix, this.searchGroupExcludeProfileGroups)) {
+                  groups.push(group);
+                }
               }
-              // if not a exclude group push it to result array
-              else if (includeLdapGroup(entry.object.name as string, this.searchGroupPrefix, this.searchGroupExcludeGroups)) {
-                groups.push(group);
+              // permissions
+              if (groupType === GroupTypeOu.PERMISSIONS) {
+                // if not a exclude group push it to result array
+                if (includeLdapGroup(entry.object.name as string, this.searchGroupPermissionsPrefix, this.searchGroupExcludePermissionGroups)) {
+                  groups.push(group);
+                }
               }
             }
           });

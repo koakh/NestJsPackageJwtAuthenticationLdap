@@ -67,33 +67,34 @@ export class AuthService {
   }
 
   async getRolesAndPermissionsFromMemberOf(memberOf: string[]): Promise<[string[], string[]]> {
-    const groupExcludeRolesGroupArray = this.config.ldap.searchGroupExcludeRolesGroups.split(',');
-    // TODO:
-    const groupExcludePermissionsGroupArray = this.config.ldap.searchGroupExcludePermissionsGroups.split(',');
+    // we sent all memberOf, must exclude profiles here to
+    // const groupExcludeProfileGroupsArray = this.config.ldap.searchGroupExcludeProfileGroups.split(',');
 
     if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
       return [[], []];
     }
+
     // if memberOf is a string, in case of ldap have only one group, we must modify memberOf to be an array, else it fails on map
     if (typeof memberOf === 'string') {
       memberOf = [memberOf];
     }
+
     const roles: string[] = [];
     let permissions: string[] = [];
-await asyncForEach(memberOf, async (e: string) => {
-// memberOf.forEach(async (e: string) => {
+    await asyncForEach(memberOf, async (e: string) => {
+      // memberOf.forEach(async (e: string) => {
       const memberOfRole: string[] = e.split(',');
       const groupName = memberOfRole[0].split('=')[1];
-      const excluded = groupExcludeRolesGroupArray.length > 0 && groupExcludeRolesGroupArray.findIndex(e => e === groupName) >= 0;
+      // deprecated, now we never exclude groups from roles
+      // const excluded = groupExcludeProfileGroupsArray.length > 0 && groupExcludeProfileGroupsArray.findIndex(e => e === groupName) >= 0;
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
-      if (memberOfRole[0].includes('=') && !excluded) {
+      if (memberOfRole[0].includes('=') /*&& !excluded*/) {
         // C3 with C3_, and space with _
         roles.push(groupName.replace(this.config.ldap.searchGroupProfilesPrefix, `${this.config.ldap.searchGroupProfilesPrefix}_`).replace(' ', '_').toUpperCase());
       }
-// TODO: must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
-const permissionsObject = await this.ldapService.getGroupRecord(undefined, GroupTypeOu.PERMISSIONS);
-permissions = permissionsObject.groups.map(e => constantCase(e.name.replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_')));
-Logger.log(permissions, AuthService.name);
+      const permissionsObject = await this.ldapService.getGroupRecord(undefined, GroupTypeOu.PERMISSIONS);
+      // must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
+      permissions = permissionsObject.groups.map(e => constantCase(e.name.replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_')));
     });
     return [roles, permissions];
   }
