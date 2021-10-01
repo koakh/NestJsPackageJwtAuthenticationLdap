@@ -43,9 +43,9 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               searchUserAttributes: config.get<string>('LDAP_SEARCH_USER_ATTRIBUTES', 'cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'),
               searchGroupFilter: config.get<string>('LDAP_SEARCH_GROUP_FILTER', '(cn=${groupName})'),
               searchGroupAttributes: config.get<string>('LDAP_SEARCH_GROUP_ATTRIBUTES', 'dn,cn,name,memberOf,objectCategory,distinguishedName'),
-              searchGroupPrefix: config.get<string>('LDAP_SEARCH_GROUP_PREFIX', 'C3'),
+              searchGroupProfilesPrefix: config.get<string>('LDAP_SEARCH_GROUP_PROFILES_PREFIX', 'C3'),
+              searchGroupPermissionsPrefix: config.get<string>('LDAP_SEARCH_GROUP_PERMISSIONS_PREFIX', 'RP'),
               searchGroupExcludeGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_GROUPS', 'C3Developer,Domain Admins'),
-              // TODO: new
               searchGroupExcludeRolesGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_ROLES_GROUPS', 'Domain Admins'),
               searchGroupExcludePermissionsGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_PERMISSIONS_GROUPS', ''),
               searchCacheFilter: config.get<string>('LDAP_SEARCH_CACHE_FILTER', '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'),

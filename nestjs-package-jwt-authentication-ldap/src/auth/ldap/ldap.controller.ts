@@ -7,7 +7,7 @@ import { JwtAuthGuard, RolesAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation, UpdateCacheOperation } from './enums';
+import { ChangeUserRecordOperation, GroupTypeOu, UpdateCacheOperation } from './enums';
 import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
 import { constants as c } from './ldap.constants';
 import { LdapService } from './ldap.service';
@@ -292,7 +292,7 @@ export class LdapController {
     @Response() res,
     @Param('groupName') groupName: string,
   ): Promise<void> {
-    this.ldapService.getGroupRecord(groupName)
+    this.ldapService.getGroupRecord(groupName, GroupTypeOu.PROFILES)
       .then((user: SearchGroupRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
       })

@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { constantCase } from "constant-case";
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { isArray } from 'class-validator';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { CONFIG_SERVICE } from '../common/constants';
@@ -9,8 +9,10 @@ import { ModuleOptionsConfig } from '../common/interfaces';
 import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
+import { GroupTypeOu } from './ldap/enums';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
+import { asyncForEach } from "../common/utils/util";
 @Injectable()
 export class AuthService {
   // init usersStore
@@ -24,7 +26,7 @@ export class AuthService {
   ) { }
   async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
-    const payload = { username: user.username, sub: user.userId, roles: user.roles, metaData: user.metaData };
+    const payload = { username: user.username, sub: user.userId, roles: user.roles, permissions: user.permissions, metaData: user.metaData };
     return {
       // generate JWT from a subset of the user object properties
       accessToken: this.jwtService.sign(payload, options),
@@ -32,7 +34,7 @@ export class AuthService {
   }
 
   async signRefreshToken(user: any, tokenVersion: number, options?: SignOptions): Promise<AccessToken> {
-    const payload = { username: user.username, sub: user.userId, roles: user.roles, metaData: user.metaData, tokenVersion };
+    const payload = { username: user.username, sub: user.userId, roles: user.roles, permissions: user.permissions, metaData: user.metaData, tokenVersion };
     return {
       // generate JWT from a subset of the user object properties
       accessToken: this.jwtService.sign(payload, {
@@ -64,7 +66,7 @@ export class AuthService {
     return hashPassword(password);
   }
 
-  getRolesAndPermissionsFromMemberOf(memberOf: string[]): [string[], string[]] {
+  async getRolesAndPermissionsFromMemberOf(memberOf: string[]): Promise<[string[], string[]]> {
     const groupExcludeRolesGroupArray = this.config.ldap.searchGroupExcludeRolesGroups.split(',');
     // TODO:
     const groupExcludePermissionsGroupArray = this.config.ldap.searchGroupExcludePermissionsGroups.split(',');
@@ -77,16 +79,21 @@ export class AuthService {
       memberOf = [memberOf];
     }
     const roles: string[] = [];
-    const permissions: string[] = [];
-    memberOf.forEach((e: string) => {
+    let permissions: string[] = [];
+await asyncForEach(memberOf, async (e: string) => {
+// memberOf.forEach(async (e: string) => {
       const memberOfRole: string[] = e.split(',');
       const groupName = memberOfRole[0].split('=')[1];
       const excluded = groupExcludeRolesGroupArray.length > 0 && groupExcludeRolesGroupArray.findIndex(e => e === groupName) >= 0;
-// const groups = await this.ldapService.getGroupRecord('');
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
       if (memberOfRole[0].includes('=') && !excluded) {
-        roles.push(groupName.replace('C3', 'C3_').replace(' ', '_').toUpperCase());
+        // C3 with C3_, and space with _
+        roles.push(groupName.replace(this.config.ldap.searchGroupProfilesPrefix, `${this.config.ldap.searchGroupProfilesPrefix}_`).replace(' ', '_').toUpperCase());
       }
+// TODO: must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
+const permissionsObject = await this.ldapService.getGroupRecord(undefined, GroupTypeOu.PERMISSIONS);
+permissions = permissionsObject.groups.map(e => constantCase(e.name.replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_')));
+Logger.log(permissions, AuthService.name);
     });
     return [roles, permissions];
   }

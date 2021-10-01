@@ -9,7 +9,7 @@ import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, record
 import { encodeAdPassword, includeLdapGroup, parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
-import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
+import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
 
@@ -62,7 +62,7 @@ export class LdapService {
     this.searchUserAttributes = this.config.ldap.searchUserAttributes.toString().split(',');
     this.searchGroupFilter = this.config.ldap.searchGroupFilter;
     this.searchGroupAttributes = this.config.ldap.searchGroupAttributes.toString().split(',');
-    this.searchGroupPrefix = this.config.ldap.searchGroupPrefix;
+    this.searchGroupPrefix = this.config.ldap.searchGroupProfilesPrefix;
     this.searchGroupExcludeGroups = this.config.ldap.searchGroupExcludeGroups.toString().split(',');
     this.newUserDnPostfix = this.config.ldap.newUserDnPostfix;
     this.baseDN = this.config.ldap.baseDN;
@@ -606,9 +606,9 @@ export class LdapService {
    */
   //  export class SearchGroupRecordResponseDto {
 
-  getGroupRecord = (groupName: string): Promise<SearchGroupRecordResponseDto> => {
+  getGroupRecord = (groupName: string, groupType: GroupTypeOu): Promise<SearchGroupRecordResponseDto> => {
     return new Promise((resolve, reject) => {
-      const showDebug = false;
+      const showDebug = true;
       const groups: SearchGroupRecordDto[] = [];
 
       try {
@@ -617,7 +617,7 @@ export class LdapService {
         let filter = groupName ? parseTemplate(this.searchGroupFilter, { groupName }) : undefined;
         // note to work we must use the scope sub else it won't work
         // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
-        this.ldapClient.search(`ou=Groups,${this.baseDN}`, {
+        this.ldapClient.search(`ou=${groupType},ou=Groups,${this.baseDN}`, {
           attributes: this.searchGroupAttributes,
           scope: 'sub',
           filter: groupName ? filter : undefined,
@@ -626,20 +626,30 @@ export class LdapService {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
             const dn = entry.object.dn as string;
-            // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-            if (showDebug) {
-              Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
-            }
-            group = {
-              dn,
-              cn: entry.object.cn as string,
-              name: entry.object.name as string,
-              objectCategory: entry.object.objectCategory as string,
-              distinguishedName: entry.object.distinguishedName as string,
-            };
-            // if not a exclude group push it to result array
-            if (includeLdapGroup(entry.object.name as string, this.searchGroupPrefix, this.searchGroupExcludeGroups)) {
-              groups.push(group);
+            // exclude groupType names ex Profiles and Permissions, they will by find by OU=Groups,DC=c3edu,DC=online filter
+            // ex KO dn:'OU=Permissions,OU=Groups,DC=c3edu,DC=online'
+            // ex OK dn:'CN=RPUpdate,OU=Permissions,OU=Groups,DC=c3edu,DC=online'
+            if (entry.object.name.toString().toLowerCase() != groupType) {
+              // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+              if (showDebug) {
+                Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+              };
+              group = {
+                dn,
+                cn: entry.object.cn as string,
+                name: entry.object.name as string,
+                objectCategory: entry.object.objectCategory as string,
+                distinguishedName: entry.object.distinguishedName as string,
+              };
+              // is is a PROFILE always add to groups
+              // TODO exclude permissions
+              if (groupType === GroupTypeOu.PERMISSIONS) {
+                groups.push(group);
+              }
+              // if not a exclude group push it to result array
+              else if (includeLdapGroup(entry.object.name as string, this.searchGroupPrefix, this.searchGroupExcludeGroups)) {
+                groups.push(group);
+              }
             }
           });
           res.on('error', (error) => {

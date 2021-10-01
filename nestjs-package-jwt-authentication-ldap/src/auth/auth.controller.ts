@@ -40,11 +40,11 @@ export class AuthController {
     // destruct
     const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
     // roles/permissions
-    const [roles, permissions] = this.authService.getRolesAndPermissionsFromMemberOf(memberOf)
+    const [roles, permissions] = await this.authService.getRolesAndPermissionsFromMemberOf(memberOf)
     // metaData
     const metaData = { profile: getProfileFromFirstMemberOf(roles) };
     // payload for accessToken
-    const signJwtToken: SignJwtToken = { username, userId, roles, metaData };
+    const signJwtToken: SignJwtToken = { username, userId, roles, permissions, metaData };
     const { accessToken } = await this.authService.signJwtToken(signJwtToken);
     // get incremented tokenVersion
     const tokenVersion = this.authService.usersStore.incrementTokenVersion(username);
@@ -93,12 +93,11 @@ export class AuthController {
       return invalidPayload();
     }
     // roles/permissions
-    const [roles, permissions] = this.authService.getRolesAndPermissionsFromMemberOf(user.memberOf);
+    const [roles, permissions] = await this.authService.getRolesAndPermissionsFromMemberOf(user.memberOf);
     // metaData
     const metaData = { profile: getProfileFromFirstMemberOf(roles) };
-
     // accessToken: add some user data to it, like id and roles
-    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles, metaData };
+    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles, permissions, metaData };
     const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
