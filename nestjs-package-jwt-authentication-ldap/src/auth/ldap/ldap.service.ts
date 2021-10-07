@@ -636,7 +636,7 @@ export class LdapService {
             if (entry.object.name.toString().toLowerCase() != groupType) {
               // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
               if (showDebug) {
-                Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+                Logger.log(`entry.object ${groupType}: [${JSON.stringify(entry.object, undefined, 2)}]`);
               };
               group = {
                 dn,
