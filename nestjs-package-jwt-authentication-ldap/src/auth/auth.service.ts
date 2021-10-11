@@ -40,8 +40,8 @@ export class AuthService {
       accessToken: this.jwtService.sign(payload, {
         ...options,
         // require to use refreshTokenJwtSecret
-        secret: this.config.jwt.refreshTokenJwtSecret,
-        expiresIn: this.config.jwt.refreshTokenExpiresIn,
+        secret: this.config.auth.refreshTokenJwtSecret,
+        expiresIn: this.config.auth.refreshTokenExpiresIn,
       }),
     };
   }

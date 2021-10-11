@@ -25,8 +25,8 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
       useFactory: async (
         config: ModuleOptionsConfig,
       ) => ({
-        secret: config.jwt.accessTokenJwtSecret,
-        signOptions: { expiresIn: config.jwt.accessTokenExpiresIn },
+        secret: config.auth.accessTokenJwtSecret,
+        signOptions: { expiresIn: config.auth.accessTokenExpiresIn },
       }),
     }),
   ],

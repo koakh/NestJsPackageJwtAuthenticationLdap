@@ -14,7 +14,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // pass injected services to parent constructor
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.jwt.accessTokenJwtSecret,
+      secretOrKey: config.auth.accessTokenJwtSecret,
       ignoreExpiration: false,
     });
   }

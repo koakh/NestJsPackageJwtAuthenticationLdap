@@ -39,7 +39,7 @@ export class AuthStore {
 
   incrementTokenVersion(username: string): number {
     const user: User = this.getUser(username);
-    if (Boolean(this.config.jwt.refreshTokenSkipIncrementVersion === 'true' ? true : false)) {
+    if (Boolean(this.config.auth.refreshTokenSkipIncrementVersion === 'true' ? true : false)) {
       // devMode: don't increment tokenVersion
       return user.tokenVersion;
     } else {

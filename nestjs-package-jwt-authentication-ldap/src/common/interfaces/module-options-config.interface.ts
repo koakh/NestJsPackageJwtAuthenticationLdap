@@ -1,5 +1,6 @@
 export interface ModuleOptionsConfig {
-  jwt: {
+  auth: {
+    authShowAccessTokenProps: boolean;
     accessTokenJwtSecret: string;
     accessTokenExpiresIn: string;
     refreshTokenJwtSecret: string;

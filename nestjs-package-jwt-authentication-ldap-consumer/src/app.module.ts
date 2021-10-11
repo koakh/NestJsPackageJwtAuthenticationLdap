@@ -20,7 +20,8 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
         return {
           consumerAppService,
           config: {
-            jwt: {
+            auth: {
+              authShowAccessTokenProps: config.get<boolean>('AUTH_SHOW_ACCESS_TOKEN_PROPS', false),
               accessTokenJwtSecret: config.get<string>('ACCESS_TOKEN_JWT_SECRET', 'secretKeyAccessToken'),
               accessTokenExpiresIn: config.get<string>('ACCESS_TOKEN_EXPIRES_IN', '30m'),
               refreshTokenJwtSecret: config.get<string>('REFRESH_TOKEN_JWT_SECRET', 'secretKeyRefreshToken'),
