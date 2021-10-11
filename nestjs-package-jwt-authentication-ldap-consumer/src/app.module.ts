@@ -44,9 +44,8 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               searchUserAttributes: config.get<string>('LDAP_SEARCH_USER_ATTRIBUTES', 'cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'),
               searchGroupFilter: config.get<string>('LDAP_SEARCH_GROUP_FILTER', '(cn=${groupName})'),
               searchGroupAttributes: config.get<string>('LDAP_SEARCH_GROUP_ATTRIBUTES', 'dn,cn,name,memberOf,objectCategory,distinguishedName'),
-// TODO: to be removed
-searchGroupProfilesPrefix: config.get<string>('LDAP_SEARCH_GROUP_PROFILES_PREFIX', 'C3'),
-searchGroupPermissionsPrefix: config.get<string>('LDAP_SEARCH_GROUP_PERMISSIONS_PREFIX', 'RP'),
+              searchGroupProfilesPrefix: config.get<string>('LDAP_SEARCH_GROUP_PROFILES_PREFIX', 'C3'),
+              searchGroupPermissionsPrefix: config.get<string>('LDAP_SEARCH_GROUP_PERMISSIONS_PREFIX', 'RP'),
               searchGroupExcludeProfileGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_PROFILE_GROUPS', ''),
               searchGroupExcludePermissionGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_PERMISSION_GROUPS', ''),
               searchCacheFilter: config.get<string>('LDAP_SEARCH_CACHE_FILTER', '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'),
@@ -57,8 +56,7 @@ searchGroupPermissionsPrefix: config.get<string>('LDAP_SEARCH_GROUP_PERMISSIONS_
         };
       },
     }),
-    // TODO
-    // ConsumerAppModule,
+    // TODO: ConsumerAppModule,
   ],
   controllers: [AppController],
   // require to use app AppService in DI

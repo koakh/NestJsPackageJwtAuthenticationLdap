@@ -32,12 +32,12 @@ Content-Type: {{contentType}}
 {
   // "username": "c3",
   // "password": "root"
-  // "username": "dev",
-  // "password": "qhA1Bpn5s5"
+  "username": "dev",
+  "password": "qhA1Bpn5s5"
   // "username": "teacher1",
   // "username": "parent1",
-  "username": "student1",
-  "password": "1234"
+  // "username": "student1",
+  // "password": "1234"
   // "username": "mario",
   // "password": "secret"
   // "username": "developer",

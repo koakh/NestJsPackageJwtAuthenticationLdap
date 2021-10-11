@@ -12,7 +12,7 @@ import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface'
 import { GroupTypeOu } from './ldap/enums';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
-import { asyncForEach } from "../common/utils/util";
+import { asyncForEach, sortArrayString } from "../common/utils/util";
 @Injectable()
 export class AuthService {
   // init usersStore
@@ -87,15 +87,31 @@ export class AuthService {
       const groupName = memberOfRole[0].split('=')[1];
       // deprecated, now we never exclude groups from roles
       // const excluded = groupExcludeProfileGroupsArray.length > 0 && groupExcludeProfileGroupsArray.findIndex(e => e === groupName) >= 0;
+      // always hide non prefixed groups like 'Domain Admins' 
+      const excluded = !groupName.startsWith(this.config.ldap.searchGroupProfilesPrefix);
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
-      if (memberOfRole[0].includes('=') /*&& !excluded*/) {
+      if (memberOfRole[0].includes('=') && !excluded) {
         // C3 with C3_, and space with _
         roles.push(groupName.replace(this.config.ldap.searchGroupProfilesPrefix, `${this.config.ldap.searchGroupProfilesPrefix}_`).replace(' ', '_').toUpperCase());
+        const groupObject = await this.ldapService.getGroupRecord(groupName, GroupTypeOu.PROFILES, false);
+        if (groupObject.groups && Array.isArray(groupObject.groups[0].permissions)) {
+          // get current role permissions
+          const groupPermissions = groupObject.groups[0].permissions.map(e => {
+            // Logger.log(`${groupObject.groups[0].name} permissions ${e}`, AuthService.name);
+            const split = e.split('@');
+            // must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
+            const permission = constantCase(split[0].replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_'));
+            const permissionAction = split[1] ? constantCase(split[1]) : undefined;
+            return permissionAction ? `${permission}@${permissionAction}` : permission;
+          });
+          // if permission don't exist on permissions, push it
+          groupPermissions.forEach((e) => {
+            if (permissions.indexOf(e) < 0) { permissions.push(e) };
+          });
+        }
       }
-      const permissionsObject = await this.ldapService.getGroupRecord(undefined, GroupTypeOu.PERMISSIONS);
-      // must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
-      permissions = permissionsObject.groups.map(e => constantCase(e.name.replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_')));
     });
-    return [roles, permissions];
+    // return with sorted permissions
+    return [roles, sortArrayString(permissions)];
   }
 }

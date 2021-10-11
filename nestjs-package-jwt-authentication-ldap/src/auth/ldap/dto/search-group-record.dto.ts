@@ -21,4 +21,8 @@ export class SearchGroupRecordDto {
   @IsDefined()
   @ApiProperty()
   distinguishedName: string;
+
+  @IsDefined()
+  @ApiProperty()
+  permissions: any;
 }

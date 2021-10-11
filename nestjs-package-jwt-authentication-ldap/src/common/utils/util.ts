@@ -8,7 +8,7 @@ import { MemoryUsage } from '../interfaces';
  * @param enumType a typescript Type
  * @param enumValue string value
  */
- export const getEnumKeyFromEnumValue = (enumType: any, enumValue: string | number): any => {
+export const getEnumKeyFromEnumValue = (enumType: any, enumValue: string | number): any => {
   const keys: string[] = Object.keys(enumType).filter((x) => enumType[x] === enumValue);
   if (keys.length > 0) {
     return keys[0];
@@ -224,8 +224,30 @@ export const getMemoryUsageDifference = (start: MemoryUsage, end: MemoryUsage): 
  * @param array
  * @param callback
  */
- export const asyncForEach = async (array: any, callback: any) => {
+export const asyncForEach = async (array: any, callback: any) => {
   for (let index = 0; index < array.length; index++) {
     await callback(array[index], index, array);
   }
 };
+
+
+/**
+ * sort string array
+ * @param items 
+ * @returns 
+ */
+export const sortArrayString = (items: string[]): string[] => {
+  if (items && Array.isArray(items) && items.length) {
+    return items.sort(function (a, b) {
+      if (a < b) {
+        return -1;
+      }
+      if (a > b) {
+        return 1;
+      }
+      return 0;
+    });
+  } else {
+    return [];
+  }
+}

@@ -610,7 +610,7 @@ export class LdapService {
    */
   //  export class SearchGroupRecordResponseDto {
 
-  getGroupRecord = (groupName: string, groupType: GroupTypeOu): Promise<SearchGroupRecordResponseDto> => {
+  getGroupRecord = (groupName: string, groupType: GroupTypeOu, groupExcludeGroups: boolean): Promise<SearchGroupRecordResponseDto> => {
     return new Promise((resolve, reject) => {
       const showDebug = false;
       const groups: SearchGroupRecordDto[] = [];
@@ -644,15 +644,20 @@ export class LdapService {
                 name: entry.object.name as string,
                 objectCategory: entry.object.objectCategory as string,
                 distinguishedName: entry.object.distinguishedName as string,
+                permissions: entry.object.permission,
               };
               // profiles
               if (groupType === GroupTypeOu.PROFILES) {
                 // if not a exclude group push it to result array
-                if (includeLdapGroup(entry.object.name as string, this.searchGroupProfilesPrefix, this.searchGroupExcludeProfileGroups)) {
+                if (groupExcludeGroups) {
+                  if (includeLdapGroup(entry.object.name as string, this.searchGroupProfilesPrefix, this.searchGroupExcludeProfileGroups)) {
+                    groups.push(group);
+                  }
+                } else {
                   groups.push(group);
                 }
               }
-              // permissions
+              // TODO: permissions this is USED
               if (groupType === GroupTypeOu.PERMISSIONS) {
                 // if not a exclude group push it to result array
                 if (includeLdapGroup(entry.object.name as string, this.searchGroupPermissionsPrefix, this.searchGroupExcludePermissionGroups)) {
