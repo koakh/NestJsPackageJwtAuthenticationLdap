@@ -1,4 +1,4 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -14,10 +14,11 @@ export class RolesAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     if (!request.user) {
       return false;
-    };
+    }
     // get jwt injected user from request
     const user = request.user;
     // check if user have guard required role
+    // Logger.log(`roles: ${JSON.stringify(roles)}, user.roles: ${JSON.stringify(user.roles)}`, RolesAuthGuard.name);
     return this.matchRoles(roles, user.roles);
   }
 
@@ -26,7 +27,7 @@ export class RolesAuthGuard implements CanActivate {
     roles.forEach((e) => {
       if (userRoles.includes(e)) {
         result = true;
-      };
+      }
     });
     return result;
   }

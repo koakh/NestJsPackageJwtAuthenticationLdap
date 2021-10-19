@@ -12,6 +12,10 @@ export class SearchUserRecordDto {
 
   @IsDefined()
   @ApiProperty()
+  extraPermission: string[];
+
+  @IsDefined()
+  @ApiProperty()
   controls: string[];
 
   @IsDefined()

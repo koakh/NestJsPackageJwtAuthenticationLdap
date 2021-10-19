@@ -15,12 +15,24 @@ this project have a `nestjs-package-jwt-authentication-ldap` **nestjs package**,
 
 > NOTE: please read notes from above repo links
 
+## Required Tooling
+
+```shell
+$ node -v
+v10.19.0
+$ sudo npm install -g @nestjs/cli
+```
+
 ## Start/Build Development Package
 
 ```shell
 # in terminal #1
 $ cd nestjs-package-jwt-authentication-ldap
+# optional, only if checkout project
+$ npm i
 $ npm run start:dev
+[10:27:42 AM] Starting compilation in watch mode...
+[10:27:48 AM] Found 0 errors. Watching for file changes.
 ```
 
 ## Start Consumer App
@@ -28,6 +40,8 @@ $ npm run start:dev
 ```shell
 # in terminal #2
 $ cd nestjs-package-jwt-authentication-ldap-consumer
+# optional, only if checkout project
+$ npm i
 # DEPRECATED
 # start in dev or debug (this will debug consumer app)
 # $ npm run start:dev

@@ -1,18 +1,18 @@
-import { constantCase } from "constant-case";
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { constantCase } from 'constant-case';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { CONFIG_SERVICE } from '../common/constants';
 import { ModuleOptionsConfig } from '../common/interfaces';
+import { asyncForEach, sortArrayString } from '../common/utils/util';
 import { AuthStore } from './auth.store';
 import { AccessToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { GroupTypeOu } from './ldap/enums';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
-import { asyncForEach, sortArrayString } from "../common/utils/util";
 @Injectable()
 export class AuthService {
   // init usersStore
@@ -66,13 +66,14 @@ export class AuthService {
     return hashPassword(password);
   }
 
-  async getRolesAndPermissionsFromMemberOf(memberOf: string[]): Promise<[string[], string[]]> {
-    // we sent all memberOf, must exclude profiles here to
-    // const groupExcludeProfileGroupsArray = this.config.ldap.searchGroupExcludeProfileGroups.split(',');
-
+  async getRolesAndPermissionsFromMemberOf(memberOf: string[], licenseActivated: true): Promise<[string[], string[]]> {
     if (!memberOf || !Array.isArray(memberOf) && typeof memberOf !== 'string' || memberOf.length <= 0) {
       return [[], []];
     }
+
+    // we sent all memberOf, must exclude profiles here to
+    // const groupExcludeProfileGroupsArray = this.config.ldap.searchGroupExcludeProfileGroups.split(',');
+    const rolePermittedUnlicensedPermissionGroupsArray = this.config.auth.rolePermittedUnlicensedPermissionGroups.split(',');
 
     // if memberOf is a string, in case of ldap have only one group, we must modify memberOf to be an array, else it fails on map
     if (typeof memberOf === 'string') {
@@ -80,7 +81,7 @@ export class AuthService {
     }
 
     const roles: string[] = [];
-    let permissions: string[] = [];
+    const permissions: string[] = [];
     await asyncForEach(memberOf, async (e: string) => {
       // memberOf.forEach(async (e: string) => {
       const memberOfRole: string[] = e.split(',');
@@ -105,8 +106,14 @@ export class AuthService {
             return permissionAction ? `${permission}@${permissionAction}` : permission;
           });
           // if permission don't exist on permissions, push it
-          groupPermissions.forEach((e) => {
-            if (permissions.indexOf(e) < 0) { permissions.push(e) };
+          groupPermissions.forEach((p) => {
+            // check if is a permitted unlicensed permission
+            const permittedUnlicensedPermission = rolePermittedUnlicensedPermissionGroupsArray.length > 0 && rolePermittedUnlicensedPermissionGroupsArray.findIndex(e => e === p) >= 0;
+            // Logger.log(`permission: '${p}', permittedUnlicensedPermission: '${permittedUnlicensedPermission}', licenseActivated: '${licenseActivated}'`, AuthService.name);
+            // add permission in not added already, and if licensed, or unlicensed and is a permittedUnlicensedPermission
+            if (permissions.indexOf(p) < 0 && (licenseActivated || (!licenseActivated && permittedUnlicensedPermission))) {
+              permissions.push(p);
+            }
           });
         }
       }

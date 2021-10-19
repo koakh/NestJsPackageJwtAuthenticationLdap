@@ -1,7 +1,15 @@
+// dev
 @host = localhost
 @port = 3010
 @uriBase = http://{{host}}:{{port}}/v1
 @uri = {{uriBase}}
+
+// prod/docker image
+// @host = c3edu.online
+// prod: docker stack and reverse proxy
+// @port = 8420
+// @uri = https://{{host}}/backend/v1
+
 @contentType = application/json
 
 # groups
@@ -178,10 +186,45 @@ Authorization: Bearer {{authToken}}
   ]
 }
 
+### ldapChangeUserRecordAddExtraPermission
+// @name ldapChangeUserRecordAddExtraPermission
+@authToken = {{authLogInLdap.response.body.$.accessToken}}
+@changeUsername = teacher1
+
+PUT {{uri}}/ldap/user HTTP/1.1
+Content-Type: {{contentType}}
+Authorization: Bearer {{authToken}}
+
+{
+  "username": "{{changeUsername}}",
+  "defaultGroup" : "{{groupC3Teacher}}",
+  "changes": [
+    {
+       // replace, add, delete
+       "operation": "add",
+       "modification": {
+         "extraPermission": "RPInternetAccess"
+       }
+     },
+    {
+      "operation": "add",
+      "modification": {
+        "extraPermission": "RPLocalAreaNetwork"
+      }
+    },
+    {
+      "operation": "add",
+      "modification": {
+        "extraPermission": "RPWireless"
+      }
+    }
+  ]
+}
+
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = developer
+@getUsername = teacher1
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}

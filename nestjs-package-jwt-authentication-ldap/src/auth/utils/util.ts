@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { pascalCase } from "pascal-case";
+import { pascalCase } from 'pascal-case';
 
-const bcryptSaltRounds: number = 10;
+const bcryptSaltRounds = 10;
 
 /**
  * @param password 
@@ -31,12 +31,13 @@ export const encodeAdPassword = (utf8: string): string => {
   // eslint-disable-next-line no-plusplus
   for (let i = 0, n = utf8.length; i < n; ++i) {
     // utf16le += utf8[i] + '\\000';
+    // eslint-disable-next-line prefer-template
     utf16le += utf8[i] + '\u0000';
   }
   utf16le += quoteEncoded;
 
   return utf16le;
-}
+};
 
 /**
  * encode ldapPassword in base64 format / unicodePwd
@@ -46,8 +47,8 @@ export const encodeAdPassword = (utf8: string): string => {
 export const encodeAdPasswordBase64 = (adPassword: string): string => {
   // 1234 = `IgAxADIAMwA0ACIA` in iso `unicodePwd:: IgAxADIAMwA0ACIA`
   // can use base64 decode to get original password
-  return Buffer.from(encodeAdPassword(adPassword)).toString('base64')
-}
+  return Buffer.from(encodeAdPassword(adPassword)).toString('base64');
+};
 
 /**
  * helper to filter valid groups
@@ -55,13 +56,13 @@ export const encodeAdPasswordBase64 = (adPassword: string): string => {
  * @param ldapSearchGroupPrefix ex `C3` or empty `` for (all)
  * @param ldapSearchGroupExcludeGroups `C3Developer,C3Administrator` or empty `` for (all)
  */
-export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[], debug: boolean = false): boolean => {
+export const includeLdapGroup = (group: string, groupPrefix: string, groupExcludeGroups: string[], debug = false): boolean => {
   const excluded = groupExcludeGroups.length > 0 && groupExcludeGroups.findIndex(e => e === group) >= 0;
   if (excluded && debug) {
     Logger.log(`includeLdapGroup excluded group :${group}`, 'Util');
   }
   return (group.startsWith(groupPrefix) && !excluded);
-}
+};
 
 /**
  * get profile from user dn/defaultGroup, ASSUMES that 2 item is defaultGroup
@@ -77,7 +78,7 @@ export const getProfileFromDistinguishedName = (dn: string): string => {
   } catch (err) {
     return '';
   }
-}
+};
 
 export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {
   try {
@@ -87,4 +88,4 @@ export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {
   } catch (err) {
     return 'INVALID PROFILE, user must have at least on group in it\'s memberOf to extract a valid profile';
   }
-}
+};

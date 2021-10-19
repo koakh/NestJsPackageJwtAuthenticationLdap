@@ -19,7 +19,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       let errorMessage;
       switch (info.message) {
         case 'jwt expired':
-          errorMessage = `${info.message}: ${info.expiredAt}`
+          errorMessage = `${info.message}: ${info.expiredAt}`;
           Logger.error(errorMessage, null, JwtAuthGuard.name);
           break;
         default:
@@ -32,6 +32,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     if (err || !user) {
       throw err || new UnauthorizedException();
     }
-    return user ;
+    return user;
   }
 }

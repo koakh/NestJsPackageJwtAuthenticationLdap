@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.20",
+  "version": "1.0.22",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -36,10 +36,11 @@
     "url": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap"
   },
   "bugs": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap",
-  "peerDependencies": {
-    "@nestjs/common": "^8.0.4"
-  },
   "dependencies": {
+    "@nestjs/common": "^8.0.4",
+    "reflect-metadata": "^0.1.13",
+    "@nestjs/core": "^8.0.4",
+    "@nestjs/platform-express": "^8.0.4",
     "@golevelup/nestjs-modules": "^0.4.2",
     "@golevelup/ts-jest": "^0.3.1",
     "@nest-middlewares/cookie-parser": "^6.0.0",
@@ -47,6 +48,7 @@
     "@nestjs/jwt": "^8.0.0",
     "@nestjs/passport": "^8.0.0",
     "@nestjs/swagger": "^5.0.4",
+    "@types/passport": "^1.0.7",
     "bcrypt": "^5.0.1",
     "capital-case": "^1.0.4",
     "class-validator": "^0.13.1",
@@ -61,14 +63,10 @@
     "passport-jwt": "^4.0.0",
     "passport-ldapauth": "^3.0.1",
     "passport-local": "^1.0.0",
-    "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "@nestjs/common": "^8.0.4",
-    "@nestjs/core": "^8.0.4",
-    "@nestjs/platform-express": "^8.0.4",
     "@nestjs/testing": "^8.0.4",
     "@types/express": "^4.17.13",
     "@types/jest": "^26.0.24",

@@ -29,6 +29,7 @@
     - [Install prerequisites](#install-prerequisites)
     - [Run unit tests](#run-unit-tests)
   - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
+  - [Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
   - [DEBUG auth Login problems](#debug-auth-login-problems)
 - [LDAP_SEARCH_USER_FILTER='(cn={{username}})'](#ldap_search_user_filtercnusername)
 
@@ -67,9 +68,9 @@ $ ssh -t c3@c3edu.online "ssh -f -N mario@192.168.1.1 -R 2210:localhost:389"
 
 ```shell
 # ldap
-# LDAP_URL="127.0.0.1"
+# LDAP_ADDRESS="127.0.0.1"
 # ldap using tunnel
-LDAP_URL="192.168.1.1:2210"
+LDAP_ADDRESS="192.168.1.1:2210"
 ```
 
 ### Install Nest Cli
@@ -225,7 +226,7 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
       passReqToCallback: true,
       server: {
         // ldapOptions
-        url: `ldap://${configService.get(envConstants.LDAP_URL)}`,
+        url: `ldap://${configService.get(envConstants.LDAP_ADDRESS)}`,
         bindDN: configService.get(envConstants.LDAP_BIND_DN),
         bindCredentials: configService.get(envConstants.LDAP_BIND_CREDENTIALS),
         searchBase: configService.get(envConstants.LDAP_SEARCH_BASE),
@@ -464,7 +465,7 @@ REFRESH_TOKEN_JWT_SECRET='secretKeyRefreshToken'
 REFRESH_TOKEN_EXPIRES_IN='7d'
 REFRESH_TOKEN_SKIP_INCREMENT_VERSION='false'
 # # ldap
-LDAP_URL='c3edu.online'
+LDAP_ADDRESS='c3edu.online'
 LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
 LDAP_BIND_CREDENTIALS='Root123...'
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
@@ -533,6 +534,18 @@ response on c3-backend
 # LDAP_SEARCH_BASE='dc=c3edu,dc=online'
 # OK
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
+```
+
+## Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>
+
+```shell
+src/auth/strategy/ldap.strategy.ts:29:11 - error TS2339: Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+```
+
+fix with
+
+```shell
+$ npm i -D @types/express
 ```
 
 ## DEBUG auth Login problems

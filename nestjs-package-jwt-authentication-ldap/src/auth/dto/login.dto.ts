@@ -20,5 +20,6 @@ export class LoginDto {
     userPrincipalName: string,
     controls: any[],
     memberOf: string[],
-  }
+    extraPermission: string[],
+  };
 }

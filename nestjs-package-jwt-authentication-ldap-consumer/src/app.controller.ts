@@ -1,9 +1,11 @@
-import { AuthService, CONFIG_SERVICE, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
+// TODO: must be imported from interface
+import { ConsumerAppService, AuthService, CONFIG_SERVICE, CONSUMER_APP_SERVICE, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
-import { ConsumerAppService } from './consumer-app/consumer-app.service';
+// TODO: must be imported from service implementation and not from interface
+// import { ConsumerAppService } from './consumer-app/consumer-app.service';
 import { HashPasswordDto } from './dto';
 
 @Controller()
@@ -12,13 +14,15 @@ export class AppController {
   constructor(
     // test local providers
     private readonly appService: AppService,
-    private readonly consumerAppService: ConsumerAppService,
     // test package providers
     private readonly authService: AuthService,
     private readonly ldapService: LdapService,
     // injection tokens
     @Inject(CONFIG_SERVICE)
     private readonly config: ModuleOptionsConfig,
+    // used here to check and test access to inject consumerAppService
+    @Inject(CONSUMER_APP_SERVICE)
+    private readonly consumerAppService: ConsumerAppService,
   ) { }
 
   @Get('app/:username')

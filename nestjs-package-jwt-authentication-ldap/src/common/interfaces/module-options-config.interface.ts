@@ -6,6 +6,8 @@ export interface ModuleOptionsConfig {
     refreshTokenJwtSecret: string;
     refreshTokenExpiresIn: string;
     refreshTokenSkipIncrementVersion: string;
+    roleAdmin: string;
+    rolePermittedUnlicensedPermissionGroups: string;
   },
   ldap: {
     address: string;
@@ -28,6 +30,5 @@ export interface ModuleOptionsConfig {
     searchGroupExcludePermissionGroups: string;
     searchCacheFilter: string;
     newUserDnPostfix: string;
-    roleAdmin: string;
   }
 }

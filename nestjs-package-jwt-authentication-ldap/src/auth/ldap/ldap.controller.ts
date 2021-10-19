@@ -23,7 +23,7 @@ export class LdapController {
   // helper method to check valid logged user
   checkAuthUser(req: Request) {
     if (!(req as any).user || !(req as any).user.username) {
-      throw new NotFoundException(`invalid authenticated user`);
+      throw new NotFoundException('invalid authenticated user');
     }
   }
 
@@ -39,10 +39,10 @@ export class LdapController {
     this.ldapService.createUserRecord(createLdapUserDto)
       .then((username: string) => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.USER_CREATED, {username}), user: {
+          message: parseTemplate(c.USER_CREATED, { username }), user: {
             // remove password from response
-            ...createLdapUserDto, username, password: undefined
-          }
+            ...createLdapUserDto, username, password: undefined,
+          },
         });
       })
       .catch((error) => {
@@ -63,7 +63,7 @@ export class LdapController {
     this.ldapService.addOrDeleteUserToGroup(operation, addUserToGroupDto)
       .then(() => {
         res.status(HttpStatus.CREATED).send({
-          message: parseTemplate(c.USER_ADDED_DELETED_TO_GROUP, { operation, ...addUserToGroupDto })
+          message: parseTemplate(c.USER_ADDED_DELETED_TO_GROUP, { operation, ...addUserToGroupDto }),
         });
       })
       .catch((error) => {
@@ -175,7 +175,7 @@ export class LdapController {
 
   @Put('/user')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(LdapUpdateUsersGuard)
+  // @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
@@ -258,8 +258,8 @@ export class LdapController {
       .then((groupName: string) => {
         res.status(HttpStatus.CREATED).send({
           message: parseTemplate(c.GROUP_CREATED, { groupName }), group: {
-            groupName
-          }
+            groupName,
+          },
         });
       })
       .catch((error) => {

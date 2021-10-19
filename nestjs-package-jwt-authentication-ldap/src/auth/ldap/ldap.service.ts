@@ -1,5 +1,5 @@
-import { pascalCase } from "pascal-case";
-import { paramCase } from "param-case";
+import { pascalCase } from 'pascal-case';
+import { paramCase } from 'param-case';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
@@ -27,7 +27,7 @@ export class LdapService {
   private searchGroupFilter: string;
   private searchGroupAttributes: string[];
   private searchGroupProfilesPrefix: string;
-  private searchGroupPermissionsPrefix: string;  
+  private searchGroupPermissionsPrefix: string;
   private searchGroupExcludeProfileGroups: string[];
   private searchGroupExcludePermissionGroups: string[];
   private newUserDnPostfix: string;
@@ -47,7 +47,7 @@ export class LdapService {
       elapsedTime: undefined,
       memoryUsage: undefined,
       status: undefined,
-      users: {}
+      users: {},
     };
   }
 
@@ -121,7 +121,7 @@ export class LdapService {
         // reject promise
         reject(error);
       }
-    })
+    });
   }
 
   getUserRecord = (username: string): Promise<SearchUserRecordResponseDto> => {
@@ -129,7 +129,7 @@ export class LdapService {
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let user: SearchUserRecordDto;
-        let filter = parseTemplate(this.searchUserFilter, { username });
+        const filter = parseTemplate(this.searchUserFilter, { username });
         // note to work we must use the scope sub else it won't work
         this.ldapClient.search(this.searchBase, {
           attributes: this.searchUserAttributes,
@@ -145,6 +145,7 @@ export class LdapService {
               dn: entry.object.dn as string,
               // if only have on group we must convert ldap string to array to ve consistent
               memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
+              extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
               distinguishedName: entry.object.distinguishedName as string,
@@ -172,7 +173,7 @@ export class LdapService {
             // resolve promise
             user
               ? resolve({ user, status: result.status })
-              : reject({ message: `user not found`, status: result.status });
+              : reject({ message: 'user not found', status: result.status });
           });
         });
       } catch (error) {
@@ -180,7 +181,7 @@ export class LdapService {
         // reject promise
         reject(error);
       }
-    })
+    });
   };
 
   /**
@@ -189,7 +190,7 @@ export class LdapService {
   initUserRecordsCache = (
     // if empty in payload use default
     filter: string,
-    pageSize: number = 1000
+    pageSize = 1000,
   ): Promise<CacheResponseDto> => {
     return new Promise((resolve, reject) => {
       const showDebug = false;
@@ -211,7 +212,7 @@ export class LdapService {
           filter,
           paged: {
             pageSize,
-            pagePause: true
+            pagePause: true,
           },
         }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
@@ -226,6 +227,7 @@ export class LdapService {
               // extract username from string | array
               dn,
               memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
+              extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
               distinguishedName: entry.object.distinguishedName as string,
@@ -250,7 +252,7 @@ export class LdapService {
             // push to pages
             currentPage++;
             // assign only if null
-            if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size };
+            if (!recordsFound && result.controls && result.controls[0]) { recordsFound = result.controls[0]._value.size; }
             // NOTE: debug stuff: leave it here for future development
             if (showDebug) {
               const totalPageRecords = (result.controls && result.controls[0]) ? result.controls[0]._value.cookie[0] >= 0 : null;
@@ -262,7 +264,7 @@ export class LdapService {
               // tslint:disable-next-line: max-line-length
               // call the callBack requesting more pages, this will continue to search, only call if onPageCallback is not null, when arrives last page it will be null
             }
-            if (onPageCallback) { onPageCallback(); };
+            if (onPageCallback) { onPageCallback(); }
           });
           res.on('error', (error) => {
             reject(error);
@@ -272,7 +274,7 @@ export class LdapService {
             const parseHrtimeToSeconds = (hrtime) => {
               const seconds = (hrtime[0] + (hrtime[1] / 1e9)).toFixed(3);
               return seconds;
-            }
+            };
             const elapsedTime = parseHrtimeToSeconds(process.hrtime(startTime));
             const endMemoryUsage = getMemoryUsage();
             const cacheMemoryUsage = getMemoryUsageDifference(startMemoryUsage, endMemoryUsage);
@@ -290,10 +292,10 @@ export class LdapService {
                 totalRecords: this.cache.totalRecords,
                 elapsedTime: this.cache.elapsedTime,
                 memoryUsage: this.cache.memoryUsage,
-                status: this.cache.status
+                status: this.cache.status,
               });
             } else {
-              reject({ message: `records not found, cached not initialized`, status: result.status });
+              reject({ message: 'records not found, cached not initialized', status: result.status });
             }
           });
         });
@@ -302,7 +304,7 @@ export class LdapService {
         // reject promise
         reject(error);
       }
-    })
+    });
   };
 
   /**
@@ -325,7 +327,7 @@ export class LdapService {
         // reject promise
         reject(error);
       }
-    })
+    });
   };
 
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<string> {
@@ -343,7 +345,7 @@ export class LdapService {
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.password),
         sAMAccountName: username,
-        userAccountControl: UserAccountControl.NORMAL_ACCOUNT
+        userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
       };
 
       // optionals must be included outside the above object, otherwise the following error is shown {"error":"Cannot read property 'toString' of null"}
@@ -385,7 +387,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * add or delete group/role to user/member
@@ -402,7 +404,7 @@ export class LdapService {
           operation: operation,
           modification: {
             member,
-          }
+          },
         });
         this.ldapClient.modify(changeGroupDN, groupChange, async (error) => {
           if (error) {
@@ -417,7 +419,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * update defaultGroup
@@ -426,7 +428,7 @@ export class LdapService {
     return new Promise(async (resolve, reject) => {
       try {
         const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.username)).user;
-        const newDn: string = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.baseDN}`;
+        const newDn = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.baseDN}`;
 
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
           if (error)
@@ -445,7 +447,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * delete user
@@ -467,7 +469,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * change user record
@@ -494,7 +496,7 @@ export class LdapService {
 
           return new ldap.Change({
             operation: change.operation,
-            modification: change.modification
+            modification: change.modification,
           });
         });
 
@@ -510,7 +512,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * change user password
@@ -520,25 +522,25 @@ export class LdapService {
       try {
         const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
-          throw new Error('you must pass a valid oldPassword and newPassword properties')
+          throw new Error('you must pass a valid oldPassword and newPassword properties');
         }
         if (changeUserPasswordDto.oldPassword === changeUserPasswordDto.newPassword) {
-          throw new Error('oldPassword and newPassword are equal')
+          throw new Error('oldPassword and newPassword are equal');
         }
         // map array of changes to ldap.Change
         const changes = [
           new ldap.Change({
             operation: 'delete',
             modification: {
-              unicodePwd: encodeAdPassword(changeUserPasswordDto.oldPassword)
-            }
+              unicodePwd: encodeAdPassword(changeUserPasswordDto.oldPassword),
+            },
           }),
           new ldap.Change({
             operation: 'add',
             modification: {
-              unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword)
-            }
-          })
+              unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword),
+            },
+          }),
         ];
         this.ldapClient.modify(changeUserDN, changes, (error) => {
           if (error) {
@@ -551,7 +553,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
   * create group
@@ -560,7 +562,7 @@ export class LdapService {
     return new Promise((resolve, reject) => {
       const groupName = createLdapGroupDto.groupName.startsWith(this.searchGroupProfilesPrefix)
         ? createLdapGroupDto.groupName
-        : `${this.searchGroupProfilesPrefix}${pascalCase(createLdapGroupDto.groupName)}`
+        : `${this.searchGroupProfilesPrefix}${pascalCase(createLdapGroupDto.groupName)}`;
       const cn = groupName;
       const newGroup: CreateLdapGroupModel = {
         cn,
@@ -582,7 +584,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * delete group
@@ -603,7 +605,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * must match LDAP_SEARCH_USER_ATTRIBUTES properties
@@ -618,7 +620,7 @@ export class LdapService {
       try {
         // let user: { username: string, dn: string, email: string, memberOf: string[], controls: string[] };
         let group: SearchGroupRecordDto;
-        let filter = groupName ? parseTemplate(this.searchGroupFilter, { groupName }) : undefined;
+        const filter = groupName ? parseTemplate(this.searchGroupFilter, { groupName }) : undefined;
         // note to work we must use the scope sub else it won't work
         // this.ldapClient.search(this.searchBase, { attributes: this.searchAttributes, scope: 'sub', filter: `(cn=${groupName})` }, (err, res) => {
         this.ldapClient.search(`ou=${groupType},ou=Groups,${this.baseDN}`, {
@@ -637,7 +639,7 @@ export class LdapService {
               // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
               if (showDebug) {
                 Logger.log(`entry.object ${groupType}: [${JSON.stringify(entry.object, undefined, 2)}]`);
-              };
+              }
               group = {
                 dn,
                 cn: entry.object.cn as string,
@@ -673,7 +675,7 @@ export class LdapService {
             // Logger.log(`status: [${result.status}]`, LdapService.name);
             groups
               ? resolve({ groups, status: result.status })
-              : reject({ message: `group not found`, status: result.status });
+              : reject({ message: 'group not found', status: result.status });
           });
         });
       } catch (error) {
@@ -681,7 +683,7 @@ export class LdapService {
         // reject promise
         reject(error);
       }
-    })
+    });
   };
 
   // STUB promise template
