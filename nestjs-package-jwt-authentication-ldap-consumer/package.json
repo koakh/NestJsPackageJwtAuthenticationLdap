@@ -25,7 +25,7 @@
     "@nestjs/common": "^8.0.4"
   },
   "dependencies": {
-    "@koakh/nestjs-package-jwt-authentication-ldap": "^1.0.21",
+    "@koakh/nestjs-package-jwt-authentication-ldap": "1.0.21",
     "@nestjs/config": "^1.0.0",
     "@nestjs/core": "^8.0.4",
     "@nestjs/platform-express": "^8.0.4",
