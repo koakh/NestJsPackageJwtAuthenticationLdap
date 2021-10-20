@@ -32,7 +32,7 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
             },
             // TODO: this can be an anonymous function of a core ACTION_CONFIG_GET result :) or a static from configService
             ldap: {
-              address: config.get<string>('LDAP_URL', 'localhost'),
+              address: config.get<string>('LDAP_ADDRESS', 'localhost'),
               port: config.get<string | number>('LDAP_PORT', 389),
               usersBaseSearch: config.get<string>('LDAP_USERS_BASE_SEARCH', ''),
               baseDN: config.get<string>('LDAP_BASE_DN', 'dc=c3edu,dc=online'),
