@@ -1,7 +1,7 @@
 import { createConfigurableDynamicRootModule } from '@golevelup/nestjs-modules';
 import { CookieParserMiddleware } from '@nest-middlewares/cookie-parser';
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, Reflector } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { AUTH_OPTIONS, CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../common/constants';
 import { HttpExceptionFilter } from '../common/filters';
@@ -18,7 +18,8 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
 @Module({
   exports: [AuthService, LdapService, CONFIG_SERVICE],
   controllers: [AuthController, LdapController],
-  providers: [AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService],
+  // TODO: the missing magic piece to solve the annoying Nest can't resolve dependencies of the RolesAuthGuard (?). Please make sure that the argument Reflector at index [0] is available in the AuthModule context.
+  providers: [AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService, Reflector],
   imports: [
     JwtModule.registerAsync({
       inject: [CONFIG_SERVICE],

@@ -12,4 +12,4 @@ export { CacheResponseDto } from './auth/ldap/dto/cache-response.dto';
 // ldap
 export { LdapService } from './auth/ldap/ldap.service';
 // guards
-export { JwtAuthGuard, RolesAuthGuard, PermissionsAuthGuard } from './auth/guards';
+export * from './auth/guards';

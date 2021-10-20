@@ -28,7 +28,7 @@ export class LdapController {
   }
 
   @Post('/user')
-  // @Roles and @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
+  // @Roles and // @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)

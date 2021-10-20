@@ -36,19 +36,20 @@
     "url": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap"
   },
   "bugs": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap",
-  "dependencies": {
+  "peerDependencies": {
     "@nestjs/common": "^8.0.4",
-    "reflect-metadata": "^0.1.13",
-    "@nestjs/core": "^8.0.4",
-    "@nestjs/platform-express": "^8.0.4",
+    "reflect-metadata": "^0.1.13"
+  },
+  "dependencies": {
     "@golevelup/nestjs-modules": "^0.4.2",
     "@golevelup/ts-jest": "^0.3.1",
     "@nest-middlewares/cookie-parser": "^6.0.0",
-    "@nestjs/config": "^1.0.1",
+    "@nestjs/config": "^1.0.0",
+    "@nestjs/core": "^8.0.4",
     "@nestjs/jwt": "^8.0.0",
     "@nestjs/passport": "^8.0.0",
+    "@nestjs/platform-express": "^8.0.4",
     "@nestjs/swagger": "^5.0.4",
-    "@types/passport": "^1.0.7",
     "bcrypt": "^5.0.1",
     "capital-case": "^1.0.4",
     "class-validator": "^0.13.1",
@@ -63,15 +64,18 @@
     "passport-jwt": "^4.0.0",
     "passport-ldapauth": "^3.0.1",
     "passport-local": "^1.0.0",
-    "rxjs": "^7.2.0",
+    "rxjs": "^6.6.7",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
+    "@nestjs/common": "^8.0.4",
+    "reflect-metadata": "^0.1.13",    
     "@nestjs/testing": "^8.0.4",
     "@types/express": "^4.17.13",
     "@types/jest": "^26.0.24",
     "@types/ldapjs": "^2.2.0",
     "@types/node": "^16.3.3",
+    "@types/passport": "^1.0.7",
     "@types/passport-jwt": "^3.0.6",
     "@types/passport-local": "^1.0.34",
     "@types/supertest": "^2.0.11",
