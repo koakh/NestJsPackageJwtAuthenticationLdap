@@ -18,9 +18,11 @@ this project have a `nestjs-package-jwt-authentication-ldap` **nestjs package**,
 ## Required Tooling
 
 ```shell
-# used version on c3
+# used version on c3 and dev machine both works
 $ node -v
 v10.19.0
+$ node -v
+v16.6.2
 # require
 $ sudo npm install -g @nestjs/cli
 ```
@@ -57,44 +59,41 @@ $ npm i ../nestjs-package-jwt-authentication-ldap/
 $ npm i
 # DEPRECATED
 # start in dev or debug (this will debug consumer app)
-$ npm run start:dev
+$ npm run start:dev | debug
 # or
 $ npm run start:debug
-ERROR [ExceptionHandler] Nest can\'t resolve dependencies of the RolesAuthGuard (?). Please make sure that the argument Reflector at index [0] is available in the AuthModule context.
 
-Potential solutions:
-- If Reflector is a provider, is it part of the current AuthModule?
-- If Reflector is exported from a separate @Module, is that module imported within AuthModule?
-  @Module({
-    imports: [ /* the Module containing Reflector */ ]
-  })
-# to fix this jump to ## UPDATE 2021-10-19 15:34:39 section
+# check `Debugger attached.` in terminal #2
 
-# this will debug package and comsumer app ate same time
-press F5 or launch debugger
+# now launch `Attach to Process` debugger configuration
+
+# or ctrl+c and `Launch Program` debugger configuration
+# F5, this will  this will debug package and comsumer app ate same time
 ```
 
-to test consumer app uncomment `hashPassword` and launch debugger and fire `curl http://localhost:3010/v1`
+to test debugger breakpoint and breakpoint in bellow line `const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;`
 
-```typescript
-// sample: test debugger consumer app with `curl http://localhost:3010/v1`
-@Get()
-@ApiOkResponse({ description: 'The request has succeeded' })
-hashPassword(): string {
-  debugger;
-  const password = 'some fake data';
-  return this.appService.hashPassword(password);
-}
+```shell
+@Controller('auth')
+@ApiTags('auth')
+export class AuthController {
+  ...
+  async login(
+    @Request() req: LoginDto,
+    @Response() res,
+  ): Promise<LoginResponseDto> {
+    // ADD BREAKPOINT HERE
+    const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
 ```
 
-to test package add a `debugger;` in login, and launch debugger and fire `curl -X POST --url http://localhost:3010/v1/auth/login --header 'content-type: application/json' --data '{"username": "c3","password": "root"}'`
+now launch one request to hit the breakpoint
 
-```typescript
-async login(
-  @Request() req: LoginDto,
-  @Response() res,
-): Promise<LoginResponseDto> {
-  debugger;
+```shell
+$ curl --request POST \
+  --url https://127.0.0.1/backend/v1/auth/login \
+  --header 'content-type: application/json' \
+  --header 'user-agent: vscode-restclient' \
+  --data '{"username": "student1","password": "1234"}'
 ```
 
 ## Develop both projects
@@ -119,7 +118,7 @@ $ sudo samba-tool group addmembers "C3Administrator" ${​USER}​
 $ sudo samba-tool group listmembers "C3Administrator"
 ```
 
-## UPDATE 2021-10-19 15:34:39 : Fix ERROR [ExceptionHandler] Nest can't resolve dependencies of the RolesAuthGuard (?). Please make sure that the argument Reflector at index [0] is available in the AuthModule context.
+## TODO: UPDATE 2021-10-19 15:34:39 : Fix ERROR [ExceptionHandler] Nest can't resolve dependencies of the RolesAuthGuard (?). Please make sure that the argument Reflector at index [0] is available in the AuthModule context.
 
 seems that somehow we are having so much pain with this error (again), better to close eyes and use a less elegant way
 
