@@ -2,20 +2,20 @@ import { createMock } from '@golevelup/ts-jest';
 import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Test } from '@nestjs/testing';
-import { RolesAuthGuard } from '.';
+import { RolesAuthGuardNew } from '.';
 
 describe('RolesAuthGuard', () => {
-    let rolesAuthGuard: RolesAuthGuard;
+    let rolesAuthGuard: RolesAuthGuardNew;
     let reflector: Reflector;
 
     beforeEach(async () => {
         const moduleRef = await Test.createTestingModule({
             imports: [], // Add
             controllers: [], // Add
-            providers: [RolesAuthGuard, Reflector],   // Add
+            providers: [RolesAuthGuardNew, Reflector],   // Add
         }).compile();
 
-        rolesAuthGuard = moduleRef.get<RolesAuthGuard>(RolesAuthGuard);
+        rolesAuthGuard = moduleRef.get<RolesAuthGuardNew>(RolesAuthGuardNew);
         reflector = moduleRef.get<Reflector>(Reflector);
     });
 
