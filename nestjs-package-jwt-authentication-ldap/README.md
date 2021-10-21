@@ -49,7 +49,7 @@ REFRESH_TOKEN_EXPIRES_IN="7d"
 REFRESH_TOKEN_SKIP_INCREMENT_VERSION="false"
 LDAP_ADDRESS="192.168.1.1:2210"
 LDAP_BIND_DN="cn=administrator,cn=users,dc=c3edu,dc=online"
-LDAP_BIND_CREDENTIALS="Root123..."
+LDAP_BIND_CREDENTIALS="secretCredentials"
 LDAP_SEARCH_BASE="dc=c3edu,dc=online"
 LDAP_SEARCH_USER_FILTER="(cn={{username}})"
 LDAP_SEARCH_USER_ATTRIBUTES="cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber"
@@ -64,8 +64,9 @@ OPENAPI_TAG="nestjs, typescript, ldap, auth, security"
 
 ## Run App
 
-TypeError: Cannot read property 'toString' of undefined
-Cannot read property 'toString' of undefined
+```shell
+$ npm run start:dev
+```
 
 ## Test Endpoints
 
@@ -78,7 +79,7 @@ wget https://raw.githubusercontent.com/koakh/NestJsPackageJwtAuthentication/main
 
 now test all requests
 
-or test with a simple curl 
+or test with a simple curl
 
 ```shell
 $ curl --request POST \
