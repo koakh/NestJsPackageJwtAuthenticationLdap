@@ -8,21 +8,17 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\"",
-    "start": "ts-node -r tsconfig-paths/register src/main.ts",
-    "start:dev": "nodemon",
-    "start:debug": "nodemon --config nodemon-debug.json",
-    "prestart:prod": "rimraf dist && npm run build",
-    "start:prod": "node dist/main.js",
     "lint": "tslint -p tsconfig.json -c tslint.json",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "prestart:prod": "rimraf dist && npm run build",
+    "start:debug": "nodemon --config nodemon-debug.json",
+    "start:dev": "nodemon",
+    "start:prod": "node dist/main.js",
+    "start": "ts-node -r tsconfig-paths/register src/main.ts",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
-  },
-  "peerDependencies": {
-    "@nestjs/common": "^8.0.4",
-    "reflect-metadata": "^0.1.13"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:watch": "jest --watch",
+    "test": "jest"
   },
   "dependencies": {
     "@koakh/nestjs-package-jwt-authentication-ldap": "file:../nestjs-package-jwt-authentication-ldap",
@@ -40,7 +36,6 @@
     "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
-    "@nestjs/common": "^8.0.4",
     "@nestjs/testing": "^7.4.4",
     "@types/express": "^4.17.8",
     "@types/jest": "^26.0.14",
@@ -49,7 +44,6 @@
     "jest": "^26.4.2",
     "nodemon": "^2.0.4",
     "prettier": "^2.1.2",
-    "reflect-metadata": "^0.1.13",
     "supertest": "^5.0.0",
     "ts-jest": "^26.4.1",
     "ts-node": "^9.0.0",
