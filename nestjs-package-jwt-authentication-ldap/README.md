@@ -1,7 +1,5 @@
 # README
 
-README in [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication/blob/main/README.md)
-
 ## Create a test package
 
 ```shell
