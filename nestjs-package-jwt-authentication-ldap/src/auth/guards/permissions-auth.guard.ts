@@ -6,10 +6,15 @@ export class PermissionsAuthGuard implements CanActivate {
   constructor(private reflector: Reflector) { }
 
   canActivate(context: ExecutionContext): boolean {
-    // get permissions from metaData ex `'RP_CLASSES', 'RP_CLASSES@READ'`
-    const permissions = this.reflector.get<string[]>('permissions', context.getHandler());
+    // get method scoped permissions from metaData ex `'RP_CLASSES', 'RP_CLASSES@READ'` 
+    let permissions = this.reflector.get<string[]>('permissions', context.getHandler());
+    // if doesn't have method scoped metadata, we need to verify the class scope
     if (!permissions) {
-      return true;
+      // get class scoped permissions from metaData ex `'RP_CLASSES', 'RP_CLASSES@READ'` 
+      permissions = this.reflector.get<string[]>('permissions', context.getClass());
+      if (!permissions) {
+        return true;
+      }
     }
     const request = context.switchToHttp().getRequest();
     if (!request.user) {

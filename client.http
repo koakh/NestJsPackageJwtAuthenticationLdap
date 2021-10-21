@@ -5,8 +5,8 @@
 // @uri = {{uriBase}}
 
 // prod/docker image
-// @host = c3edu.online
-@host = 192.168.1.154
+@host = c3edu.online
+// @host = 192.168.1.154
 // prod: docker stack and reverse proxy
 @port = 8420
 @uri = https://{{host}}/backend/v1
