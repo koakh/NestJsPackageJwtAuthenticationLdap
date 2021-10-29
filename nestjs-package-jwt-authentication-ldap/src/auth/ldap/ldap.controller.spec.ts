@@ -43,10 +43,10 @@ describe('LdapController', () => {
       const res = mockResponse();
       // const res = mockResponse({status: 403});
       const input: CreateUserRecordDto = {
-        username: 'user_test',
-        password: '1234',
-        firstName: 'Vitor',
-        lastName: 'Joao',
+        cn: 'user_test',
+        unicodePwd: '1234',
+        givenName: 'Vitor',
+        sn: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
         objectClass: Objectclass.USER,
@@ -86,7 +86,7 @@ describe('LdapController', () => {
     it('should test addMemberToGroup - Successfully', async () => {
       const res = mockResponse();
       const operation: ChangeUserRecordOperation = ChangeUserRecordOperation.ADD;
-      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { username: 'c3Test', group: 'c3student', defaultGroup: 'c3student' };
+      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { cn: 'c3Test', group: 'c3student', defaultGroup: 'c3student' };
       jest
         .spyOn(service, 'addOrDeleteUserToGroup')
         .mockImplementationOnce(async () => Promise.resolve());
@@ -101,7 +101,7 @@ describe('LdapController', () => {
     it('should test addMemberToGroup - Error', async () => {
       const res = mockResponse();
       const operation: ChangeUserRecordOperation = undefined;
-      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { username: 'c3Test', group: 'c3student', defaultGroup: 'c3student' };
+      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { cn: 'c3Test', group: 'c3student', defaultGroup: 'c3student' };
       jest
         .spyOn(service, 'addOrDeleteUserToGroup')
         .mockRejectedValue(() => { throw new Error('Error Message') });
@@ -119,7 +119,7 @@ describe('LdapController', () => {
   describe('PUT /defaultGroup', () => {
     it('should test updateDefaultGroup - Successfully', async () => {
       const res = mockResponse();
-      const changeDefaultGroupDto: ChangeDefaultGroupDto = { username: 'user1', defaultGroup: 'c3student' };
+      const changeDefaultGroupDto: ChangeDefaultGroupDto = { cn: 'user1', defaultGroup: 'c3student' };
       jest
         .spyOn(service, 'updateDefaultGroup')
         .mockImplementationOnce(async () => Promise.resolve());
@@ -132,10 +132,10 @@ describe('LdapController', () => {
     })
   })
 
-  describe(' /user/:username', () => {
+  describe(' /user/:cn', () => {
     it('should test getUserRecord - Successfully', async () => {
       const res = mockResponse();
-      const username = 'c3';
+      const cn = 'c3';
       const spyUserRecord: SearchUserRecordResponseDto = {
         user: {
           dn: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
@@ -152,14 +152,14 @@ describe('LdapController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -169,24 +169,24 @@ describe('LdapController', () => {
       jest
         .spyOn(service, 'getUserRecord')
         .mockImplementationOnce(async () => spyUserRecord);
-      await controller.getUserRecord(res, username)
+      await controller.getUserRecord(res, cn)
         .then(() => {
-          expect(service.getUserRecord).toHaveBeenCalledWith(username);
+          expect(service.getUserRecord).toHaveBeenCalledWith(cn);
         });
       expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     })
 
     it('should test getUserRecord - Error', async () => {
       const res = mockResponse();
-      const username = undefined;
+      const cn = undefined;
       jest
         .spyOn(service, 'getUserRecord')
         .mockRejectedValue(() => { throw new Error('Error Message') });
 
-      await controller.getUserRecord(res, username)
+      await controller.getUserRecord(res, cn)
         .catch((err) => {
           expect(err).toBeInstanceOf(Error);
-          expect(service.getUserRecord).toHaveBeenCalledWith(username);
+          expect(service.getUserRecord).toHaveBeenCalledWith(cn);
         })
       expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
       expect(res.send).toHaveBeenCalled();
@@ -277,14 +277,14 @@ describe('LdapController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132586652461591400',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: '',
+          cn: 'c3',
+          givenName: 'C3',
+          sn: '',
           email: '',
           displayName: 'C3',
           gender: '',
           mail: '',
-          C3UserRole: '',
+          c3UserRole: '',
           dateOfBirth: '',
           studentID: '22233333',
           telephoneNumber: '0000000'
@@ -324,7 +324,7 @@ describe('LdapController', () => {
     it('should test deleteUserRecord - Successfully', async () => {
       const res = mockResponse();
       const input: DeleteUserRecordDto = {
-        username: 'c3',
+        cn: 'c3',
         defaultGroup: 'c3student'
       };
       jest
@@ -340,7 +340,7 @@ describe('LdapController', () => {
     it('should test deleteUserRecord - Error', async () => {
       const res = mockResponse();
       const input: DeleteUserRecordDto = {
-        username: 'c3',
+        cn: 'c3',
         defaultGroup: 'c3student'
       };
       jest
@@ -361,7 +361,7 @@ describe('LdapController', () => {
     it('should test changeUserRecord - Successfully', async () => {
       const res = mockResponse();
       const input: ChangeUserRecordDto = {
-        username: 'c3',
+        cn: 'c3',
         defaultGroup: 'c3student',
         changes: [
           {
@@ -385,7 +385,7 @@ describe('LdapController', () => {
     it('should test changeUserRecord - Error', async () => {
       const res = mockResponse();
       const input: ChangeUserRecordDto = {
-        username: 'c3',
+        cn: 'c3',
         defaultGroup: 'c3student',
         changes: [
           {
@@ -412,7 +412,7 @@ describe('LdapController', () => {
 
   describe('GET /profile', () => {
     it('should test getUserProfileRecord - Successfully', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       const spyUserRecord: SearchUserRecordResponseDto = {
         user: {
@@ -430,14 +430,14 @@ describe('LdapController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -455,7 +455,7 @@ describe('LdapController', () => {
     })
 
     it('should test getUserProfileRecord - Error', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       jest
         .spyOn(service, 'getUserRecord')
@@ -469,7 +469,7 @@ describe('LdapController', () => {
       expect(res.send).toHaveBeenCalled();
     })
 
-    it('should test getUserProfileRecord - username undefined', async () => {
+    it('should test getUserProfileRecord - cn undefined', async () => {
       const req = mockRequest();
       const res = mockResponse();
       jest
@@ -481,7 +481,7 @@ describe('LdapController', () => {
 
   describe('PUT /profile', () => {
     it('should test changeUserProfileRecord - Successfully', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       const input: ChangeUserProfileDto = {
         defaultGroup: 'c3student',
@@ -510,14 +510,14 @@ describe('LdapController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -529,13 +529,13 @@ describe('LdapController', () => {
         .mockImplementationOnce(async () => Promise.resolve());
       await controller.changeUserProfileRecord(req, res, input)
         .then(() => {
-          expect(service.changeUserRecord).toHaveBeenCalledWith({ ...input, username: 'c3' });
+          expect(service.changeUserRecord).toHaveBeenCalledWith({ ...input, cn: 'c3' });
         });
       expect(res.status).not.toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
     })
 
     it('should test changeUserProfileRecord - Error', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       const input: ChangeUserProfileDto = {
         defaultGroup: 'c3student',
@@ -560,7 +560,7 @@ describe('LdapController', () => {
       expect(res.send).toHaveBeenCalled();
     })
 
-    it('should test changeUserProfileRecord - username undefined', async () => {
+    it('should test changeUserProfileRecord - cn undefined', async () => {
       const req = mockRequest();
       const res = mockResponse();
       const input: ChangeUserProfileDto = {
@@ -582,12 +582,12 @@ describe('LdapController', () => {
 
   describe('PUT /profile', () => {
     it('should test changeUserProfilePassword - Successfully', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       const input: ChangeUserPasswordDto = {
         defaultGroup: 'c3student',
-        oldPassword: 'testOld',
-        newPassword: 'testNew'
+        oldunicodePwd: 'testOld',
+        newunicodePwd: 'testNew'
       };
       jest
         .spyOn(service, 'changeUserProfilePassword')
@@ -600,12 +600,12 @@ describe('LdapController', () => {
     })
 
     it('should test changeUserProfilePassword - Error', async () => {
-      const req = mockRequest({ user: { username: 'c3' } });
+      const req = mockRequest({ user: { cn: 'c3' } });
       const res = mockResponse();
       const input: ChangeUserPasswordDto = {
         defaultGroup: 'c3student',
-        oldPassword: 'testOld',
-        newPassword: 'testNew'
+        oldunicodePwd: 'testOld',
+        newunicodePwd: 'testNew'
       };
       jest
         .spyOn(service, 'changeUserProfilePassword')
@@ -619,13 +619,13 @@ describe('LdapController', () => {
       expect(res.send).toHaveBeenCalled();
     })
 
-    it('should test changeUserProfilePassword - username undefined', async () => {
+    it('should test changeUserProfilePassword - cn undefined', async () => {
       const req = mockRequest();
       const res = mockResponse();
       const input: ChangeUserPasswordDto = {
         defaultGroup: 'c3student',
-        oldPassword: 'testOld',
-        newPassword: 'testNew'
+        oldunicodePwd: 'testOld',
+        newunicodePwd: 'testNew'
       };
       jest
         .spyOn(service, 'changeUserRecord');

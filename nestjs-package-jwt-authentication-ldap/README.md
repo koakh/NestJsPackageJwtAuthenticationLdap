@@ -50,7 +50,7 @@ LDAP_BIND_DN="cn=administrator,cn=users,dc=c3edu,dc=online"
 LDAP_BIND_CREDENTIALS="secretCredentials"
 LDAP_SEARCH_BASE="dc=c3edu,dc=online"
 LDAP_SEARCH_USER_FILTER="(cn={{username}})"
-LDAP_SEARCH_USER_ATTRIBUTES="cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber"
+LDAP_SEARCH_USER_ATTRIBUTES="cn,givenName,sn,displayName,userPrincipalName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,c3UserRole,dateOfBirth,studentID,telephoneNumber,extraPermission"
 LDAP_SEARCH_CACHE_FILTER="(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
 LDAP_BASE_DN="dc=c3edu,dc=online"
 LDAP_NEW_USER_DN_POSTFIX="ou=C3student,ou=People"
@@ -91,8 +91,8 @@ $ curl --request POST \
   "user": {
     "id": "efeed3eb-c0a2-4b3e-816f-2a42ca8451b3",
     "username": "admin",
-    "firstName": "Pietra",
-    "lastName": "Heine",
+    "givenName": "Pietra",
+    "sn": "Heine",
     "email": "pheine0@illinois.edu",
     "roles": [
       "USER",

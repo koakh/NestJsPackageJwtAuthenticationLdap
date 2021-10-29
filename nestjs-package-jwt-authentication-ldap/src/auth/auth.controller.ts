@@ -126,11 +126,11 @@ export class AuthController {
     // metaData
     const metaData = { profile: getProfileFromFirstMemberOf(roles) };
     // accessToken: add some user data to it, like id and roles
-    const signJwtToken: SignJwtToken = { username: user.username, userId: user.dn, roles, permissions, metaData };
+    const signJwtToken: SignJwtToken = { username: user.cn, userId: user.dn, roles, permissions, metaData };
     const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);
 
     // check inMemory tokenVersion, must be equal to inMemory else is considered invalid token
-    const tokenVersion: number = this.authService.usersStore.getTokenVersion(user.username);
+    const tokenVersion: number = this.authService.usersStore.getTokenVersion(user.cn);
     if (tokenVersion !== payload.tokenVersion) {
       return invalidPayload();
     }

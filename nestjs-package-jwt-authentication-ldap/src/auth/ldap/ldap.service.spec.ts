@@ -39,7 +39,7 @@ describe('LdapService', () => {
   describe(' updateCachedUser()', () => {
     it('should test updateCachedUser (CREATE) - Successfully', async () => {
       const inputOperation: UpdateCacheOperation = UpdateCacheOperation.CREATE;
-      const inputUsername: string = 'c3Test';
+      const inputcn: string = 'c3Test';
       const spyUserRecords: SearchUserRecordResponseDto = {
         user: {
           dn: 'CN=user19,OU=C3Student,OU=People,DC=c3edu,DC=online',
@@ -49,14 +49,14 @@ describe('LdapService', () => {
           distinguishedName: 'CN=user19,OU=C3Student,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: undefined,
-          username: 'user19',
-          firstName: "Nuno",
-          lastName: "Bento",
+          cn: 'user19',
+          givenName: "Nuno",
+          sn: "Bento",
           email: undefined,
           displayName: 'Nuno Bento',
           gender: 'M',
           mail: 'test@critical-links.com',
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: '19711219',
           studentID: '34273462836a',
           telephoneNumber: '+3519300000',
@@ -66,13 +66,13 @@ describe('LdapService', () => {
       jest
         .spyOn(ldapService, 'getUserRecord')
         .mockImplementationOnce(async () => spyUserRecords);
-      await ldapService.updateCachedUser(inputOperation, inputUsername);
+      await ldapService.updateCachedUser(inputOperation, inputcn);
       expect(ldapService.getUserRecord).toHaveBeenCalledTimes(1);
     });
 
     it('should test updateCachedUser (UPDATE) - Successfully', async () => {
       const inputOperation: UpdateCacheOperation = UpdateCacheOperation.UPDATE;
-      const inputUsername: string = 'c3Test';
+      const inputcn: string = 'c3Test';
       const spyUserRecords: SearchUserRecordResponseDto = {
         user: {
           dn: 'CN=user19,OU=C3Student,OU=People,DC=c3edu,DC=online',
@@ -82,14 +82,14 @@ describe('LdapService', () => {
           distinguishedName: 'CN=user19,OU=C3Student,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: undefined,
-          username: 'user19',
-          firstName: "Nuno",
-          lastName: "Bento",
+          cn: 'user19',
+          givenName: "Nuno",
+          sn: "Bento",
           email: undefined,
           displayName: 'Nuno Bento',
           gender: 'M',
           mail: 'test@critical-links.com',
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: '19711219',
           studentID: '34273462836a',
           telephoneNumber: '+3519300000',
@@ -99,13 +99,13 @@ describe('LdapService', () => {
       jest
         .spyOn(ldapService, 'getUserRecord')
         .mockImplementationOnce(async () => spyUserRecords);
-      await ldapService.updateCachedUser(inputOperation, inputUsername);
+      await ldapService.updateCachedUser(inputOperation, inputcn);
       expect(ldapService.getUserRecord).toHaveBeenCalledTimes(1);
     });
 
     it('should test updateCachedUser (DELETE) - Successfully', async () => {
       const inputOperation: UpdateCacheOperation = UpdateCacheOperation.DELETE;
-      const inputUsername: string = 'c3Test';
+      const inputcn: string = 'c3Test';
       const spyUserRecords: SearchUserRecordResponseDto = {
         user: {
           dn: 'CN=user19,OU=C3Student,OU=People,DC=c3edu,DC=online',
@@ -115,14 +115,14 @@ describe('LdapService', () => {
           distinguishedName: 'CN=user19,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: undefined,
-          username: 'user19',
-          firstName: "Nuno",
-          lastName: "Bento",
+          cn: 'user19',
+          givenName: "Nuno",
+          sn: "Bento",
           email: undefined,
           displayName: 'Nuno Bento',
           gender: 'M',
           mail: 'test@critical-links.com',
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: '19711219',
           studentID: '34273462836a',
           telephoneNumber: '+3519300000',
@@ -133,23 +133,23 @@ describe('LdapService', () => {
         .spyOn(ldapService, 'getUserRecord');
       jest
         .spyOn(utils, 'recordToArray');
-      await ldapService.updateCachedUser(inputOperation, inputUsername);
+      await ldapService.updateCachedUser(inputOperation, inputcn);
       expect(utils.recordToArray).toHaveBeenCalledTimes(1);
       expect(ldapService.getUserRecord).not.toHaveBeenCalled();
     });
 
     it('should test updateCachedUser function - Error', async () => {
       const inputOperation: UpdateCacheOperation = UpdateCacheOperation.CREATE;
-      const inputUsername: string = 'c3Test';
+      const inputcn: string = 'c3Test';
       jest.spyOn(ldapService, 'getUserRecord').mockImplementation(() => {
         throw new Error('Something weird happened')
       });
 
-      await ldapService.updateCachedUser(inputOperation, inputUsername)
+      await ldapService.updateCachedUser(inputOperation, inputcn)
         .catch((err) => {
           expect(err).toBeInstanceOf(Error);
           expect(err.message).toBe('Something weird happened');
-          expect(ldapService.getUserRecord).toHaveBeenCalledWith(inputUsername);
+          expect(ldapService.getUserRecord).toHaveBeenCalledWith(inputcn);
         })
     });
   });
@@ -170,14 +170,14 @@ describe('LdapService', () => {
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132590739667693370',
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
           email: undefined,
           mail: undefined,
           gender: undefined,
-          username: 'c3',
+          cn: 'c3',
           displayName: 'C3'
         },
         status: 0
@@ -186,7 +186,7 @@ describe('LdapService', () => {
         expect(res.user.dn).toStrictEqual(result.user.dn);
         expect(res.user.memberOf).toStrictEqual(result.user.memberOf);
         expect(res.user.objectCategory).toStrictEqual(result.user.objectCategory);
-        expect(res.user.username).toStrictEqual(result.user.username);
+        expect(res.user.cn).toStrictEqual(result.user.cn);
         expect(res.user.displayName).toStrictEqual(result.user.displayName);
       });
     });
@@ -206,14 +206,14 @@ describe('LdapService', () => {
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132590739667693370',
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
           email: undefined,
           mail: undefined,
           gender: undefined,
-          username: 'c3',
+          cn: 'c3',
           displayName: 'C3'
         },
         status: 0
@@ -294,12 +294,12 @@ describe('LdapService', () => {
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132590739667693370',
-          username: 'c3',
+          cn: 'c3',
           email: undefined,
           displayName: 'C3',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -320,12 +320,12 @@ describe('LdapService', () => {
           objectCategory: 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132590739667693370',
-          username: 'c3',
+          cn: 'c3',
           email: undefined,
           displayName: 'C3',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -351,7 +351,7 @@ describe('LdapService', () => {
             'controls': [],
             'objectCategory': 'CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online',
             'userAccountControl': '66056',
-            'C3UserRole': undefined,
+            'c3UserRole': undefined,
             'dateOfBirth': undefined,
             'email': undefined,
             'gender': undefined,
@@ -359,7 +359,7 @@ describe('LdapService', () => {
             'studentID': undefined,
             'telephoneNumber': undefined,
             'lastLogonTimestamp': '132590739667693370',
-            'username': 'c3',
+            'cn': 'c3',
             'displayName': 'C3'
           }
         ]
@@ -386,16 +386,16 @@ describe('LdapService', () => {
     it('should test createUserRecord without invalid input - Error', async () => {
       const input: CreateUserRecordDto = undefined;
       await ldapService.createUserRecord(input).catch((err) => {
-        expect(err.message).toEqual(`Cannot read property 'username' of undefined`)
+        expect(err.message).toEqual(`Cannot read property 'cn' of undefined`)
       });
     });
 
     it('should test createUserRecord - Successfully', async () => {
       const input: CreateUserRecordDto = {
-        username: 'user_test',
-        password: '1234',
-        firstName: 'Vitor',
-        lastName: 'Joao',
+        cn: 'user_test',
+        unicodePwd: '1234',
+        givenName: 'Vitor',
+        sn: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
         objectClass: Objectclass.USER,
@@ -408,9 +408,9 @@ describe('LdapService', () => {
       await ldapService.initUserRecordsCache(undefined);
       await ldapService.createUserRecord(input);
       await ldapService.getUserRecord('user_test').then((result) => {
-        expect(result.user.username).toEqual('user_test')
+        expect(result.user.cn).toEqual('user_test')
       })
-      await ldapService.deleteUserRecord({ username: input.username, defaultGroup: input.defaultGroup })
+      await ldapService.deleteUserRecord({ cn: input.cn, defaultGroup: input.defaultGroup })
     });
   });
 
@@ -425,12 +425,12 @@ describe('LdapService', () => {
 
     it('should test addOrDeleteUserToGroup - Successfully', async () => {
       const operation: ChangeUserRecordOperation = ChangeUserRecordOperation.ADD;
-      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { username: 'user19', defaultGroup: 'c3student', group: 'c3teacher' };
+      const addUserToGroupDto: AddOrDeleteUserToGroupDto = { cn: 'user19', defaultGroup: 'c3student', group: 'c3teacher' };
       const inputCreateUser: CreateUserRecordDto = {
-        username: 'user19',
-        password: '1234',
-        firstName: 'Joao',
-        lastName: 'Pedro',
+        cn: 'user19',
+        unicodePwd: '1234',
+        givenName: 'Joao',
+        sn: 'Pedro',
         displayName: 'Joao Pedro',
         objectClass: Objectclass.USER,
         defaultGroup: 'c3student',
@@ -443,23 +443,23 @@ describe('LdapService', () => {
       await ldapService.initUserRecordsCache(undefined);
       await ldapService.createUserRecord(inputCreateUser);
       await ldapService.addOrDeleteUserToGroup(operation, addUserToGroupDto);
-      await ldapService.getUserRecord(inputCreateUser.username).then((res) => {
+      await ldapService.getUserRecord(inputCreateUser.cn).then((res) => {
         expect(res.user.memberOf).toEqual(
           expect.arrayContaining(['CN=C3Teacher,OU=Groups,DC=c3edu,DC=online'])
         )
       });
-      await ldapService.deleteUserRecord({ username: inputCreateUser.username, defaultGroup: inputCreateUser.defaultGroup })
+      await ldapService.deleteUserRecord({ cn: inputCreateUser.cn, defaultGroup: inputCreateUser.defaultGroup })
     });
   });
 
   describe(' updateDefaultGroup()', () => {
     it('should test updateDefaultGroup - Successfully', async () => {
-      const changeDefaultGroup: ChangeDefaultGroupDto = { username: 'user19', defaultGroup: 'c3student' };
+      const changeDefaultGroup: ChangeDefaultGroupDto = { cn: 'user19', defaultGroup: 'c3student' };
       const inputCreateUser: CreateUserRecordDto = {
-        username: 'user19',
-        password: '1234',
-        firstName: 'Joao',
-        lastName: 'Pedro',
+        cn: 'user19',
+        unicodePwd: '1234',
+        givenName: 'Joao',
+        sn: 'Pedro',
         displayName: 'Joao Pedro',
         objectClass: Objectclass.USER,
         defaultGroup: 'c3student',
@@ -473,13 +473,13 @@ describe('LdapService', () => {
       await ldapService.initUserRecordsCache(undefined);
       await ldapService.createUserRecord(inputCreateUser);
       await ldapService.updateDefaultGroup(changeDefaultGroup);
-      await ldapService.getUserRecord(inputCreateUser.username).then((res) => {
-        expect(res.user.dn).toBe(`CN=${inputCreateUser.username},OU=C3Teacher,OU=People,DC=c3edu,DC=online`)
+      await ldapService.getUserRecord(inputCreateUser.cn).then((res) => {
+        expect(res.user.dn).toBe(`CN=${inputCreateUser.cn},OU=C3Teacher,OU=People,DC=c3edu,DC=online`)
         expect(res.user.memberOf).toEqual(
           expect.arrayContaining(['CN=C3Student,OU=Groups,DC=c3edu,DC=online', 'CN=C3Teacher,OU=Groups,DC=c3edu,DC=online'])
         )
       });
-      await ldapService.deleteUserRecord({ username: inputCreateUser.username, defaultGroup: changeDefaultGroup.defaultGroup })
+      await ldapService.deleteUserRecord({ cn: inputCreateUser.cn, defaultGroup: changeDefaultGroup.defaultGroup })
     });
   });
 
@@ -487,20 +487,20 @@ describe('LdapService', () => {
     it('should test deleteUserRecord without invalid input - Error', async () => {
       const input: DeleteUserRecordDto = undefined;
       await ldapService.deleteUserRecord(input).catch((err) => {
-        expect(err.message).toEqual(`Cannot read property 'username' of undefined`)
+        expect(err.message).toEqual(`Cannot read property 'cn' of undefined`)
       });
     });
 
     it('should test deleteUserRecord - Successfully', async () => {
       const input: DeleteUserRecordDto = {
-        username: 'user_test',
+        cn: 'user_test',
         defaultGroup: 'c3Administrator'
       };
       const creteUser: CreateUserRecordDto = {
-        username: 'user_test',
-        password: '1234',
-        firstName: 'Vitor',
-        lastName: 'Joao',
+        cn: 'user_test',
+        unicodePwd: '1234',
+        givenName: 'Vitor',
+        sn: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
         objectClass: Objectclass.USER,
@@ -531,13 +531,13 @@ describe('LdapService', () => {
     it('should test changeUserRecord without invalid input - Error', async () => {
       const input: ChangeUserRecordDto = undefined;
       await ldapService.changeUserRecord(input).catch((err) => {
-        expect(err.message).toEqual(`Cannot read property 'username' of undefined`)
+        expect(err.message).toEqual(`Cannot read property 'cn' of undefined`)
       });
     });
 
     it('should test changeUserRecord - Successfully', async () => {
       const input: ChangeUserRecordDto = {
-        username: 'user_test',
+        cn: 'user_test',
         defaultGroup: 'c3Administrator',
         changes: [
           {
@@ -549,14 +549,14 @@ describe('LdapService', () => {
         ]
       };
       const deleteUser: DeleteUserRecordDto = {
-        username: 'user_test',
+        cn: 'user_test',
         defaultGroup: 'c3Administrator'
       };
       const creteUser: CreateUserRecordDto = {
-        username: 'user_test',
-        password: '1234',
-        firstName: 'Vitor',
-        lastName: 'Joao',
+        cn: 'user_test',
+        unicodePwd: '1234',
+        givenName: 'Vitor',
+        sn: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
         objectClass: Objectclass.USER,
@@ -585,8 +585,8 @@ describe('LdapService', () => {
       const inputUser: string = 'testError';
       const input = {
         defaultGroup: 'c3student',
-        oldPassword: 'testNew',
-        newPassword: 'testNew'
+        oldunicodePwd: 'testNew',
+        newunicodePwd: 'testNew'
       };
       await ldapService.changeUserProfilePassword(inputUser, input).catch((err) => {
         expect(err.message).toEqual(`oldPassword and newPassword are equal`)
@@ -597,7 +597,7 @@ describe('LdapService', () => {
       const inputUser: string = 'testError';
       const input = {
         defaultGroup: 'c3student',
-        newPassword: 'testNew'
+        newunicodePwd: 'testNew'
       };
       await ldapService.changeUserProfilePassword(inputUser, (input as any)).catch((err) => {
         expect(err.message).toEqual(`you must pass a valid oldPassword and newPassword properties`)
@@ -607,23 +607,23 @@ describe('LdapService', () => {
     it('should test changeUserProfilePassword - Successfully', async () => {
       const input = {
         defaultGroup: 'c3Administrator',
-        oldPassword: '1234',
-        newPassword: 'testNew'
+        oldunicodePwd: '1234',
+        newunicodePwd: 'testNew'
       };
       const inputReverse = {
         defaultGroup: 'c3Administrator',
-        oldPassword: 'testNew',
-        newPassword: '1234'
+        oldunicodePwd: 'testNew',
+        newunicodePwd: '1234'
       };
       const deleteUser: DeleteUserRecordDto = {
-        username: 'user_test',
+        cn: 'user_test',
         defaultGroup: 'c3Administrator'
       };
       const creteUser: CreateUserRecordDto = {
-        username: 'user_test',
-        password: '1234',
-        firstName: 'Vitor',
-        lastName: 'Joao',
+        cn: 'user_test',
+        unicodePwd: '1234',
+        givenName: 'Vitor',
+        sn: 'Joao',
         defaultGroup: 'c3Administrator',
         displayName: 'Vitor Joao',
         objectClass: Objectclass.USER,
@@ -635,8 +635,8 @@ describe('LdapService', () => {
       };
       await ldapService.initUserRecordsCache(undefined);
       await ldapService.createUserRecord(creteUser);
-      await ldapService.changeUserProfilePassword(creteUser.username, input);
-      await ldapService.changeUserProfilePassword(creteUser.username, inputReverse).catch((err) => {
+      await ldapService.changeUserProfilePassword(creteUser.cn, input);
+      await ldapService.changeUserProfilePassword(creteUser.cn, inputReverse).catch((err) => {
         expect(err.lde_message).toContain('check_password_restrictions: the password was already used (in history)!');
       });
       await ldapService.deleteUserRecord(deleteUser);

@@ -57,7 +57,7 @@ describe('AuthController', () => {
   describe(' /login', () => {
     it('should test getWhitelisting - Successfully', async () => {
       const input: LoginDto = {
-        username: 'cTest', password: 'test', user: {
+        cn: 'cTest', password: 'test', user: {
           dn: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           controls: [
           ],
@@ -95,7 +95,7 @@ describe('AuthController', () => {
 
     it('should test getWhitelisting - empty memberOf', async () => {
       const input: LoginDto = {
-        username: 'cTest', password: 'test', user: {
+        cn: 'cTest', password: 'test', user: {
           dn: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           controls: [
           ],
@@ -136,7 +136,7 @@ describe('AuthController', () => {
       const accessTokenTest: string = 'test token';
       const refreshTokenTest: AccessToken = { accessToken: 'test token' };
       const spyJwtVerify = {
-        username: 'c3Test',
+        cn: 'c3Test',
         sub: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
         roles: [
           'C3_ADMINISTRATOR',
@@ -165,14 +165,14 @@ describe('AuthController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -184,7 +184,7 @@ describe('AuthController', () => {
       const req = mockRequest({ cookies: { jid: accessTokenTest } });
       const res = mockResponse();
       const tokenVersion: number = 1;
-      const spySignJwtToken: SignJwtToken = { username: spyLdapUser.user.username, userId: spyLdapUser.user.dn, roles: spyRoles };
+      const spySignJwtToken: SignJwtToken = { cn: spyLdapUser.user.cn, userId: spyLdapUser.user.dn, roles: spyRoles };
       jest
         .spyOn(jwtService, 'verify')
         .mockReturnValueOnce(spyJwtVerify);
@@ -208,10 +208,10 @@ describe('AuthController', () => {
         .mockImplementationOnce(async () => { return Promise.resolve() });
       await authController.ldapRefreshToken(req, res);
       expect(jwtService.verify).toHaveBeenCalled();
-      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.username);
+      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.cn);
       expect(authService.getRolesAndPermissionsFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
       expect(authService.signJwtToken).toHaveBeenCalledWith(spySignJwtToken);
-      expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.username);
+      expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.cn);
       expect(authService.signRefreshToken).toHaveBeenCalledWith(spySignJwtToken, tokenVersion);
       expect(authService.sendRefreshToken).toHaveBeenCalledWith(res, refreshTokenTest);
       expect(res.send).toHaveBeenCalledWith({ valid: true, accessToken: accessTokenTest });
@@ -243,14 +243,14 @@ describe('AuthController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -275,7 +275,7 @@ describe('AuthController', () => {
     it('should test ldapRefreshToken - User Records undefined', async () => {
       const accessTokenTest: string = 'test token';
       const spyJwtVerify = {
-        username: 'c3Test',
+        cn: 'c3Test',
         sub: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
         roles: [
           'C3_ADMINISTRATOR',
@@ -303,7 +303,7 @@ describe('AuthController', () => {
         .mockImplementationOnce(() => spyRoles);
       await authController.ldapRefreshToken(req, res);
       expect(jwtService.verify).toHaveBeenCalled();
-      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.username);
+      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.cn);
       expect(res.status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
       expect(res.send).toHaveBeenCalledWith({ valid: false, accessToken: '' });
     })
@@ -311,7 +311,7 @@ describe('AuthController', () => {
     it('should test ldapRefreshToken - tokenVersion !== payload.tokenVersion', async () => {
       const accessTokenTest: string = 'test token';
       const spyJwtVerify = {
-        username: 'c3Test',
+        cn: 'c3Test',
         sub: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
         roles: [
           'C3_ADMINISTRATOR',
@@ -340,14 +340,14 @@ describe('AuthController', () => {
           distinguishedName: 'CN=c3,OU=C3Administrator,OU=People,DC=c3edu,DC=online',
           userAccountControl: '66056',
           lastLogonTimestamp: '132576251909012870',
-          username: 'c3',
-          firstName: 'C3',
-          lastName: undefined,
+          cn: 'c3',
+          givenName: 'C3',
+          sn: undefined,
           email: undefined,
           displayName: 'C3_Test',
           gender: undefined,
           mail: undefined,
-          C3UserRole: undefined,
+          c3UserRole: undefined,
           dateOfBirth: undefined,
           studentID: undefined,
           telephoneNumber: undefined,
@@ -359,7 +359,7 @@ describe('AuthController', () => {
       const req = mockRequest({ cookies: { jid: accessTokenTest } });
       const res = mockResponse();
       const tokenVersion: number = 2;
-      const spySignJwtToken: SignJwtToken = { username: spyLdapUser.user.username, userId: spyLdapUser.user.dn, roles: spyRoles };
+      const spySignJwtToken: SignJwtToken = { cn: spyLdapUser.user.cn, userId: spyLdapUser.user.dn, roles: spyRoles };
       jest
         .spyOn(jwtService, 'verify')
         .mockReturnValueOnce(spyJwtVerify);
@@ -377,10 +377,10 @@ describe('AuthController', () => {
         .mockImplementationOnce(() => tokenVersion);
       await authController.ldapRefreshToken(req, res);
       expect(jwtService.verify).toHaveBeenCalled();
-      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.username);
+      expect(ldapService.getUserRecord).toHaveBeenCalledWith(spyJwtVerify.cn);
       expect(authService.getRolesAndPermissionsFromMemberOf).toHaveBeenCalledWith(spyLdapUser.user.memberOf);
       expect(authService.signJwtToken).toHaveBeenCalledWith(spySignJwtToken);
-      expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.username);
+      expect(authService.usersStore.getTokenVersion).toHaveBeenCalledWith(spyLdapUser.user.cn);
       expect(res.status).toHaveBeenCalledWith(HttpStatus.UNAUTHORIZED);
       expect(res.send).toHaveBeenCalledWith({ valid: false, accessToken: '' });
     })
@@ -388,16 +388,16 @@ describe('AuthController', () => {
 
   describe(' /revoke-refresh-token', () => {
     it('should test revokeUserRefreshToken - Successfully', async () => {
-      const input: { username: string } = { username: 'cTest' };
+      const input: { cn: string } = { cn: 'cTest' };
       jest
         .spyOn(authService.usersStore, 'incrementTokenVersion')
         .mockImplementationOnce(() => 1);
       await expect(authController.revokeUserRefreshToken(input)).resolves.toEqual({ version: 1 });
-      expect(authService.usersStore.incrementTokenVersion).toHaveBeenCalledWith(input.username);
+      expect(authService.usersStore.incrementTokenVersion).toHaveBeenCalledWith(input.cn);
     })
 
     it('should test revokeUserRefreshToken - invalid User', async () => {
-      const input = { username: undefined };
+      const input = { cn: undefined };
       jest
         .spyOn(authService.usersStore, 'incrementTokenVersion')
         .mockImplementationOnce(() => { throw new Error('test') });
@@ -408,7 +408,7 @@ describe('AuthController', () => {
     })
 
     it('should test revokeUserRefreshToken - invalid User without error message', async () => {
-      const input = { username: undefined };
+      const input = { cn: undefined };
       jest
         .spyOn(authService.usersStore, 'incrementTokenVersion')
         .mockImplementationOnce(() => { throw new Error() });

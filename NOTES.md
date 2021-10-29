@@ -30,8 +30,6 @@
     - [Run unit tests](#run-unit-tests)
   - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
   - [Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
-  - [DEBUG auth Login problems](#debug-auth-login-problems)
-- [LDAP_SEARCH_USER_FILTER='(cn={{username}})'](#ldap_search_user_filtercnusername)
 
 ## Starter Project
 
@@ -88,6 +86,7 @@ $ npm run start:dev
 
 # consumer app (api)
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
+$ npm run start:debug
 
 # or with debugger
 
@@ -470,7 +469,7 @@ LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
 LDAP_BIND_CREDENTIALS='Root123...'
 LDAP_SEARCH_BASE='ou=People,dc=c3edu,dc=online'
 LDAP_SEARCH_USER_FILTER='(cn={{username}})'
-LDAP_SEARCH_USER_ATTRIBUTES='cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber'
+LDAP_SEARCH_USER_ATTRIBUTES='cn,givenName,sn,displayName,userPrincipalName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,c3UserRole,dateOfBirth,studentID,telephoneNumber,extraPermission'
 LDAP_SEARCH_CACHE_FILTER='(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'
 AUTH_ADMIN_ROLE='C3_ADMINISTRATOR'
 LDAP_BASE_DN='dc=c3edu,dc=online'
@@ -547,36 +546,3 @@ fix with
 ```shell
 $ npm i -D @types/express
 ```
-
-## DEBUG auth Login problems
-
-
-```shell
-HTTP/1.1 401 Unauthorized
-X-Powered-By: Express
-Content-Type: application/json; charset=utf-8
-Content-Length: 104
-ETag: W/"68-n38ZIEWtm4qOZZ9ZT9m8SgutsDU"
-Date: Thu, 09 Sep 2021 16:32:40 GMT
-Connection: close
-
-{
-  "statusCode": 401,
-  "path": "/v1/auth/login",
-  "timestamp": "2021-09-09T16:32:40.187Z",
-  "error": "Unauthorized"
-}
-```
-
-
-import { Injectable } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-
-@Injectable()
-export class LdapAuthGuard extends AuthGuard('ldap') { }
-
-
-
-
-LDAP_SEARCH_USER_FILTER='(cn=${username})'
-# LDAP_SEARCH_USER_FILTER='(cn={{username}})'

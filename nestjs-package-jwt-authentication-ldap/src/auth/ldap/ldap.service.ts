@@ -94,19 +94,19 @@ export class LdapService {
             this.cache.users[username] = (await this.getUserRecord(username)).user;
             break;
           case UpdateCacheOperation.UPDATE:
-            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
+            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].cn === username);
             // Logger.log(`this.cache.users[username]:${JSON.stringify(this.cache.users[key], undefined, 2)}`, LdapService.name)
             // update user in cache, always get it from ldap to double check that it is inSync
             this.cache.users[key] = (await this.getUserRecord(username)).user;
             break;
           case UpdateCacheOperation.DELETE:
-            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].username === username);
+            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].cn === username);
             // remove user from cache, we need a filteredUsers array helper
             const filteredUsers: Record<string, SearchUserRecordDto> = {};
             recordToArray(this.cache.users).forEach((e: SearchUserRecordDto) => {
-              if (e.username != username) {
+              if (e.cn != username) {
                 // add to filteredUsers
-                filteredUsers[e.username] = e;
+                filteredUsers[e.cn] = e;
               }
             });
             // update cached users without deleted user
@@ -144,24 +144,24 @@ export class LdapService {
               // extract username from string | array
               dn: entry.object.dn as string,
               // if only have on group we must convert ldap string to array to ve consistent
-              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
-              extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
+              c3UserRole: entry.object.C3UserRole as string,
+              cn: entry.object.cn as string,
               controls: entry.object.controls as string[],
-              objectCategory: entry.object.objectCategory as string,
-              distinguishedName: entry.object.distinguishedName as string,
-              userAccountControl: entry.object.userAccountControl as string,
-              lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
-              username: entry.object.cn as string,
-              firstName: entry.object.givenName as string,
-              lastName: entry.object.sn as string,
-              email: entry.object.userPrincipalName as string,
-              displayName: entry.object.displayName as string,
-              gender: entry.object.gender as string,
-              mail: entry.object.mail as string,
-              C3UserRole: entry.object.C3UserRole as string,
               dateOfBirth: entry.object.dateOfBirth as string,
+              displayName: entry.object.displayName as string,
+              distinguishedName: entry.object.distinguishedName as string,
+              email: entry.object.userPrincipalName as string,
+              extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
+              gender: entry.object.gender as string,
+              givenName: entry.object.givenName as string,
+              lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
+              mail: entry.object.mail as string,
+              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
+              objectCategory: entry.object.objectCategory as string,
+              sn: entry.object.sn as string,
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
+              userAccountControl: entry.object.userAccountControl as string,
             };
           });
           res.on('error', (error) => {
@@ -233,14 +233,14 @@ export class LdapService {
               distinguishedName: entry.object.distinguishedName as string,
               userAccountControl: entry.object.userAccountControl as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
-              username: entry.object.cn as string,
-              firstName: entry.object.givenName as string,
-              lastName: entry.object.sn as string,
+              cn: entry.object.cn as string,
+              givenName: entry.object.givenName as string,
+              sn: entry.object.sn as string,
               email: entry.object.userPrincipalName as string,
               displayName: entry.object.displayName as string,
               gender: entry.object.gender as string,
               mail: entry.object.mail as string,
-              C3UserRole: entry.object.C3UserRole as string,
+              c3UserRole: entry.object.C3UserRole as string,
               dateOfBirth: entry.object.dateOfBirth as string,
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
@@ -333,24 +333,24 @@ export class LdapService {
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      const username = paramCase(createLdapUserDto.username);
+      const username = paramCase(createLdapUserDto.cn);
       const cn = username;
       const newUser: CreateLdapUserModel = {
         cn,
         name: username,
-        givenname: createLdapUserDto.firstName,
+        givenName: createLdapUserDto.givenName,
         // tslint:disable-next-line: max-line-length
-        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.firstName}${createLdapUserDto.lastName ? ` ${createLdapUserDto.lastName}` : ''}`,
+        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.givenName}${createLdapUserDto.sn ? ` ${createLdapUserDto.sn}` : ''}`,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
-        unicodePwd: encodeAdPassword(createLdapUserDto.password),
+        unicodePwd: encodeAdPassword(createLdapUserDto.unicodePwd),
         sAMAccountName: username,
         userAccountControl: UserAccountControl.NORMAL_ACCOUNT,
       };
 
       // optionals must be included outside the above object, otherwise the following error is shown {"error":"Cannot read property 'toString' of null"}
-      if (createLdapUserDto.lastName)
-        newUser.sn = createLdapUserDto.lastName;
+      if (createLdapUserDto.sn)
+        newUser.sn = createLdapUserDto.sn;
       if (createLdapUserDto.mail)
         newUser.mail = createLdapUserDto.mail;
       if (createLdapUserDto.dateOfBirth)
@@ -454,14 +454,14 @@ export class LdapService {
    */
   deleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
-      const delDN = `cn=${deleteUserRecordDto.username},ou=${deleteUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+      const delDN = `cn=${deleteUserRecordDto.cn},ou=${deleteUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
       try {
         this.ldapClient.del(delDN, async (error) => {
           if (error) {
             reject(error);
           } else {
             // update cache
-            await this.updateCachedUser(UpdateCacheOperation.DELETE, deleteUserRecordDto.username);
+            await this.updateCachedUser(UpdateCacheOperation.DELETE, deleteUserRecordDto.cn);
             resolve();
           }
         });
@@ -477,17 +477,17 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeUserDN = `cn=${changeUserRecordDto.username},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+        const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
 
         // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
-          if (change.modification.firstName) {
-            change.modification.givenName = change.modification.firstName;
-            delete change.modification.firstName;
+          if (change.modification.givenName) {
+            change.modification.givenName = change.modification.givenName;
+            delete change.modification.givenName;
           }
-          else if (change.modification.lastName) {
-            change.modification.sn = change.modification.lastName;
-            delete change.modification.lastName;
+          else if (change.modification.sn) {
+            change.modification.sn = change.modification.sn;
+            delete change.modification.sn;
           }
           else if (change.modification.password) {
             change.modification.unicodePwd = encodeAdPassword(change.modification.password);
@@ -504,7 +504,7 @@ export class LdapService {
           if (error) {
             reject(error);
           } else {
-            await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeUserRecordDto.username);
+            await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeUserRecordDto.cn);
             resolve();
           }
         });

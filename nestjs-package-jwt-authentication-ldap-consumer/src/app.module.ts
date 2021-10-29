@@ -43,7 +43,7 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               searchBase: config.get<string>('LDAP_SEARCH_BASE', 'ou=People,dc=c3edu,dc=online'),
               searchUserFilterStrategy: config.get<string>('LDAP_SEARCH_USER_FILTER_STRATEGY', '(cn={{username}})'),
               searchUserFilter: config.get<string>('LDAP_SEARCH_USER_FILTER', '(cn=${username})'),
-              searchUserAttributes: config.get<string>('LDAP_SEARCH_USER_ATTRIBUTES', 'cn,userPrincipalName,displayName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,C3UserRole,dateOfBirth,studentID,telephoneNumber,extraPermission'),
+              searchUserAttributes: config.get<string>('LDAP_SEARCH_USER_ATTRIBUTES', 'cn,givenName,sn,displayName,userPrincipalName,memberOf,userAccountControl,objectCategory,distinguishedName,mail,lastLogonTimestamp,gender,c3UserRole,dateOfBirth,studentID,telephoneNumber,extraPermission'),
               searchGroupFilter: config.get<string>('LDAP_SEARCH_GROUP_FILTER', '(cn=${groupName})'),
               searchGroupAttributes: config.get<string>('LDAP_SEARCH_GROUP_ATTRIBUTES', 'dn,cn,name,memberOf,objectCategory,distinguishedName,permission'),
               searchGroupProfilesPrefix: config.get<string>('LDAP_SEARCH_GROUP_PROFILES_PREFIX', 'C3'),

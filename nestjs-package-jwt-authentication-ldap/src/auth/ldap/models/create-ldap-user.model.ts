@@ -10,10 +10,9 @@ export class CreateLdapUserModel {
   @Length(1, 50)
   name: string;
 
-  // firstName
   @IsDefined()
   @Length(1, 50)
-  givenname: string;
+  givenName: string;
 
   // firstName + lastName
   @IsDefined()
@@ -26,7 +25,6 @@ export class CreateLdapUserModel {
 
   @IsDefined()
   @Length(3, 50)
-  // userPassword: string;
   unicodePwd: string;
 
   @IsOptional()

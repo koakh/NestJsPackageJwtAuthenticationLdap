@@ -6,7 +6,7 @@ export class DeleteUserRecordDto {
   @Length(1, 50)
   // ldap: name
   @ApiProperty()
-  username: string;
+  cn: string;
 
   // defaultGroup is the group that is defined on createUser and will be in dn
   // ex "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"

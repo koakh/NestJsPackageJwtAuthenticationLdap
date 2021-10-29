@@ -219,7 +219,7 @@ export class LdapController {
   ): Promise<void> {
     this.checkAuthUser(req);
     // convert ChangeUserProfileDto into ChangeUserRecordDto with injected user and pass to changeUserRecord
-    this.ldapService.changeUserRecord({ ...changeUserProfileDto, username: req.user.username })
+    this.ldapService.changeUserRecord({ ...changeUserProfileDto, cn: req.user.username })
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })

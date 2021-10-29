@@ -12,7 +12,7 @@ export class SearchUserRecordDto {
 
   @IsDefined()
   @ApiProperty()
-  extraPermission: string[];
+  extraPermission?: string[];
 
   @IsDefined()
   @ApiProperty()
@@ -34,18 +34,17 @@ export class SearchUserRecordDto {
   @ApiProperty()
   lastLogonTimestamp: string;
 
-  // cd
   @IsDefined()
   @ApiProperty()
-  username: string;
+  cn: string;
 
   @IsDefined()
   @ApiProperty()
-  firstName: string;
+  givenName: string;
 
   @IsDefined()
   @ApiProperty()
-  lastName: string;
+  sn: string;
 
   // userPrincipalName
   @IsDefined()
@@ -66,7 +65,7 @@ export class SearchUserRecordDto {
 
   @IsDefined()
   @ApiProperty()
-  C3UserRole: string;
+  c3UserRole: string;
 
   @IsDefined()
   @ApiProperty()
