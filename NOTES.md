@@ -79,6 +79,16 @@ $ sudo npm install -g @nestjs/cli
 
 ### Debug package and consumer App
 
+WARNING: update 2021-10-29 12:25:38 Debugger breakpoints fails when load code from a path with symbolic links
+
+![image](assets/2021-10-29-12-28-02.png)
+
+OK > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
+
+![image](assets/2021-10-29-12-40-24.png)
+
+KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
+
 ```shell
 # package watch: in term1: build and watch
 $ cd nestjs-package-jwt-authentication-ldap

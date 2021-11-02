@@ -40,7 +40,6 @@ export class CreateUserRecordDto {
   @ApiProperty()
   objectClass: string;
 
-  // firstName + lastName, if omitted automatically combine `firstName + lastName`
   @IsOptional()
   @ApiProperty()
   displayName: string;

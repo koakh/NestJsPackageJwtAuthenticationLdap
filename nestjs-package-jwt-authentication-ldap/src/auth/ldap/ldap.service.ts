@@ -6,7 +6,7 @@ import { Client } from 'ldapjs';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
-import { encodeAdPassword, includeLdapGroup, parseTemplate } from '../utils';
+import { encodeAdPassword, filterLdapGroup, includeLdapGroup, parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
@@ -319,7 +319,8 @@ export class LdapService {
           // convert record to array before duty
           const recordArray = recordToArray(this.cache.users);
           const filtered = await filterator(recordArray, searchUserRecordsDto.searchAttributes);
-          const paginatorResult = await paginator(filtered, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
+          const filteredExcludedGroups = filterLdapGroup(filtered, this.searchGroupExcludeProfileGroups)
+          const paginatorResult = await paginator(filteredExcludedGroups, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
           resolve({ ...paginatorResult });
         }
       } catch (error) {
@@ -340,7 +341,9 @@ export class LdapService {
         name: username,
         givenName: createLdapUserDto.givenName,
         // tslint:disable-next-line: max-line-length
-        displayName: (createLdapUserDto.displayName) ? createLdapUserDto.displayName : `${createLdapUserDto.givenName}${createLdapUserDto.sn ? ` ${createLdapUserDto.sn}` : ''}`,
+        displayName: (!createLdapUserDto.displayName && (createLdapUserDto.sn && createLdapUserDto.sn))
+          ? `${createLdapUserDto.givenName} ${createLdapUserDto.sn}`
+          : createLdapUserDto.displayName,
         // class that has custom attributes ex "objectClass": "User"
         objectclass: createLdapUserDto.objectClass ? createLdapUserDto.objectClass : UserObjectClass.USER,
         unicodePwd: encodeAdPassword(createLdapUserDto.unicodePwd),
@@ -373,7 +376,7 @@ export class LdapService {
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             // must add new user to group after update cache, it can crash if group doesn't exists
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: newUser.cn, group: createLdapUserDto.defaultGroup })
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: newUser.cn, group: createLdapUserDto.defaultGroup })
               .catch((error) => {
                 reject(error);
               });
@@ -399,7 +402,7 @@ export class LdapService {
         // Todo we must opt for on group here, to work when we create a user or when we add a member to group
         const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
         // search by member
-        const member = `cn=${addUserToGroupDto.username},ou=${searchGroup},ou=People,${this.baseDN}`;
+        const member = `cn=${addUserToGroupDto.cn},ou=${searchGroup},ou=People,${this.baseDN}`;
         const groupChange = new ldap.Change({
           operation: operation,
           modification: {
@@ -411,7 +414,7 @@ export class LdapService {
             reject(error);
           } else {
             // update cache
-            await this.updateCachedUser(UpdateCacheOperation.UPDATE, addUserToGroupDto.username);
+            await this.updateCachedUser(UpdateCacheOperation.UPDATE, addUserToGroupDto.cn);
             resolve();
           }
         });
@@ -427,19 +430,19 @@ export class LdapService {
   updateDefaultGroup(changeDefaultGroupDto: ChangeDefaultGroupDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.username)).user;
-        const newDn = `cn=${changeDefaultGroupDto.username},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.baseDN}`;
+        const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.cn)).user;
+        const newDn = `cn=${changeDefaultGroupDto.cn},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.baseDN}`;
 
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
           if (error)
             return reject(error);
 
-          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.username).catch((error) => { reject(error); });
+          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.cn).catch((error) => { reject(error); });
 
           const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.baseDN}`.toLowerCase();
           const notMember: boolean = user.memberOf.filter((group: string) => { return group.toLowerCase() == defaultGroupDn; }).length == 0;
           if (notMember)
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { username: changeDefaultGroupDto.username, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.REPLACE, { cn: changeDefaultGroupDto.cn, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
 
           resolve();
         });
@@ -479,21 +482,7 @@ export class LdapService {
       try {
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
 
-        // map array of changes to ldap.Change
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
-          if (change.modification.givenName) {
-            change.modification.givenName = change.modification.givenName;
-            delete change.modification.givenName;
-          }
-          else if (change.modification.sn) {
-            change.modification.sn = change.modification.sn;
-            delete change.modification.sn;
-          }
-          else if (change.modification.password) {
-            change.modification.unicodePwd = encodeAdPassword(change.modification.password);
-            delete change.modification.password;
-          }
-
           return new ldap.Change({
             operation: change.operation,
             modification: change.modification,

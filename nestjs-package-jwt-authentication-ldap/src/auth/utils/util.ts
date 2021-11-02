@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { pascalCase } from 'pascal-case';
+import { SearchUserRecordDto } from '../ldap/dto';
 
 const bcryptSaltRounds = 10;
 
@@ -62,6 +63,36 @@ export const includeLdapGroup = (group: string, groupPrefix: string, groupExclud
     Logger.log(`includeLdapGroup excluded group :${group}`, 'Util');
   }
   return (group.startsWith(groupPrefix) && !excluded);
+};
+
+export const filterLdapGroup = (groups: SearchUserRecordDto[], groupExcludeGroups: string[], debug = false): SearchUserRecordDto[] => {
+  // exclude user if it is in a excluded excludeProfileGroup
+  const filteredExcludedGroups = [];
+  groups.forEach((e) => {
+    let excludeMember = false;
+    if (debug) {
+      Logger.log(`e: ${JSON.stringify(e)}`);
+    };
+    if (e.memberOf && Array.isArray(e.memberOf)) {
+      e.memberOf.forEach((g: string) => {
+        if (debug) {
+          Logger.log(`group: ${g}`);
+        };
+        groupExcludeGroups.map(p => {
+          if (g.toLowerCase().startsWith(`CN=${p}`.toLowerCase())) {
+            if (debug) {
+              Logger.log(`excludeMember: ${e.cn}`);
+            }
+            excludeMember = true;
+          };
+        })
+      });
+      if (!excludeMember) {
+        filteredExcludedGroups.push(e);
+      };
+    }
+  });
+  return filteredExcludedGroups;
 };
 
 /**

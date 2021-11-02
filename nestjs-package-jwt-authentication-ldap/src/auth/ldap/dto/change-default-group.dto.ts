@@ -5,7 +5,7 @@ export class ChangeDefaultGroupDto {
   @IsDefined()
   @Length(1, 50)
   @ApiProperty()
-  username: string;
+  cn: string;
 
   @IsDefined()
   @Length(3, 50)
