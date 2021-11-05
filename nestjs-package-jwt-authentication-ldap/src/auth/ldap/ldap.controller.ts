@@ -283,14 +283,15 @@ export class LdapController {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
-
+ 
   @Get('/group/:groupName?')
+  @ApiParam({ name: 'groupName', required: false, type: 'string' })
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(RolesAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getGroupRecord(
     @Response() res,
-    @Param('groupName') groupName: string,
+    @Param('groupName') groupName?: string,
   ): Promise<void> {
     this.ldapService.getGroupRecord(groupName, GroupTypeOu.PROFILES, true)
       .then((user: SearchGroupRecordResponseDto) => {

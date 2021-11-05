@@ -42,12 +42,12 @@ Content-Type: {{contentType}}
   // "username": "teacher1",
   // "username": "parent1",
   // "username": "student1",
-  // "unicodePwd": "1234"
+  // "password": "1234"
   // "username": "mario",
-  // "unicodePwd": "secret"
+  // "password": "secret"
   // "username": "developer",
-  // "unicodePwd": "superhiddenpassword"
-  // "unicodePwd": "superhiddenpassword"
+  // "password": "superhiddenpassword"
+  // "password": "superhiddenpassword"
 }
 
 ### authRefreshTokenLdap
@@ -68,7 +68,7 @@ Content-Type: {{contentType}}
 {
   // note this works with inMemory store, if we used a valid token and restart server user is missing in userStore
   // change user to revoke it'// s token, increment version
-  "username": "c3"
+  "cn": "c3"
 }
 
 ### authLogOut
@@ -240,14 +240,14 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addUserToGroup = developer
+@addUserToGroup = dev
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "username": "{{addUserToGroup}}",
+  "cn": "{{addUserToGroup}}",
   // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
   "defaultGroup" : "{{groupC3Developer}}",
   // add a member to group
@@ -257,18 +257,18 @@ Authorization: Bearer {{authToken}}
 ### ldapAddMemberFromGroup
 // @name ldapDeleteMemberFromGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUserFromGroup = developer
+@deleteUserFromGroup = dev
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "username": "{{deleteUserFromGroup}}",
+  "cn": "{{deleteUserFromGroup}}",
   // required to use in searchDn, get defaultGroup from "dn": "CN=user,OU=${defaultGroup},OU=People,DC=c3edu,DC=online"
-  "defaultGroup" : "{{groupC3Developer}}",
+  "defaultGroup" : "C3Administrator",
   // add a member to group
-  "group" : "{{groupC3Administrator}}"
+  "group" : "C3Administrator"
 }
 
 ### ldapAddChangeDefaultGroup
@@ -308,9 +308,8 @@ Authorization: Bearer {{authToken}}
 
 {
   // optional override LDAP_SEARCH_CACHE_FILTER
-  // "filter": "(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
   // get it from a user record property "objectCategory": "CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online"
-  "filter": "(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
+  // "filter": "(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)"
 }
 
 ### ldapGetUserRecords
@@ -331,11 +330,19 @@ Authorization: Bearer {{authToken}}
       "cn": {
         // must match string
   //      "exact": "c3"
-        "exact": "nuno"
+  //      "exact": "nuno"
         // must contain string
   //      "includes": "mario",
         // must match regex, warn for escaped slashes
-  //      "regex": "\\b(\\w*mario\\w*)\\b"
+        "regex": "\\b(\\w*studentschool2c\\w*)\\b"
+      }
+    },
+    {
+      "dn": {
+        // "regex": "\\.*,OU=School2,OU=People,DC=c3edu,DC=online$\\b"
+        // pass case insensitivity
+        "regex": "\\.*,ou=school2,ou=people,dc=c3edu,dc=online$\\b",
+        "regexOptions": "i"
       }
     },
     {
@@ -344,9 +351,15 @@ Authorization: Bearer {{authToken}}
       }
     },
     {
+      "displayName": {
+        "exact":"mario monteiro"
+      }
+    },
+    {
       // special property, must search in memberOf array
       "memberOf": {
-  //    "exact": "CN=C3Student,OU=Groups,DC=c3edu,DC=online"
+//        "exact": "CN=C3Student,OU=Groups,DC=c3edu,DC=online"
+//        "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
       }
     }
   ]

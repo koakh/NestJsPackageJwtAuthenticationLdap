@@ -1,8 +1,8 @@
-import { pascalCase } from 'pascal-case';
-import { paramCase } from 'param-case';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
+import { paramCase } from 'param-case';
+import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
@@ -23,8 +23,9 @@ export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
   private searchUserFilter: string;
-  private searchUserAttributes: string[];
+  private searchUserAttributes: string[];  
   private searchGroupFilter: string;
+  private searchCacheFilter: string;
   private searchGroupAttributes: string[];
   private searchGroupProfilesPrefix: string;
   private searchGroupPermissionsPrefix: string;
@@ -62,6 +63,7 @@ export class LdapService {
     this.searchBase = this.config.ldap.searchBase;
     this.searchUserFilter = this.config.ldap.searchUserFilter;
     this.searchUserAttributes = this.config.ldap.searchUserAttributes.toString().split(',');
+    this.searchCacheFilter = this.config.ldap.searchCacheFilter;
     this.searchGroupFilter = this.config.ldap.searchGroupFilter;
     this.searchGroupAttributes = this.config.ldap.searchGroupAttributes.toString().split(',');
     this.searchGroupProfilesPrefix = this.config.ldap.searchGroupProfilesPrefix;
@@ -196,7 +198,7 @@ export class LdapService {
       const showDebug = false;
       try {
         // if filter is undefined, use default filter
-        filter = filter ? filter : this.newUserDnPostfix;
+        filter = filter ? filter : this.searchCacheFilter;
         // note to work we must use the scope sub else it won't work
         let user: SearchUserRecordDto;
         // recordsFound sums on page event

@@ -53,7 +53,7 @@ export class AuthController {
     if (extraPermission && typeof extraPermission === 'string') {
       extraPermission = [extraPermission];
     }
-    const caseConvertedExtraPermissions = (Array.isArray(extraPermission) && extraPermission.length > 0) 
+    const caseConvertedExtraPermissions = (Array.isArray(extraPermission) && extraPermission.length > 0)
       ? extraPermission.map((e) => constantCase(e.replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_')))
       : [];
     // concatenate group permissions and user extraPermission
@@ -120,7 +120,7 @@ export class AuthController {
     }
     // get licenseActivated to pass to getRolesAndPermissionsFromMemberOf
     const { licenseActivated } = await this.consumerAppService.licenseState();
-    Logger.log(`licenseActivated: ${licenseActivated}`, AuthController.name);
+    // Logger.log(`licenseActivated: ${licenseActivated}`, AuthController.name);
     // roles/permissions
     const [roles, permissions] = await this.authService.getRolesAndPermissionsFromMemberOf(user.memberOf, licenseActivated);
     // metaData

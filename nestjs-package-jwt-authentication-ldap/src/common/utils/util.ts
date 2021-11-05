@@ -132,7 +132,7 @@ export const filterator = (items: any, searchAttributes?: Array<FilteratorSearch
             // Logger.log(`filterator attribute: regex '${attribute[attributeKey].regex}'`);
             try {
               result = result.filter((e) => {
-                const regExp = new RegExp(attribute[attributeKey].regex);
+                const regExp = new RegExp(attribute[attributeKey].regex, attribute[attributeKey].regexOptions ? attribute[attributeKey].regexOptions : undefined);
                 return regExp.test(e[attributeKey]);
               });
             } catch (error) {

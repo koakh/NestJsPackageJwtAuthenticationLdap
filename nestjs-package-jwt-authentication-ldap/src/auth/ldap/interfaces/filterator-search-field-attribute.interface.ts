@@ -6,5 +6,6 @@ export interface FilteratorSearchFieldAttribute {
     includes?: string,
     // must match regex
     regex?: string,
+    regexOptions?: string,
   }
 }
