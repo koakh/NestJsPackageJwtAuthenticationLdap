@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, Max, Min } from 'class-validator';
+import { SortDirection } from '../../../auth/utils';
 import { FilteratorSearchFieldAttribute } from '../interfaces';
 
 export class SearchUserRecordsDto {
@@ -13,6 +14,14 @@ export class SearchUserRecordsDto {
   @IsOptional()
   @ApiProperty()
   perPage?: number;
+
+  @IsOptional()
+  @ApiProperty()
+  sortBy?: string;
+
+  @IsOptional()
+  @ApiProperty({ enum: [SortDirection.ASCENDING, SortDirection.DESCENDING]})
+  sortDirection?: SortDirection
 
   @IsOptional()
   @ApiProperty()

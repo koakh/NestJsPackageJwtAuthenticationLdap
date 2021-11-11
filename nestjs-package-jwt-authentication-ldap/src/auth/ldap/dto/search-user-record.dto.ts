@@ -78,4 +78,11 @@ export class SearchUserRecordDto {
   @IsDefined()
   @ApiProperty()
   telephoneNumber: string;
+
+  // dynamic/onThe fly properties
+
+  // when use usersBaseSearch
+  @IsDefined()
+  @ApiProperty()
+  customUsersBaseSearch?: boolean;
 }

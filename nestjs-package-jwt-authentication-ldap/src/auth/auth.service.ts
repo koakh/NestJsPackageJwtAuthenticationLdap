@@ -1,4 +1,5 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { constants as c } from './ldap/ldap.constants';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { constantCase } from 'constant-case';
@@ -8,11 +9,12 @@ import { CONFIG_SERVICE } from '../common/constants';
 import { ModuleOptionsConfig } from '../common/interfaces';
 import { asyncForEach, sortArrayString } from '../common/utils/util';
 import { AuthStore } from './auth.store';
-import { AccessToken } from './interfaces';
+import { AccessToken, SignJwtToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { GroupTypeOu } from './ldap/enums';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
+import { OperationsError } from 'ldapjs';
 @Injectable()
 export class AuthService {
   // init usersStore
@@ -24,23 +26,35 @@ export class AuthService {
     @Inject(CONFIG_SERVICE)
     private readonly config: ModuleOptionsConfig,
   ) { }
-  async signJwtToken(user: any, options?: SignOptions): Promise<AccessToken> {
+
+  async signJwtToken(user: SignJwtToken, options?: SignOptions): Promise<AccessToken> {
     // note: we choose a property name of sub to hold our userId value to be consistent with JWT standards
     const payload = { username: user.username, sub: user.userId, roles: user.roles, permissions: user.permissions, metaData: user.metaData };
+    // override accessTokenExpiresIn
+    if (user.userId.toLocaleLowerCase().includes(`OU=${c.DEVELOPER_GROUP}`.toLocaleLowerCase())) {
+      options = { ...options, expiresIn: c.DEVELOPER_ACCESS_TOKEN_EXPIRES_IN };
+    }
     return {
       // generate JWT from a subset of the user object properties
-      accessToken: this.jwtService.sign(payload, options),
+      accessToken: this.jwtService.sign(payload, {
+        ...options,
+        secret: this.config.auth.accessTokenJwtSecret instanceof Function
+          ? this.config.auth.accessTokenJwtSecret()
+          : this.config.auth.accessTokenJwtSecret,
+      }),
     };
   }
 
-  async signRefreshToken(user: any, tokenVersion: number, options?: SignOptions): Promise<AccessToken> {
+  async signRefreshToken(user: SignJwtToken, tokenVersion: number, options?: SignOptions): Promise<AccessToken> {
     const payload = { username: user.username, sub: user.userId, roles: user.roles, permissions: user.permissions, metaData: user.metaData, tokenVersion };
     return {
       // generate JWT from a subset of the user object properties
       accessToken: this.jwtService.sign(payload, {
         ...options,
         // require to use refreshTokenJwtSecret
-        secret: this.config.auth.refreshTokenJwtSecret,
+        secret: this.config.auth.refreshTokenJwtSecret instanceof Function
+          ? this.config.auth.refreshTokenJwtSecret()
+          : this.config.auth.refreshTokenJwtSecret,
         expiresIn: this.config.auth.refreshTokenExpiresIn,
       }),
     };

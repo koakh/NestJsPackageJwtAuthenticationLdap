@@ -16,7 +16,8 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
 @Global()
 // TODO: trick#1 must be here else fails in JwtService, and don't export expose all controllers and services
 @Module({
-  exports: [AuthService, LdapService, CONFIG_SERVICE],
+  // TODO: we must export CONFIG_SERVICE, CONSUMER_APP_SERVICE to have access in AppController and 
+  exports: [AuthService, LdapService, CONFIG_SERVICE, CONSUMER_APP_SERVICE],
   controllers: [AuthController, LdapController],
   // TODO: the missing magic piece to solve the annoying Nest can't resolve dependencies of the RolesAuthGuard (?). Please make sure that the argument Reflector at index [0] is available in the AuthModule context.
   providers: [AuthService, JwtStrategy, LdapStrategy, RolesStrategy, LdapService, Reflector],
@@ -26,7 +27,9 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
       useFactory: async (
         config: ModuleOptionsConfig,
       ) => ({
-        secret: config.auth.accessTokenJwtSecret,
+        secret: config.auth.accessTokenJwtSecret instanceof Function
+          ? config.auth.accessTokenJwtSecret()
+          : config.auth.accessTokenJwtSecret,
         signOptions: { expiresIn: config.auth.accessTokenExpiresIn },
       }),
     }),

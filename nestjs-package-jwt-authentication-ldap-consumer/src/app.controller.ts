@@ -1,4 +1,5 @@
 // TODO: must be imported from interface
+import { TokenSecrets } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { ConsumerAppService, AuthService, CONFIG_SERVICE, CONSUMER_APP_SERVICE, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { Logger } from '@nestjs/common';
 import { Inject } from '@nestjs/common';

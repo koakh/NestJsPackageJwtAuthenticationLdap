@@ -3,7 +3,7 @@ import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { Roles } from '../decorators/roles.decorator';
 import { UserRoles } from '../enums';
-import { JwtAuthGuard, RolesAuthGuard } from '../guards';
+import { JwtAuthGuard, PermissionsAuthAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
@@ -28,9 +28,9 @@ export class LdapController {
   }
 
   @Post('/user')
-  // @Roles and // @UseGuards(RolesAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
+  // @Roles and // @UseGuards(PermissionsAuthAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
     @Response() res,
@@ -52,7 +52,7 @@ export class LdapController {
 
   @Post('/group/:operation')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: 'operation', enum: ['add', 'delete'] })
   async addMemberToGroup(
@@ -73,7 +73,7 @@ export class LdapController {
 
   @Put('/default-group')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async updateDefaultGroup(
     @Response() res,
@@ -90,7 +90,7 @@ export class LdapController {
 
   @Get('/user/:username')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
     @Response() res,
@@ -107,7 +107,7 @@ export class LdapController {
 
   @Post('/cache/init')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
     @Response() res,
@@ -124,7 +124,7 @@ export class LdapController {
 
   @Post('/cache/update')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async updateUserRecordsCache(
     @Response() res,
@@ -140,7 +140,7 @@ export class LdapController {
 
   @Post('/cache/search')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecords(
     @Response() userRecordsResponse,
@@ -158,7 +158,7 @@ export class LdapController {
   @Delete('/user')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   @UseGuards(LdapDeleteUsersGuard)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteUserRecord(
     @Response() res,
@@ -176,7 +176,7 @@ export class LdapController {
   @Put('/user')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
   // @UseGuards(LdapUpdateUsersGuard)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
     @Response() res,
@@ -248,7 +248,7 @@ export class LdapController {
 
   @Post('/group')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createGroupRecord(
     @Response() res,
@@ -269,7 +269,7 @@ export class LdapController {
 
   @Delete('/group')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteGroupRecord(
     @Response() res,
@@ -283,11 +283,11 @@ export class LdapController {
         res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
       });
   }
- 
+
   @Get('/group/:groupName?')
   @ApiParam({ name: 'groupName', required: false, type: 'string' })
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(RolesAuthGuard)
+  @UseGuards(PermissionsAuthAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getGroupRecord(
     @Response() res,

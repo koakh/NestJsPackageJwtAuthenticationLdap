@@ -1,7 +1,9 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
+import e = require('express');
 import { pascalCase } from 'pascal-case';
-import { SearchUserRecordDto } from '../ldap/dto';
+import { UserRoles } from '../enums';
+import { SearchUserPaginatorResponseDto, SearchUserRecordDto } from '../ldap/dto';
 
 const bcryptSaltRounds = 10;
 
@@ -69,20 +71,22 @@ export const filterLdapGroup = (groups: SearchUserRecordDto[], groupExcludeGroup
   // exclude user if it is in a excluded excludeProfileGroup
   const filteredExcludedGroups = [];
   groups.forEach((e) => {
-    let excludeMember = false;
-    if (debug) {
-      Logger.log(`e: ${JSON.stringify(e)}`);
-    };
+    // if (debug) {
+    //   Logger.log(`e: ${JSON.stringify(e)}`);
+    // };
     if (e.memberOf && Array.isArray(e.memberOf)) {
+      let excludeMember = false;
+      // loop membersOf
       e.memberOf.forEach((g: string) => {
-        if (debug) {
-          Logger.log(`group: ${g}`);
-        };
-        groupExcludeGroups.map(p => {
+        // if (debug) {
+        //   Logger.log(`group: ${g}`);
+        // };
+        // loop excludeGroups array
+        groupExcludeGroups.forEach(p => {
           if (g.toLowerCase().startsWith(`CN=${p}`.toLowerCase())) {
             if (debug) {
-              Logger.log(`excludeMember: ${e.cn}`);
-            }
+              Logger.log(`  excludeMember: ${e.cn} it is a memberOf ${p}`);
+            };
             excludeMember = true;
           };
         })
@@ -90,6 +94,9 @@ export const filterLdapGroup = (groups: SearchUserRecordDto[], groupExcludeGroup
       if (!excludeMember) {
         filteredExcludedGroups.push(e);
       };
+    } else {
+      // always push if dont belongs or have memberOf
+      filteredExcludedGroups.push(e);
     }
   });
   return filteredExcludedGroups;
@@ -116,7 +123,7 @@ export const getProfileFromDistinguishedName = (dn: string): string => {
  * @param memberOf ex "CN=C3Teacher,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
  * @returns extracted profile output "C3Teacher"
  */
- export const getProfileFromMemberOf = (memberOf: string): string => {
+export const getProfileFromMemberOf = (memberOf: string): string => {
   try {
     const inputArray = memberOf.split(',');
     const inputArrayProfile = inputArray[0].split('=');
@@ -145,3 +152,62 @@ export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {
     return 'INVALID PROFILE, user must have at least on group in it\'s memberOf to extract a valid profile';
   }
 };
+
+export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[]): SearchUserRecordDto[] => {
+  // normal number of OUs, one or more is a customUsersBaseSearch or have extra OU
+  const defaultNumberOfOUs = 2;
+  const isCustom = (cn: string): boolean => {
+    let countOUs = 0;
+    const cnArray = cn.split(',');
+    cnArray.forEach(e => {
+      if (e.toLowerCase().startsWith('OU='.toLowerCase())) {
+        countOUs++;
+      };
+    });
+    return countOUs > defaultNumberOfOUs;
+  };
+
+  return data.map((e: SearchUserRecordDto) => {
+    return { ...e, customUsersBaseSearch: isCustom(e.dn) };
+  });
+};
+
+export enum SortDirection {
+  ASCENDING = 'ascending',
+  DESCENDING = 'descending',
+};
+
+/**
+ * sort array by key
+ * @param data 
+ * @param keyProp 
+ * @returns 
+ */
+export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection: SortDirection = SortDirection.ASCENDING) => {
+  let op1: number;
+  let op2: number;
+  if (sortDirection === SortDirection.ASCENDING) {
+    op1 = -1;
+    op2 = 1;
+  } else {
+    op1 = 1;
+    op2 = -1;
+  };
+  // sort by name
+  return data.sort(function (a: any, b: any) {
+    // ignore upper and lowercase
+    var nameA = a[keyProp].toUpperCase();
+    // ignore upper and lowercase
+    var nameB = b[keyProp].toUpperCase();
+    if (nameA < nameB) {
+      // return -1;
+      return op1;
+    };
+    if (nameA > nameB) {
+      // return 1;
+      return op2;
+    };
+    // names must be equal
+    return 0;
+  });
+}

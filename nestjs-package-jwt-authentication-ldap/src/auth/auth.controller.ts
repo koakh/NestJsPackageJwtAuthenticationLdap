@@ -1,14 +1,16 @@
-import { Body, Controller, ForbiddenException, HttpStatus, Inject, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, Get, HttpStatus, Inject, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { constantCase } from 'constant-case';
 import * as passport from 'passport';
 import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../common/constants';
 // ConsumerAppService must be imported from `src/common/interfaces/consumer-app-service.interface` not from `src/consumer-app/consumer-app.service.ts`
-import { ConsumerAppService, ModuleOptionsConfig } from '../common/interfaces';
+import { ConsumerAppService, JwtSecrets, ModuleOptionsConfig } from '../common/interfaces';
 import { AuthService } from './auth.service';
+import { Roles } from './decorators/roles.decorator';
 import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto } from './dto';
-import { JwtAuthGuard, LdapAuthGuard } from './guards';
+import { UserRoles } from './enums';
+import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthAuthGuard, SecretKeyAuthGuard } from './guards';
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
@@ -106,7 +108,11 @@ export class AuthController {
 
     try {
       // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
-      payload = this.jwtService.verify(token, { secret: this.config.auth.refreshTokenJwtSecret });
+      payload = this.jwtService.verify(token, {
+        secret: this.config.auth.refreshTokenJwtSecret instanceof Function
+          ? this.config.auth.refreshTokenJwtSecret()
+          : this.config.auth.refreshTokenJwtSecret
+      });
     } catch (error) {
       Logger.error(error, AuthController.name);
       return invalidPayload();
@@ -168,5 +174,30 @@ export class AuthController {
     // this will invalidate the browser cookie refreshToken, only work with browser, not with insomnia etc
     this.authService.sendRefreshToken(res, { accessToken: '' });
     return res.status(HttpStatus.OK).send({ logOut: true });
+  }
+
+  @Post('/invalidate-secrets')
+  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @UseGuards(PermissionsAuthAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async invalidateJwtSecret() {
+    const { accessTokenJwtSecret, refreshTokenJwtSecret }: JwtSecrets = this.consumerAppService.initRenewTokenSecrets();
+    return {
+      message: {
+        accessTokenJwtSecret: `${accessTokenJwtSecret.substr(0, 20)}...`,
+        refreshTokenJwtSecret: `${refreshTokenJwtSecret.substr(0, 20)}...`
+      }
+    }
+  }
+
+  // use only in development mode, unGuarded endpoint
+  @Get('/secrets/:secretKey')
+  @UseGuards(SecretKeyAuthGuard)
+  @ApiParam({ name: 'secretKey', required: true, type: 'string' })
+  async getJwtSecrets(/*@Param('secretKey') secretKey: string*/) {
+    // if (secretKey !== this.config.auth.authSecretKey) {
+    //   throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+    // }
+    return { message: this.consumerAppService.getJwtSecrets() };
   }
 }

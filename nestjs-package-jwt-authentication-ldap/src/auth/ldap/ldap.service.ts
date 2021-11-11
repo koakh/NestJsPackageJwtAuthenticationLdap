@@ -6,7 +6,7 @@ import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
-import { encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromMemberOf, includeLdapGroup, parseTemplate } from '../utils';
+import { addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromMemberOf, includeLdapGroup, parseTemplate, sortObjectByKey } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
@@ -321,9 +321,12 @@ export class LdapService {
           // convert record to array before duty
           const recordArray = recordToArray(this.cache.users);
           const filtered = await filterator(recordArray, searchUserRecordsDto.searchAttributes);
-          const filteredExcludedGroups = filterLdapGroup(filtered, this.searchGroupExcludeProfileGroups)
-          const paginatorResult = await paginator(filteredExcludedGroups, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
-          resolve({ ...paginatorResult });
+          const filteredExcludedGroups = filterLdapGroup(filtered, this.searchGroupExcludeProfileGroups);
+          const sortedArray = searchUserRecordsDto.sortBy ? sortObjectByKey(filteredExcludedGroups, searchUserRecordsDto.sortBy, searchUserRecordsDto.sortDirection) : filteredExcludedGroups;
+          const paginatorResult = await paginator(sortedArray, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
+          // extended with extra properties like customUsersBaseSearch when we detect that are used a custom OU like OU=School1
+          const data = addExtraPropertiesToGetUserRecords(paginatorResult.data);
+          resolve({ ...paginatorResult, data });
         }
       } catch (error) {
         // Logger.error(`error: [${error.message}]`, LdapService.name);
@@ -378,7 +381,7 @@ export class LdapService {
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             // must add new user to group after update cache, it can crash if group doesn't exists
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: newUser.cn, group: createLdapUserDto.defaultGroup })
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: newUser.cn, defaultGroup: createLdapUserDto.defaultGroup, group: createLdapUserDto.defaultGroup })
               .catch((error) => {
                 reject(error);
               });
@@ -465,7 +468,6 @@ export class LdapService {
                 throw (error);
               });
           });
-          // await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: changeDefaultGroupDto.cn, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
         };
         // the last thing to do is change userDn, else we cant't search it in above block code
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
@@ -514,14 +516,20 @@ export class LdapService {
     return new Promise((resolve, reject) => {
       try {
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
-
+        // map and override changes
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
+          // detect and override properties
+          if ('unicodePwd' in change.modification) {
+            // must override unicodePwd properties
+            change.modification.unicodePwd = encodeAdPassword(change.modification.unicodePwd);
+            // Logger.debug(`change.modification.unicodePwd: [${change.modification.unicodePwd}]`, LdapService.name);
+          }
           return new ldap.Change({
             operation: change.operation,
             modification: change.modification,
           });
         });
-
+        // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {
           if (error) {
             reject(error);

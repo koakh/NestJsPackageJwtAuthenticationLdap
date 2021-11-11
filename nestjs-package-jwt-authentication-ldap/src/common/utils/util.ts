@@ -230,7 +230,6 @@ export const asyncForEach = async (array: any, callback: any) => {
   }
 };
 
-
 /**
  * sort string array
  * @param items 
@@ -251,3 +250,33 @@ export const sortArrayString = (items: string[]): string[] => {
     return [];
   }
 }
+
+/**
+ * insert Item in array at position
+ * @param arr 
+ * @param index 
+ * @param newItem 
+ * @returns 
+ */
+export const insertItemInArrayAtPosition = (arr: any[], index: number, newItem: any) => [
+  // part of the array before the specified index
+  ...arr.slice(0, index),
+  // inserted item
+  newItem,
+  // part of the array after the specified index
+  ...arr.slice(index)
+];
+
+/**
+ * generate a random secret string
+ * @param length 
+ * @returns 
+ */
+export const randomSecret = (length = 100): string => {
+  const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#%&~!@-#$';
+  let retVal = '';
+  for (let i = 0, n = charset.length; i < length; ++i) {
+    retVal += charset.charAt(Math.floor(Math.random() * n));
+  }
+  return retVal;
+};

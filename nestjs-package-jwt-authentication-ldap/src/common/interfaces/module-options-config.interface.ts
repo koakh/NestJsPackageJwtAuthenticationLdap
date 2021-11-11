@@ -1,13 +1,14 @@
 export interface ModuleOptionsConfig {
   auth: {
     authShowAccessTokenProps: boolean;
-    accessTokenJwtSecret: string;
+    authSecretKey: string;
+    accessTokenJwtSecret: string | { (): string };
+    refreshTokenJwtSecret: string | { (): string };
     accessTokenExpiresIn: string;
-    refreshTokenJwtSecret: string;
     refreshTokenExpiresIn: string;
-    refreshTokenSkipIncrementVersion: string;
+    refreshTokenSkipIncrementVersion: boolean;
     roleAdmin: string;
-    rolePermittedUnlicensedPermissionGroups: string;
+    rolePermittedUnlicensedPermissionGroups: string;    
   },
   ldap: {
     address: string;

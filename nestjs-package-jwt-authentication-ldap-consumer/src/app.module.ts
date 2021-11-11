@@ -1,10 +1,9 @@
+import { AuthModule } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from '@koakh/nestjs-package-jwt-authentication-ldap';
-import { ConfigModule } from '@nestjs/config';
 import { ConsumerAppModule } from './consumer-app/consumer-app.module';
-import { ConfigService } from '@nestjs/config';
 import { ConsumerAppService } from './consumer-app/consumer-app.service';
 
 @Module({
@@ -21,16 +20,16 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
           consumerAppService,
           config: {
             auth: {
-              accessTokenJwtSecret: config.get<string>('ACCESS_TOKEN_JWT_SECRET', 'secretKeyAccessToken'),
-              accessTokenExpiresIn: config.get<string>('ACCESS_TOKEN_EXPIRES_IN', '30m'),
-              refreshTokenJwtSecret: config.get<string>('REFRESH_TOKEN_JWT_SECRET', 'secretKeyRefreshToken'),
-              refreshTokenExpiresIn: config.get<string>('REFRESH_TOKEN_EXPIRES_IN', '7d'),
-              refreshTokenSkipIncrementVersion: config.get<string>('REFRESH_TOKEN_SKIP_INCREMENT_VERSION', 'false'),
               authShowAccessTokenProps: config.get<boolean>('AUTH_SHOW_ACCESS_TOKEN_PROPS', false),
+              authSecretKey: config.get<string>('AUTH_SECRET_KEY', '4LGHe209gmlJtQwP7FfM89hMNzOCqrNg'),
+              accessTokenJwtSecret: config.get<string | { (): string }>('ACCESS_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().accessTokenJwtSecret),
+              refreshTokenJwtSecret: config.get<string | { (): string }>('REFRESH_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().refreshTokenJwtSecret),
+              accessTokenExpiresIn: config.get<string>('ACCESS_TOKEN_EXPIRES_IN', '30m'),
+              refreshTokenExpiresIn: config.get<string>('REFRESH_TOKEN_EXPIRES_IN', '7d'),
+              refreshTokenSkipIncrementVersion: config.get<boolean>('REFRESH_TOKEN_SKIP_INCREMENT_VERSION', false),
               roleAdmin: config.get<string>('AUTH_ADMIN_ROLE', 'C3_ADMINISTRATOR'),
               rolePermittedUnlicensedPermissionGroups: config.get<string>('AUTH_ADMIN_ROLE_PERMITTED_UNLICENSED_PERMISSION_GROUPS', 'RP_LICENSE,RP_INTERNET_ACCESS,RP_TIME_CONFIGURATION,RP_WIRELESS,RP_LOCAL_AREA_NETWORK'),
             },
-            // TODO: this can be an anonymous function of a core ACTION_CONFIG_GET result :) or a static from configService
             ldap: {
               address: config.get<string>('LDAP_ADDRESS', 'localhost'),
               port: config.get<string | number>('LDAP_PORT', 389),
@@ -57,12 +56,12 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
         };
       },
     }),
-    // TODO: ConsumerAppModule,
   ],
+  // enable AppController controller only to test it in package development, in publish package this must be disabled
   controllers: [/*AppController*/],
   // require to use app AppService in DI
   // else Nest can't resolve dependencies of the AppController (?). Please make sure that the argument AppService at index [0] is available in the AppModule context
-  providers: [AppService/*, ConsumerAppService*/],
+  providers: [/*AppService, ConsumerAppService*/],
   exports: []
 })
 
