@@ -195,10 +195,9 @@ export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection
   };
   // sort by name
   return data.sort(function (a: any, b: any) {
-    // ignore upper and lowercase
-    var nameA = a[keyProp].toUpperCase();
-    // ignore upper and lowercase
-    var nameB = b[keyProp].toUpperCase();
+    // ignore upper and lowercase, but sometimes it is undefined, or object don't have that key
+    var nameA = keyProp in a && a[keyProp] ? a[keyProp].toUpperCase() : '';
+    var nameB = keyProp in b && b[keyProp] ? b[keyProp].toUpperCase() : '';
     if (nameA < nameB) {
       // return -1;
       return op1;

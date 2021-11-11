@@ -10,7 +10,7 @@ import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
 import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto } from './dto';
 import { UserRoles } from './enums';
-import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthAuthGuard, SecretKeyAuthGuard } from './guards';
+import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthGuard, SecretKeyAuthGuard } from './guards';
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
@@ -178,7 +178,7 @@ export class AuthController {
 
   @Post('/invalidate-secrets')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(PermissionsAuthAuthGuard)
+  @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async invalidateJwtSecret() {
     const { accessTokenJwtSecret, refreshTokenJwtSecret }: JwtSecrets = this.consumerAppService.initRenewTokenSecrets();
