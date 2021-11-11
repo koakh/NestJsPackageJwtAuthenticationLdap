@@ -46,7 +46,7 @@ Content-Type: {{contentType}}
   // "username": "student1",
   // "password": "1234"
   // "username": "nano",
-  // "password": "secret"
+  // "password": "nanosecret"
   // "password": "secret"
   // "username": "developer",
   // "password": "superhiddenpassword"
@@ -183,7 +183,7 @@ Authorization: Bearer {{authToken}}
     {
       "operation": "replace",
       "modification": {
-        "unicodePwd": "secret"
+        "unicodePwd": "nanosecret"
       }
     },
     // opt2: unicodePwd must have delete and add
@@ -368,7 +368,7 @@ Authorization: Bearer {{authToken}}
 {
   "page": 1,
   "perPage": 25,
-  "sortBy": "dn",
+  "sortBy": "dateOfBirth",
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
   // optional
