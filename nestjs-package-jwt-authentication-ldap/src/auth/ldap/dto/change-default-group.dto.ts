@@ -11,4 +11,9 @@ export class ChangeDefaultGroupDto {
   @Length(3, 50)
   @ApiProperty()
   defaultGroup: string;
+
+  @IsDefined()
+  @Length(3, 50)
+  @ApiProperty()
+  group: string;
 }

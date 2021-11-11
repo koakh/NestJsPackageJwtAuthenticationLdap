@@ -108,7 +108,32 @@ export const getProfileFromDistinguishedName = (dn: string): string => {
     return profile;
   } catch (err) {
     return '';
-  }
+  };
+};
+
+/**
+ * get profile from memberOf
+ * @param memberOf ex "CN=C3Teacher,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
+ * @returns extracted profile output "C3Teacher"
+ */
+ export const getProfileFromMemberOf = (memberOf: string): string => {
+  try {
+    const inputArray = memberOf.split(',');
+    const inputArrayProfile = inputArray[0].split('=');
+    const profile = inputArrayProfile[1];
+    return profile;
+  } catch (err) {
+    return '';
+  };
+};
+
+/*
+* get profile from memberOf
+* @param memberOf ex "cn=vini,ou=C3Developer,ou=People,dc=c3edu,dc=online"
+* @returns extracted profile output "vini"
+*/
+export const getCnFromDn = (dn: string): string => {
+  return getProfileFromMemberOf(dn);
 };
 
 export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {

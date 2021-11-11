@@ -5,8 +5,8 @@ import { paramCase } from 'param-case';
 import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
-import { filterator, getMemoryUsage, getMemoryUsageDifference, paginator, recordToArray } from '../../common/utils/util';
-import { encodeAdPassword, filterLdapGroup, includeLdapGroup, parseTemplate } from '../utils';
+import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
+import { encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromMemberOf, includeLdapGroup, parseTemplate } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
@@ -23,7 +23,7 @@ export class LdapService {
   private ldapClient: Client;
   private searchBase: string;
   private searchUserFilter: string;
-  private searchUserAttributes: string[];  
+  private searchUserAttributes: string[];
   private searchGroupFilter: string;
   private searchCacheFilter: string;
   private searchGroupAttributes: string[];
@@ -400,11 +400,11 @@ export class LdapService {
   addOrDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
-        const changeGroupDN = `cn=${addUserToGroupDto.group},OU=Profiles,ou=Groups,${this.baseDN}`;
+        const changeGroupDN = `CN=${addUserToGroupDto.group},OU=Profiles,OU=Groups,${this.baseDN}`;
         // Todo we must opt for on group here, to work when we create a user or when we add a member to group
-        const searchGroup = (addUserToGroupDto.defaultGroup) ? addUserToGroupDto.defaultGroup : addUserToGroupDto.group;
+        const searchGroup = addUserToGroupDto.defaultGroup;
         // search by member
-        const member = `cn=${addUserToGroupDto.cn},ou=${searchGroup},ou=People,${this.baseDN}`;
+        const member = `CN=${addUserToGroupDto.cn},OU=${searchGroup},OU=People,${this.baseDN}`;
         const groupChange = new ldap.Change({
           operation: operation,
           modification: {
@@ -433,21 +433,52 @@ export class LdapService {
     return new Promise(async (resolve, reject) => {
       try {
         const user: SearchUserRecordDto = (await this.getUserRecord(changeDefaultGroupDto.cn)).user;
-        const newDn = `cn=${changeDefaultGroupDto.cn},ou=${changeDefaultGroupDto.defaultGroup},ou=People,${this.baseDN}`;
-
+        const newDn = `CN=${changeDefaultGroupDto.cn},OU=${changeDefaultGroupDto.group},OU=People,${this.baseDN}`;
+        const newDefaultGroup = `CN=${changeDefaultGroupDto.group},OU=Profiles,OU=Groups,${this.baseDN}`;
+        const oldDefaultGroup = `CN=${changeDefaultGroupDto.defaultGroup},OU=Profiles,OU=Groups,${this.baseDN}`;
+        const isNotDefaultGroup = !(user.memberOf && user.memberOf.length > 0 && user.memberOf[0] === oldDefaultGroup);
+        if (isNotDefaultGroup) {
+          // must replace user.memberOf[0] with default group, leaving all other groups un-touched
+          // for this we must delete all groups and recreate memberOf array starting with default group and continue with all others
+          let addGroups = [];
+          if (user.memberOf && user.memberOf.length > 0) {
+            // remove all members
+            await asyncForEach(user.memberOf, async (e) => {
+              // add if not new defaultGroup or oldDefaultGroup
+              if (e.toLowerCase() !== newDefaultGroup.toLowerCase() && e.toLowerCase() !== oldDefaultGroup.toLowerCase()) {
+                addGroups.push(e);
+              };
+              const member = getProfileFromMemberOf(e);
+              await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.DELETE, { cn: changeDefaultGroupDto.cn, defaultGroup: changeDefaultGroupDto.defaultGroup, group: member })
+                .catch((error) => {
+                  throw (error);
+                });
+            });
+          };
+          // always add new defaultGroupDn to index 0 position
+          addGroups = insertItemInArrayAtPosition(addGroups, 0, newDefaultGroup);
+          // add all members
+          await asyncForEach(addGroups, async (e) => {
+            const member = getProfileFromMemberOf(e);
+            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: changeDefaultGroupDto.cn, defaultGroup: changeDefaultGroupDto.defaultGroup, group: member })
+              .catch((error) => {
+                throw (error);
+              });
+          });
+          // await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: changeDefaultGroupDto.cn, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
+        };
+        // the last thing to do is change userDn, else we cant't search it in above block code
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
-          if (error)
+          if (error) {
             return reject(error);
-
-          await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.cn).catch((error) => { reject(error); });
-
-          const defaultGroupDn: string = `cn=${changeDefaultGroupDto.defaultGroup},ou=groups,${this.baseDN}`.toLowerCase();
-          const notMember: boolean = user.memberOf.filter((group: string) => { return group.toLowerCase() == defaultGroupDn; }).length == 0;
-          if (notMember)
-            await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.REPLACE, { cn: changeDefaultGroupDto.cn, group: changeDefaultGroupDto.defaultGroup }).catch((error) => { reject(error); });
-
-          resolve();
+          }
         });
+        // now update cached user
+        await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeDefaultGroupDto.cn).catch((error) => {
+          throw (error);
+        });
+        // resolve if reach here
+        resolve();
       } catch (error) {
         reject(error);
       }
