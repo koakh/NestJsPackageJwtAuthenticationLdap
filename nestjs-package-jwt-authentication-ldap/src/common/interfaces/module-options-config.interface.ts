@@ -8,7 +8,9 @@ export interface ModuleOptionsConfig {
     refreshTokenExpiresIn: string;
     refreshTokenSkipIncrementVersion: boolean;
     roleAdmin: string;
-    rolePermittedUnlicensedPermissionGroups: string;    
+    rolePermittedUnlicensedPermissionGroups: string;
+    developerGroup: string;
+    developerAccessTokenExpiresIn: string;
   },
   ldap: {
     address: string;

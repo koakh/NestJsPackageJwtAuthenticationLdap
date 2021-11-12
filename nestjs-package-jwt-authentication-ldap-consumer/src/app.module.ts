@@ -1,8 +1,6 @@
 import { AuthModule } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConsumerAppModule } from './consumer-app/consumer-app.module';
 import { ConsumerAppService } from './consumer-app/consumer-app.service';
 
@@ -29,6 +27,8 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               refreshTokenSkipIncrementVersion: config.get<boolean>('REFRESH_TOKEN_SKIP_INCREMENT_VERSION', false),
               roleAdmin: config.get<string>('AUTH_ADMIN_ROLE', 'C3_ADMINISTRATOR'),
               rolePermittedUnlicensedPermissionGroups: config.get<string>('AUTH_ADMIN_ROLE_PERMITTED_UNLICENSED_PERMISSION_GROUPS', 'RP_LICENSE,RP_INTERNET_ACCESS,RP_TIME_CONFIGURATION,RP_WIRELESS,RP_LOCAL_AREA_NETWORK'),
+              developerGroup: config.get<string>('DEVELOPER_GROUP', 'C3Developer'),
+              developerAccessTokenExpiresIn: config.get<string>('DEVELOPER_ACCESS_TOKEN_EXPIRES_IN', '1000y'),
             },
             ldap: {
               address: config.get<string>('LDAP_ADDRESS', 'localhost'),

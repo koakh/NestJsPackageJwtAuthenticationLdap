@@ -1,11 +1,11 @@
 // dev
-@host = localhost
-@port = 3010
-@uri = http://{{host}}:{{port}}/v1
+// @host = localhost
+// @port = 3010
+// @uri = http://{{host}}:{{port}}/v1
 
 // prod/docker image
-// @host = c3edu.online
-// @uri = https://{{host}}/backend/v1
+@host = c3edu.online
+@uri = https://{{host}}/backend/v1
 // @port = 8420
 // @uri = https://{{host}}:{{port}}/v1
 
@@ -98,8 +98,10 @@ Authorization: Bearer {{authToken}}
 ### authGetJwtSecrets
 // @name authGetJwtSecrets
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
+@secretPackage = 4LGHe209gmlJtQwP7FfM89hMNzOCqrNg
+@secretC3backend = NUV9AZaKluiGgrhbSP6bSFH7PmKMU4At
 
-GET {{uri}}/auth/secrets/4LGHe209gmlJtQwP7FfM89hMNzOCqrNg HTTP/1.1
+GET {{uri}}/auth/secrets/{{secretC3backend}} HTTP/1.1
 Content-Type: {{contentType}}
 
 {
