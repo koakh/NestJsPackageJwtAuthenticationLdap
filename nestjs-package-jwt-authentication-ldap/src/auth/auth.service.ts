@@ -14,7 +14,7 @@ import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface'
 import { GroupTypeOu } from './ldap/enums';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
-import { OperationsError } from 'ldapjs';
+
 @Injectable()
 export class AuthService {
   // init usersStore

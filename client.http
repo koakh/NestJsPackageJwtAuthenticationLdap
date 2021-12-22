@@ -1,11 +1,11 @@
 // dev
-// @host = localhost
-// @port = 3010
-// @uri = http://{{host}}:{{port}}/v1
+@host = localhost
+@port = 3010
+@uri = http://{{host}}:{{port}}/v1
 
 // prod/docker image
-@host = c3edu.online
-@uri = https://{{host}}/backend/v1
+// @host = c3edu.online
+// @uri = https://{{host}}/backend/v1
 // @port = 8420
 // @uri = https://{{host}}:{{port}}/v1
 
