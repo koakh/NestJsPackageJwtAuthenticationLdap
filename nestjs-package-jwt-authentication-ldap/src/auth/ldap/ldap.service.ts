@@ -58,6 +58,9 @@ export class LdapService {
       url: `ldap://${this.config.ldap.address}:${this.config.ldap.port}`,
       bindDN: this.config.ldap.bindDN,
       bindCredentials: this.config.ldap.bindCredentials,
+      // required to prevent lost connections with ldap after preDefined time
+      // check note `Samba-LDAP: Shell Commands and Tips Extended.md > ### Samba MaxConnIdleTime Lower times to debug problem`
+      reconnect: true,
     };
     // props
     this.searchBase = this.config.ldap.searchBase;
