@@ -5,4 +5,5 @@ export interface ConsumerAppService {
   licenseState: () => any;
   initRenewTokenSecrets(): JwtSecrets;
   getJwtSecrets: () => JwtSecrets;
+  singleSignOn: (req: any,res: any) => any;
 }
