@@ -8,7 +8,7 @@ import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../common/constants';
 import { ConsumerAppService, JwtSecrets, ModuleOptionsConfig } from '../common/interfaces';
 import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
-import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto } from './dto';
+import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto, VerifyTokenDto } from './dto';
 import { UserRoles } from './enums';
 import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthGuard, SecretKeyAuthGuard } from './guards';
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
@@ -210,4 +210,35 @@ export class AuthController {
     // }
     return { message: this.consumerAppService.getJwtSecrets() };
   }
+
+  // public endpoint
+  @Post('/verify-token')
+  @ApiBody({ type: VerifyTokenDto })
+  // require @ApiBody else LoginDto is not exposed in swagger api
+  async validateToken(
+    // @Request() req: VerifyTokenDto,
+    @Body() payload: VerifyTokenDto,
+    @Response() res,
+  ): Promise<{ valid: boolean }> {
+    const invalidPayload = () => res.status(HttpStatus.OK).send({ valid: false });
+    // get jid token from cookies
+    const token: string = payload.accessToken;
+    // check if jid token is present
+    if (!token) {
+      return invalidPayload();
+    }
+
+    try {
+      // Logger.log(`refreshTokenJwtSecret: '${this.configService.get(envConstants.REFRESH_TOKEN_JWT_SECRET)}'`, AuthController.name);
+      payload = this.jwtService.verify(token, {
+        secret: this.config.auth.accessTokenJwtSecret instanceof Function
+          ? this.config.auth.accessTokenJwtSecret()
+          : this.config.auth.accessTokenJwtSecret
+      });
+    } catch (error) {
+      Logger.error(error, AuthController.name);
+      return invalidPayload();
+    }
+    return res.status(HttpStatus.OK).send({ valid: true });
+  };
 }

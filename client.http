@@ -108,6 +108,17 @@ Content-Type: {{contentType}}
 }
 
 
+### authVerifyToken
+// @name authVerifyToken
+
+POST {{uri}}/auth/verify-token HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+  "accessToken": "{{authToken}}"
+}
+
+
 ### ldapCreateUserRecord
 // @name ldapCreateUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
