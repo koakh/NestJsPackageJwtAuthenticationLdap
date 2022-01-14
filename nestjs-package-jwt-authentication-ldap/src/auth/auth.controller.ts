@@ -86,7 +86,7 @@ export class AuthController {
     }
   }
 
-  @Get('/automaticLogin')
+  @Get('/automatic-login')
   async automaticLogin(
     @Request() req,
     @Response() res,
