@@ -86,6 +86,16 @@ export class AuthController {
     }
   }
 
+  @Get('/automatic-login')
+  async automaticLogin(
+    @Request() req,
+    @Response() res,
+  ): Promise<LoginResponseDto> {
+    const username: string = await this.consumerAppService.singleSignOn(req,res);
+    req.user=(await this.ldapService.getUserRecord(username)).user;
+    return this.login(req,res);
+  }
+
   /**
    * consumer.apply(CookieParserMiddleware).forRoutes, else cookie is undefined
    */
