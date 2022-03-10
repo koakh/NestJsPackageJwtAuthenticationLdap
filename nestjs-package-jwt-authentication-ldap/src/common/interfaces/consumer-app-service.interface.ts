@@ -6,4 +6,5 @@ export interface ConsumerAppService {
   initRenewTokenSecrets(): JwtSecrets;
   getJwtSecrets: () => JwtSecrets;
   singleSignOn: (req: any,res: any) => any;
+  chpasswd: (username: string,password: string) => any;
 }
