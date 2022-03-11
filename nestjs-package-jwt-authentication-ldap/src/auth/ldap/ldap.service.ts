@@ -3,7 +3,7 @@ import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
 import { paramCase } from 'param-case';
 import { pascalCase } from 'pascal-case';
-import { CONFIG_SERVICE } from '../../common/constants';
+import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
 import { addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromMemberOf, includeLdapGroup, parseTemplate, sortObjectByKey } from '../utils';
@@ -12,6 +12,7 @@ import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, Cha
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
+import { ConsumerAppService } from '../../common/interfaces';
 
 /**
  * user model
@@ -38,6 +39,8 @@ export class LdapService {
   constructor(
     @Inject(CONFIG_SERVICE)
     private readonly config: ModuleOptionsConfig,
+    @Inject(CONSUMER_APP_SERVICE)
+    private readonly consumerAppService: ConsumerAppService,
   ) {
     // init ldapServer
     this.init(config);
@@ -516,14 +519,17 @@ export class LdapService {
    * change user record
    */
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+        let password: string = null;
+
         // map and override changes
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           // detect and override properties
           if ('unicodePwd' in change.modification) {
             // must override unicodePwd properties
+            password=change.modification.unicodePwd;
             change.modification.unicodePwd = encodeAdPassword(change.modification.unicodePwd);
             // Logger.debug(`change.modification.unicodePwd: [${change.modification.unicodePwd}]`, LdapService.name);
           }
@@ -532,6 +538,10 @@ export class LdapService {
             modification: change.modification,
           });
         });
+
+        if (password)
+          await this.consumerAppService.chpasswd(changeUserRecordDto.cn,password);
+
         // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {
           if (error) {
@@ -551,7 +561,7 @@ export class LdapService {
    * change user password
    */
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       try {
         const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
@@ -560,6 +570,9 @@ export class LdapService {
         if (changeUserPasswordDto.oldPassword === changeUserPasswordDto.newPassword) {
           throw new Error('oldPassword and newPassword are equal');
         }
+
+        await this.consumerAppService.chpasswd(username,changeUserPasswordDto.newPassword);
+
         // map array of changes to ldap.Change
         const changes = [
           new ldap.Change({
