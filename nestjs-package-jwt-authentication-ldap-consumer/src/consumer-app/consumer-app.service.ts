@@ -31,7 +31,52 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
     return this.jwtSecrets;
   }
 
+  // stub to implement
   getJwtSecrets(): JwtSecrets {
     return this.jwtSecrets;
   }
+
+  // stub to implement
+  // singleSignOn(req: any, res: any): any {
+  //   return {};
+  // }
+
+  // stub to implement
+  changePassword(username: string, password: string): any {
+    return { username, password };
+  }
+
+  // stub to implement
+  onCreateUserRecord(): void {
+    console.log('fired onCreateUserRecord event.....');
+  }
+
+  onChangeUserRecord(): void {
+    console.log('fired onChangeUserRecord event.....');
+  }
+  
+  onDeleteUserRecord(): void {
+    console.log('fired onDeleteUserRecord event.....');
+  }
+
+  onAddOrDeleteUserToGroup(): void {
+    console.log('fired onAddOrDeleteUserToGroup event.....');
+  }
+
+  onChangeUserProfilePassword(): void {
+    console.log('fired onChangeUserProfilePassword event.....');
+  }
+
+  onUpdateDefaultGroup(): void {
+    console.log('fired onUpdateDefaultGroup event.....');
+  }
+
+  onCreateGroupRecord(): void {
+    console.log('fired onCreateGroupRecord event.....');
+  }
+
+  onDeleteGroupRecord(): void {
+    console.log('fired onDeleteGroupRecord event.....');
+  }
+
 }

@@ -85,4 +85,7 @@ export class SearchUserRecordDto {
   @IsDefined()
   @ApiProperty()
   customUsersBaseSearch?: boolean;
+
+  @ApiProperty()
+  metaData?: any;
 }

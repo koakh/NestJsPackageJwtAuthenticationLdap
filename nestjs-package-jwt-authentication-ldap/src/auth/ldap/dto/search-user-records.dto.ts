@@ -26,4 +26,8 @@ export class SearchUserRecordsDto {
   @IsOptional()
   @ApiProperty()
   searchAttributes?: Array<FilteratorSearchFieldAttribute>
+
+  @IsOptional()
+  @ApiProperty()
+  searchUsersCn?: Array<string>
 }

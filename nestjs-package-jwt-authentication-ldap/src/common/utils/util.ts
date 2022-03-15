@@ -74,7 +74,7 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
     try {
       // defaults
       const page = currentPage || 1;
-      const perPage = perPageItems || 10;
+      const perPage = perPageItems || 25;
       const offset = (page - 1) * perPage;
       const paginatedItems = items.slice(offset).slice(0, perPageItems);
       const totalPages = Math.ceil(items.length / perPage);

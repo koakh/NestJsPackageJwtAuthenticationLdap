@@ -6,7 +6,7 @@ import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
-import { addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromMemberOf, includeLdapGroup, parseTemplate, sortObjectByKey } from '../utils';
+import { addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromFirstMemberOf, getProfileFromMemberOf, includeLdapGroup, parseTemplate, sortObjectByKey } from '../utils';
 // tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
@@ -148,6 +148,9 @@ export class LdapService {
           if (err) Logger.log(err);
           res.on('searchEntry', (entry) => {
             // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
+            const memberOf = (typeof entry.object.memberOf === 'string')
+              ? [entry.object.memberOf]
+              : entry.object.memberOf;
             user = {
               // extract username from string | array
               dn: entry.object.dn as string,
@@ -164,12 +167,16 @@ export class LdapService {
               givenName: entry.object.givenName as string,
               lastLogonTimestamp: entry.object.lastLogonTimestamp as string,
               mail: entry.object.mail as string,
-              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
+              memberOf,
               objectCategory: entry.object.objectCategory as string,
               sn: entry.object.sn as string,
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
               userAccountControl: entry.object.userAccountControl as string,
+              // injected onTheFly prop
+              metaData: {
+                profile: getProfileFromMemberOf(memberOf[0]),
+              }
             };
           });
           res.on('error', (error) => {
@@ -231,10 +238,13 @@ export class LdapService {
               Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
               Logger.log(`entry.object: [${entry.object.dn}: ${recordsFound}]`, LdapService.name);
             }
+            const memberOf = (typeof entry.object.memberOf === 'string')
+              ? [entry.object.memberOf]
+              : entry.object.memberOf;
             user = {
               // extract username from string | array
               dn,
-              memberOf: (typeof entry.object.memberOf === 'string') ? [entry.object.memberOf] : entry.object.memberOf,
+              memberOf: memberOf,
               extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
@@ -252,6 +262,10 @@ export class LdapService {
               dateOfBirth: entry.object.dateOfBirth as string,
               studentID: entry.object.studentID as string,
               telephoneNumber: entry.object.telephoneNumber as string,
+              // injected onTheFly prop
+              metaData: {
+                profile: getProfileFromMemberOf(memberOf[0]),
+              }
             };
             // add user to inMemoryUsers with dn key
             this.cache.users[dn] = user;
@@ -328,7 +342,12 @@ export class LdapService {
           const recordArray = recordToArray(this.cache.users);
           const filtered = await filterator(recordArray, searchUserRecordsDto.searchAttributes);
           const filteredExcludedGroups = filterLdapGroup(filtered, this.searchGroupExcludeProfileGroups);
-          const sortedArray = searchUserRecordsDto.sortBy ? sortObjectByKey(filteredExcludedGroups, searchUserRecordsDto.sortBy, searchUserRecordsDto.sortDirection) : filteredExcludedGroups;
+          let filteredUsersCn = filteredExcludedGroups;
+          if (searchUserRecordsDto.searchUsersCn) {
+            // override default filteredUsersCn
+            filteredUsersCn = filteredExcludedGroups.filter((e: SearchUserRecordDto) => searchUserRecordsDto.searchUsersCn.includes(e.cn));
+          }
+          const sortedArray = searchUserRecordsDto.sortBy ? sortObjectByKey(filteredUsersCn, searchUserRecordsDto.sortBy, searchUserRecordsDto.sortDirection) : filteredExcludedGroups;
           const paginatorResult = await paginator(sortedArray, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
           // extended with extra properties like customUsersBaseSearch when we detect that are used a custom OU like OU=School1
           const data = addExtraPropertiesToGetUserRecords(paginatorResult.data);
@@ -392,6 +411,10 @@ export class LdapService {
                 reject(error);
               });
             resolve(username);
+            // fire event
+            if (typeof this.consumerAppService.onCreateUserRecord === 'function') {
+              this.consumerAppService.onCreateUserRecord();
+            }
           }
         });
       } catch (error) {
@@ -426,6 +449,10 @@ export class LdapService {
           } else {
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.UPDATE, addUserToGroupDto.cn);
+            // fire event
+            if (typeof this.consumerAppService.onAddOrDeleteUserToGroup === 'function') {
+              this.consumerAppService.onAddOrDeleteUserToGroup();
+            }
             resolve();
           }
         });
@@ -487,6 +514,10 @@ export class LdapService {
         });
         // resolve if reach here
         resolve();
+        // fire event
+        if (typeof this.consumerAppService.onUpdateDefaultGroup === 'function') {
+          this.consumerAppService.onUpdateDefaultGroup();
+        }
       } catch (error) {
         reject(error);
       }
@@ -507,6 +538,10 @@ export class LdapService {
             // update cache
             await this.updateCachedUser(UpdateCacheOperation.DELETE, deleteUserRecordDto.cn);
             resolve();
+            // fire event
+            if (typeof this.consumerAppService.onDeleteUserRecord === 'function') {
+              this.consumerAppService.onDeleteUserRecord();
+            }
           }
         });
       } catch (error) {
@@ -529,7 +564,7 @@ export class LdapService {
           // detect and override properties
           if ('unicodePwd' in change.modification) {
             // must override unicodePwd properties
-            password=change.modification.unicodePwd;
+            password = change.modification.unicodePwd;
             change.modification.unicodePwd = encodeAdPassword(change.modification.unicodePwd);
             // Logger.debug(`change.modification.unicodePwd: [${change.modification.unicodePwd}]`, LdapService.name);
           }
@@ -540,7 +575,7 @@ export class LdapService {
         });
 
         if (password)
-          await this.consumerAppService.chpasswd(changeUserRecordDto.cn,password);
+          await this.consumerAppService.changePassword(changeUserRecordDto.cn, password);
 
         // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {
@@ -549,6 +584,10 @@ export class LdapService {
           } else {
             await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeUserRecordDto.cn);
             resolve();
+            // fire event
+            if (typeof this.consumerAppService.onChangeUserRecord === 'function') {
+              this.consumerAppService.onChangeUserRecord();
+            }
           }
         });
       } catch (error) {
@@ -571,7 +610,7 @@ export class LdapService {
           throw new Error('oldPassword and newPassword are equal');
         }
 
-        await this.consumerAppService.chpasswd(username,changeUserPasswordDto.newPassword);
+        await this.consumerAppService.changePassword(username, changeUserPasswordDto.newPassword);
 
         // map array of changes to ldap.Change
         const changes = [
@@ -593,6 +632,10 @@ export class LdapService {
             reject(error);
           } else {
             resolve();
+            // fire event
+            if (typeof this.consumerAppService.onChangeUserProfilePassword === 'function') {
+              this.consumerAppService.onChangeUserProfilePassword();
+            }
           }
         });
       } catch (error) {
@@ -624,6 +667,10 @@ export class LdapService {
             reject(error);
           } else {
             resolve(groupName);
+            // fire event
+            if (typeof this.consumerAppService.onCreateGroupRecord === 'function') {
+              this.consumerAppService.onCreateGroupRecord();
+            }
           }
         });
       } catch (error) {
@@ -645,6 +692,10 @@ export class LdapService {
             reject(error);
           } else {
             resolve();
+            // fire event
+            if (typeof this.consumerAppService.onDeleteGroupRecord === 'function') {
+              this.consumerAppService.onDeleteGroupRecord();
+            }
           }
         });
       } catch (error) {
