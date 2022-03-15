@@ -11,5 +11,6 @@ export * from './auth/strategy';
 export { CacheResponseDto } from './auth/ldap/dto/cache-response.dto';
 // ldap
 export { LdapService } from './auth/ldap/ldap.service';
+export { AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto } from './auth/ldap/dto';
 // guards
 export * from './auth/guards';

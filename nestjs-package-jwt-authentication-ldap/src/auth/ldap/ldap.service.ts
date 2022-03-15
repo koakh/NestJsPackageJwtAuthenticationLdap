@@ -413,7 +413,7 @@ export class LdapService {
             resolve(username);
             // fire event
             if (typeof this.consumerAppService.onCreateUserRecord === 'function') {
-              this.consumerAppService.onCreateUserRecord();
+              this.consumerAppService.onCreateUserRecord(createLdapUserDto);
             }
           }
         });
@@ -451,7 +451,7 @@ export class LdapService {
             await this.updateCachedUser(UpdateCacheOperation.UPDATE, addUserToGroupDto.cn);
             // fire event
             if (typeof this.consumerAppService.onAddOrDeleteUserToGroup === 'function') {
-              this.consumerAppService.onAddOrDeleteUserToGroup();
+              this.consumerAppService.onAddOrDeleteUserToGroup(operation, addUserToGroupDto);
             }
             resolve();
           }
@@ -516,7 +516,7 @@ export class LdapService {
         resolve();
         // fire event
         if (typeof this.consumerAppService.onUpdateDefaultGroup === 'function') {
-          this.consumerAppService.onUpdateDefaultGroup();
+          this.consumerAppService.onUpdateDefaultGroup(changeDefaultGroupDto);
         }
       } catch (error) {
         reject(error);
@@ -540,7 +540,7 @@ export class LdapService {
             resolve();
             // fire event
             if (typeof this.consumerAppService.onDeleteUserRecord === 'function') {
-              this.consumerAppService.onDeleteUserRecord();
+              this.consumerAppService.onDeleteUserRecord(deleteUserRecordDto);
             }
           }
         });
@@ -586,7 +586,7 @@ export class LdapService {
             resolve();
             // fire event
             if (typeof this.consumerAppService.onChangeUserRecord === 'function') {
-              this.consumerAppService.onChangeUserRecord();
+              this.consumerAppService.onChangeUserRecord(changeUserRecordDto);
             }
           }
         });
@@ -634,7 +634,7 @@ export class LdapService {
             resolve();
             // fire event
             if (typeof this.consumerAppService.onChangeUserProfilePassword === 'function') {
-              this.consumerAppService.onChangeUserProfilePassword();
+              this.consumerAppService.onChangeUserProfilePassword(username);
             }
           }
         });
@@ -669,7 +669,7 @@ export class LdapService {
             resolve(groupName);
             // fire event
             if (typeof this.consumerAppService.onCreateGroupRecord === 'function') {
-              this.consumerAppService.onCreateGroupRecord();
+              this.consumerAppService.onCreateGroupRecord(createLdapGroupDto);
             }
           }
         });
@@ -694,7 +694,7 @@ export class LdapService {
             resolve();
             // fire event
             if (typeof this.consumerAppService.onDeleteGroupRecord === 'function') {
-              this.consumerAppService.onDeleteGroupRecord();
+              this.consumerAppService.onDeleteGroupRecord(deleteGroupRecordDto);
             }
           }
         });

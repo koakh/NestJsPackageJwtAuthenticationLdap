@@ -1,4 +1,6 @@
-import { JwtSecrets } from "./jwt-secrets.interface";
+import { AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto } from '../../auth/ldap/dto';
+import { ChangeUserRecordOperation } from '../../auth/ldap/enums';
+import { JwtSecrets } from './jwt-secrets.interface';
 
 export interface ConsumerAppService {
   getWelcome: (name: string) => string;
@@ -8,12 +10,12 @@ export interface ConsumerAppService {
   singleSignOn?: (req: any, res: any) => any;
   changePassword?: (username: string, password: string) => any;
   // events
-  onCreateUserRecord: () => void; //ok
-  onChangeUserRecord: () => void; //ok
-  onDeleteUserRecord: () => void; //ok
-  onAddOrDeleteUserToGroup: () => void; //ok
-  onChangeUserProfilePassword: () => void; //ok 
-  onUpdateDefaultGroup: () => void; //ok
-  onCreateGroupRecord: () => void; //ok
-  onDeleteGroupRecord: () => void; // ok onDeleteGroupRecord
+  onCreateUserRecord: (createLdapUserDto: CreateUserRecordDto) => void;
+  onChangeUserRecord: (changeUserRecordDto: ChangeUserRecordDto) => void;
+  onDeleteUserRecord: (deleteUserRecordDto: DeleteUserRecordDto) => void;
+  onAddOrDeleteUserToGroup: (operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto) => void;
+  onChangeUserProfilePassword: (username: string) => void; 
+  onUpdateDefaultGroup: (changeDefaultGroupDto: ChangeDefaultGroupDto) => void;
+  onCreateGroupRecord: (createLdapGroupDto: CreateGroupRecordDto) => void;
+  onDeleteGroupRecord: (deleteGroupRecordDto: DeleteGroupRecordDto) => void;
 }

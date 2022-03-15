@@ -27,5 +27,4 @@ export class SearchUserPaginatorResponseDto {
   @IsDefined()
   @ApiProperty()
   data: SearchUserRecordDto[];
-  // searchAttributes: SearchUserRecordsDto;
 }
