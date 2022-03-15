@@ -387,8 +387,8 @@ Authorization: Bearer {{authToken}}
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
   // optional
-  "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"],
-  "searchAttributes": [
+  "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"]
+  // "searchAttributes": [
     // {
     //   // fields
     //   "cn": {
@@ -426,7 +426,7 @@ Authorization: Bearer {{authToken}}
     //     "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
     //   }
     // }
-  ]
+  // ]
 }
 
 ### ldapGetUserProfileRecord: don't use cache, goes direct to ldap
