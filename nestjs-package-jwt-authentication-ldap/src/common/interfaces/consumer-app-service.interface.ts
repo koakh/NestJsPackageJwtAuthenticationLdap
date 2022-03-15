@@ -10,12 +10,12 @@ export interface ConsumerAppService {
   singleSignOn?: (req: any, res: any) => any;
   changePassword?: (username: string, password: string) => any;
   // events
-  onCreateUserRecord: (createLdapUserDto: CreateUserRecordDto) => void;
-  onChangeUserRecord: (changeUserRecordDto: ChangeUserRecordDto) => void;
-  onDeleteUserRecord: (deleteUserRecordDto: DeleteUserRecordDto) => void;
-  onAddOrDeleteUserToGroup: (operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto) => void;
-  onChangeUserProfilePassword: (username: string) => void; 
-  onUpdateDefaultGroup: (changeDefaultGroupDto: ChangeDefaultGroupDto) => void;
-  onCreateGroupRecord: (createLdapGroupDto: CreateGroupRecordDto) => void;
-  onDeleteGroupRecord: (deleteGroupRecordDto: DeleteGroupRecordDto) => void;
+  onCreateUserRecord?: (createLdapUserDto: CreateUserRecordDto) => void;
+  onChangeUserRecord?: (changeUserRecordDto: ChangeUserRecordDto) => void;
+  onDeleteUserRecord?: (deleteUserRecordDto: DeleteUserRecordDto) => void;
+  onAddOrDeleteUserToGroup?: (operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto) => void;
+  onChangeUserProfilePassword?: (username: string) => void; 
+  onUpdateDefaultGroup?: (changeDefaultGroupDto: ChangeDefaultGroupDto) => void;
+  onCreateGroupRecord?: (createLdapGroupDto: CreateGroupRecordDto) => void;
+  onDeleteGroupRecord?: (deleteGroupRecordDto: DeleteGroupRecordDto) => void;
 }
