@@ -37,10 +37,10 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  // "username": "c3",
-  // "password": "root"
   "username": "dev",
   "password": "qhA1Bpn5s5"
+  // "username": "c3",
+  // "password": "root"
   // "username": "teacher1",
   // "username": "parent1",
   // "username": "student1",
@@ -48,8 +48,10 @@ Content-Type: {{contentType}}
   // "username": "nano",
   // "password": "nanosecret"
   // "password": "secret"
-  // "username": "developer",
+  // test change password
+  // "username": "developer5",
   // "password": "superhiddenpassword"
+  // "password": "secret!"
 }
 
 ### authRefreshTokenLdap
@@ -129,7 +131,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // converted to mario-monteiro
-  "cn": "nano",
+  "cn": "moke005",
   "unicodePwd": "secret",
   "givenName": "Nuno",
   "sn": "dd",
@@ -155,7 +157,7 @@ Authorization: Bearer {{authToken}}
 
 {
   // "distinguishedName": "dn:CN=mario,CN=Users,DC=c3edu,DC=online",
-  "cn": "developer4",
+  "cn": "developer5",
   "unicodePwd": "superhiddenpassword",
   "givenName": "Linus",
   "sn": "Torvalds",
@@ -284,7 +286,7 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = vi01
+@getUsername = dev
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -296,7 +298,7 @@ Authorization: Bearer {{authToken}}
 ### lapAddMemberToGroup
 // @name ldapAddMemberToGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@addUserToGroup = vini
+@addUserToGroup = teacher1
 
 POST {{uri}}/ldap/group/add HTTP/1.1
 Content-Type: {{contentType}}
@@ -313,7 +315,7 @@ Authorization: Bearer {{authToken}}
 ### ldapDeleteMemberFromGroup
 // @name ldapDeleteMemberFromGroup
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUserFromGroup = vini
+@deleteUserFromGroup = teacher1
 
 POST {{uri}}/ldap/group/delete HTTP/1.1
 Content-Type: {{contentType}}
@@ -336,7 +338,7 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "cn": "vi01",
+  "cn": "moke001",
   "defaultGroup" : "{{groupC3Student}}",
   // add a member to group
   "group" : "{{groupC3Teacher}}"
@@ -345,7 +347,7 @@ Authorization: Bearer {{authToken}}
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = vini
+@deleteUsername = developer5
 
 DELETE {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
@@ -379,12 +381,13 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  "page": 1,
-  "perPage": 25,
+  // "page": 1,
+  "perPage": 100,
   "sortBy": "dateOfBirth",
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
   // optional
+  // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"],
   "searchAttributes": [
     // {
     //   // fields
@@ -447,8 +450,8 @@ Authorization: Bearer {{authToken}}
 
 {
   // must match logged user defaultGroup
-  "defaultGroup" : "{{groupC3Administrator}}",
-  // "defaultGroup" : "{{groupC3Developer}}",
+  // "defaultGroup" : "{{groupC3Administrator}}",
+  "defaultGroup" : "{{groupC3Developer}}",
   // "defaultGroup" : "{{groupC3Student}}",
   "changes": [
     {
@@ -471,13 +474,13 @@ Authorization: Bearer {{authToken}}
 
 {
   // must match logged user defaultGroup
-  "defaultGroup" : "{{groupC3Administrator}}",
-  // "defaultGroup" : "{{groupC3Developer}}",
+  // "defaultGroup" : "{{groupC3Administrator}}",
+  "defaultGroup" : "{{groupC3Developer}}",
   // "defaultGroup" : "{{groupC3Student}}",
-  "oldPassword": "secret!",
+  "oldPassword": "superhiddenpassword",
   // newPassword must not be used in history, else
   // 0000052D: Constraint violation - check_password_restrictions: the password was already used (in history)!
-  "newPassword": "superhiddenpassword"
+  "newPassword": "secret!"
 }
 
 ### ldapCreateGroupRecord
