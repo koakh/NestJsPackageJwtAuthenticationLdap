@@ -381,13 +381,13 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  // "page": 1,
+  "page": 1,
   "perPage": 100,
   "sortBy": "dateOfBirth",
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
   // optional
-  // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"],
+  "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"],
   "searchAttributes": [
     // {
     //   // fields
