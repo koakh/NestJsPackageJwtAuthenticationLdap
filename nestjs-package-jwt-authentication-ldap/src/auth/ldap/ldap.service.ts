@@ -175,7 +175,7 @@ export class LdapService {
               userAccountControl: entry.object.userAccountControl as string,
               // injected onTheFly prop
               metaData: {
-                profile: getProfileFromMemberOf(memberOf[0]),
+                profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
               }
             };
           });
@@ -264,7 +264,7 @@ export class LdapService {
               telephoneNumber: entry.object.telephoneNumber as string,
               // injected onTheFly prop
               metaData: {
-                profile: getProfileFromMemberOf(memberOf[0]),
+                profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
               }
             };
             // add user to inMemoryUsers with dn key
