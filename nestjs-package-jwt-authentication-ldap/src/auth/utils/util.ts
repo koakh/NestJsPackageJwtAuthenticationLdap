@@ -153,7 +153,7 @@ export const getProfileFromFirstMemberOf = (memberOf: string[]): string => {
   }
 };
 
-export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[]): SearchUserRecordDto[] => {
+export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[], injectMetadataCache: (entry: SearchUserRecordDto) => any): SearchUserRecordDto[] => {
   // normal number of OUs, one or more is a customUsersBaseSearch or have extra OU
   const defaultNumberOfOUs = 2;
   const isCustom = (cn: string): boolean => {
@@ -168,7 +168,13 @@ export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[]):
   };
 
   return data.map((e: SearchUserRecordDto) => {
-    return { ...e, customUsersBaseSearch: isCustom(e.dn) };
+    const injectedMetadata = injectMetadataCache ? injectMetadataCache(e) : {};
+    return { 
+      ...e, 
+      customUsersBaseSearch: isCustom(e.dn), 
+      // inject injectedMetadata
+      metaData: {...e.metaData, ...injectedMetadata}
+    };
   });
 };
 

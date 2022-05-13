@@ -356,7 +356,8 @@ export class LdapService {
           const sortedArray = searchUserRecordsDto.sortBy ? sortObjectByKey(filteredUsersCn, searchUserRecordsDto.sortBy, searchUserRecordsDto.sortDirection) : filteredExcludedGroups;
           const paginatorResult = await paginator(sortedArray, searchUserRecordsDto.page, searchUserRecordsDto.perPage);
           // extended with extra properties like customUsersBaseSearch when we detect that are used a custom OU like OU=School1
-          const data = addExtraPropertiesToGetUserRecords(paginatorResult.data);
+          // update injectedMetadata too
+          const data = addExtraPropertiesToGetUserRecords(paginatorResult.data, this.consumerAppService.injectMetadataCache);
           resolve({ ...paginatorResult, data });
         }
       } catch (error) {

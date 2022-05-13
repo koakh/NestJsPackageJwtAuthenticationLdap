@@ -387,7 +387,8 @@ Authorization: Bearer {{authToken}}
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
   // optional
-  "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"]
+  // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"]
+  "searchUsersCn": ["zetu"]
   // "searchAttributes": [
     // {
     //   // fields
