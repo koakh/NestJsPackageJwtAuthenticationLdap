@@ -531,6 +531,9 @@ Authorization: Bearer {{authToken}}
 {
 }
 
+### WARN: required to enable AppController, AppService and ConsumerAppService in nestjs-package-jwt-authentication-ldap-consumer/src/app.module.ts
+###   controllers: [AppController],
+###   providers: [AppService, ConsumerAppService],
 
 ### testAppServiceGetWelcome
 // @name testAppServiceGetWelcome
@@ -545,6 +548,15 @@ Content-Type: {{contentType}}
 // @name testConsumerAppServiceGetWelcome
 
 GET  {{uri}}/consumer/mario HTTP/1.1
+Content-Type: {{contentType}}
+
+{
+}
+
+### testConsumerAppServiceInjectMetadata
+// @name testConsumerAppServiceInjectMetadata
+
+GET  {{uri}}/consumer/inject-metadata/mario HTTP/1.1
 Content-Type: {{contentType}}
 
 {

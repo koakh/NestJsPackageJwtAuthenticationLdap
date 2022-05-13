@@ -57,6 +57,9 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
       },
     }),
   ],
+
+  // WARN: required to enable AppController, AppService and ConsumerAppService to use consumer app endpoints in AppController
+
   // enable AppController controller only to test it in package development, in publish package this must be disabled
   controllers: [/*AppController*/],
   // require to use app AppService in DI

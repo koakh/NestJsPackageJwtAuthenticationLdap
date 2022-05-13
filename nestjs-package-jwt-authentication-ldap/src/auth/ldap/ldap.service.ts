@@ -151,6 +151,7 @@ export class LdapService {
             const memberOf = (typeof entry.object.memberOf === 'string')
               ? [entry.object.memberOf]
               : entry.object.memberOf;
+            const injectedMetadata = this.consumerAppService.injectMetadataCache ? this.consumerAppService.injectMetadataCache(entry.object as unknown as SearchUserRecordDto) : {};
             user = {
               // extract username from string | array
               dn: entry.object.dn as string,
@@ -176,6 +177,8 @@ export class LdapService {
               // injected onTheFly prop
               metaData: {
                 profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
+                // inject cache metadata
+                ...injectedMetadata,
               }
             };
           });
@@ -241,6 +244,7 @@ export class LdapService {
             const memberOf = (typeof entry.object.memberOf === 'string')
               ? [entry.object.memberOf]
               : entry.object.memberOf;
+              const injectedMetadata = this.consumerAppService.injectMetadataCache ? this.consumerAppService.injectMetadataCache(entry.object as unknown as SearchUserRecordDto) : {};
             user = {
               // extract username from string | array
               dn,
@@ -265,6 +269,8 @@ export class LdapService {
               // injected onTheFly prop
               metaData: {
                 profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
+                // inject cache metadata
+                ...injectedMetadata,
               }
             };
             // add user to inMemoryUsers with dn key

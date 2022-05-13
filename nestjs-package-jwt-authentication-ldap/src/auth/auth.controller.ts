@@ -68,8 +68,13 @@ export class AuthController {
         throw new ForbiddenException(`only users with role '${this.config.auth.roleAdmin}' can log in a unlicensed system`);
       }
     }
+
+    // user from ldapService, only required to use with injectMetadataToken
+    const { user }: SearchUserRecordResponseDto = await this.ldapService.getUserRecord(username);
     // metaData
-    const metaData = { profile: getProfileFromFirstMemberOf(roles) };
+    const injectedMetadata = this.consumerAppService.injectMetadataToken ? this.consumerAppService.injectMetadataToken(user) : {};
+    const metaData = { profile: getProfileFromFirstMemberOf(roles), ...injectedMetadata };
+
     // payload for accessToken
     const signJwtToken: SignJwtToken = { username, userId, roles, permissions: finalPermissions, metaData };
     const { accessToken } = await this.authService.signJwtToken(signJwtToken);
@@ -91,9 +96,9 @@ export class AuthController {
     @Request() req,
     @Response() res,
   ): Promise<LoginResponseDto> {
-    const username: string = await this.consumerAppService.singleSignOn(req,res);
-    req.user=(await this.ldapService.getUserRecord(username)).user;
-    return this.login(req,res);
+    const username: string = await this.consumerAppService.singleSignOn(req, res);
+    req.user = (await this.ldapService.getUserRecord(username)).user;
+    return this.login(req, res);
   }
 
   /**
@@ -140,7 +145,8 @@ export class AuthController {
     // roles/permissions
     const [roles, permissions] = await this.authService.getRolesAndPermissionsFromMemberOf(user.memberOf, licenseActivated);
     // metaData
-    const metaData = { profile: getProfileFromFirstMemberOf(roles) };
+    const injectedMetadata = this.consumerAppService.injectMetadataToken ? this.consumerAppService.injectMetadataToken(user) : {};
+    const metaData = { profile: getProfileFromFirstMemberOf(roles), ...injectedMetadata };
     // accessToken: add some user data to it, like id and roles
     const signJwtToken: SignJwtToken = { username: user.cn, userId: user.dn, roles, permissions, metaData };
     const { accessToken }: AccessToken = await this.authService.signJwtToken(signJwtToken);

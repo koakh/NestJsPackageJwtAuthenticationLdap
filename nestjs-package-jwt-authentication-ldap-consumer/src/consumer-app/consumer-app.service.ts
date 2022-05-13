@@ -1,4 +1,4 @@
-import { JwtSecrets } from '@koakh/nestjs-package-jwt-authentication-ldap';
+import { JwtSecrets, SearchUserRecordDto } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { ConsumerAppService as ConsumerAppServiceInterface, AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { ChangeUserRecordOperation } from '@koakh/nestjs-package-jwt-authentication-ldap/dist/auth/ldap/enums';
 import { Injectable } from '@nestjs/common';
@@ -46,6 +46,18 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
   changePassword(username: string, password: string): any {
     return { username, password };
   }
+
+  // comment fn to disabled and test no-implentation
+  injectMetadataCache(entry: SearchUserRecordDto): any {
+    return { someProp: `injected some property on cache entry ${entry.cn}` };
+  }
+
+  // comment fn to disabled and test no-implentation
+  injectMetadataToken(entry: SearchUserRecordDto): any {
+    return { someProp: `injected some property on token entry ${entry.cn}` };
+  }
+
+  // events
 
   // stub to implement
   onCreateUserRecord(createLdapUserDto: CreateUserRecordDto): void {
