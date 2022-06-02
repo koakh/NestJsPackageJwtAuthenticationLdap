@@ -47,12 +47,12 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
     return { username, password };
   }
 
-  // comment fn to disabled and test no-implentation
+  // comment fn to disabled and test no-implementation
   injectMetadataCache(entry: SearchUserRecordDto): any {
     return { someProp: `injected some property on cache entry ${entry.cn}` };
   }
 
-  // comment fn to disabled and test no-implentation
+  // comment fn to disabled and test no-implementation
   injectMetadataToken(entry: SearchUserRecordDto): any {
     return { someProp: `injected some property on token entry ${entry.cn}` };
   }
