@@ -37,14 +37,14 @@ POST {{uri}}/auth/login HTTP/1.1
 Content-Type: {{contentType}}
 
 {
-  "username": "dev",
-  "password": "qhA1Bpn5s5"
+  // "username": "dev",
+  // "password": "qhA1Bpn5s5"
   // "username": "c3",
   // "password": "root"
-  // "username": "teacher1",
   // "username": "parent1",
   // "username": "student1",
-  // "password": "1234"
+  "username": "teacher1",
+  "password": "1234"
   // "username": "nano",
   // "password": "nanosecret"
   // "password": "secret"
@@ -388,7 +388,7 @@ Authorization: Bearer {{authToken}}
   // "sortDirection": "descending",
   // optional
   // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"]
-  "searchUsersCn": ["zetu"]
+  "searchUsersCn": ["teacher1"]
   // "searchAttributes": [
     // {
     //   // fields
