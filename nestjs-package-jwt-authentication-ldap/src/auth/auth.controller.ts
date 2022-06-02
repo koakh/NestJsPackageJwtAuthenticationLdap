@@ -7,7 +7,7 @@ import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../common/constants';
 // ConsumerAppService must be imported from `src/common/interfaces/consumer-app-service.interface` not from `src/consumer-app/consumer-app.service.ts`
 import { ConsumerAppService, JwtSecrets, ModuleOptionsConfig } from '../common/interfaces';
 import { AuthService } from './auth.service';
-import { Roles } from './decorators/roles.decorator';
+import { Roles } from './decorators';
 import { LoginDto, LoginResponseDto, RevokeRefreshTokenResponseDto, VerifyTokenDto } from './dto';
 import { UserRoles } from './enums';
 import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthGuard, SecretKeyAuthGuard } from './guards';

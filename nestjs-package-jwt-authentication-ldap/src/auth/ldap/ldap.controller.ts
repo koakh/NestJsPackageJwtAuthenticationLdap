@@ -1,7 +1,7 @@
 import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { config } from 'dotenv';
-import { Roles } from '../decorators/roles.decorator';
+import { Roles, Permissions } from '../decorators';
 import { UserRoles } from '../enums';
 import { JwtAuthGuard, PermissionsAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
@@ -90,6 +90,7 @@ export class LdapController {
 
   @Get('/user/:username')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Permissions(process.env.LDAP_CONTROLLER_PERMISSION_GET_USER)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
@@ -124,7 +125,6 @@ export class LdapController {
 
   @Post('/cache/update')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async updateUserRecordsCache(
     @Response() res,
@@ -140,6 +140,7 @@ export class LdapController {
 
   @Post('/cache/search')
   @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Permissions(process.env.LDAP_CONTROLLER_PERMISSION_GET_USER)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecords(

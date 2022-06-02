@@ -1,0 +1,14 @@
+{
+	"files": [
+		{
+			"path": "nestjs-package-jwt-authentication-ldap/src/auth/ldap/ldap.controller.ts",
+			"bookmarks": [
+				{
+					"line": 142,
+					"column": 31,
+					"label": ""
+				}
+			]
+		}
+	]
+}

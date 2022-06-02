@@ -98,7 +98,7 @@ $ npm run start:dev
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
 $ npm run start:debug
 
-# or with debugger
+# or debugger with "Launch Program"
 
 # now press f5 to debug consumer app (without launch npm run start:dev)
 # after changes in package, restart debugger with ctrl+shift+f5
