@@ -20,6 +20,8 @@
     "**/node_modules/@szmarczak": true,
     "**/node_modules/@tootallnate": true,
     "**/node_modules/@types": true,
+    "**/node_modules/@cspotcode": true,
+    "**/node_modules/@tsconfig": true,
   },
   "search.exclude": {
     // get this from global user settings and override it else node_modules are invisible
@@ -42,6 +44,8 @@
     "**/node_modules/@szmarczak": true,
     "**/node_modules/@tootallnate": true,
     "**/node_modules/@types": true,
+    "**/node_modules/@cspotcode": true,
+    "**/node_modules/@tsconfig": true,
   },
   "cSpell.words": [
     "dtos",
@@ -69,5 +73,15 @@
     "vitor",
     "YYYYMMDD"
   ],
-  "peacock.color": "#1857a4"
+  "peacock.color": "#1857a4",
+  "workbench.colorCustomizations": {
+    "activityBar.activeBackground": "#1f6fd0",
+    "activityBar.activeBorder": "#ee90bb",
+    "activityBar.background": "#1f6fd0",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#ee90bb",
+    "activityBarBadge.foreground": "#15202b",
+    "sash.hoverBorder": "#1f6fd0"
+  }
 }
