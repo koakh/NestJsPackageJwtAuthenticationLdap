@@ -207,6 +207,17 @@ Could not read source map for file:///media/mario/storage/Home/Documents/Develop
 Error: connect ECONNREFUSED 192.168.1.1:2210
 ```
 
+or miss `eth0` interface in samba config, fix add eth0
+
+```shell
+$ sudo nano /etc/samba/smb.conf
+
+interfaces = lo br0 docker0 eth0
+
+[sudo] password for c3:
+$ sudo service samba-ad-dc restart
+```
+
 ## Extract data from JWT in Endpoints, ex Extract injected User
 
 - [Get current user in nestjs on a route without an AuthGuard](https://stackoverflow.com/questions/63257879/get-current-user-in-nestjs-on-a-route-without-an-authguard)
