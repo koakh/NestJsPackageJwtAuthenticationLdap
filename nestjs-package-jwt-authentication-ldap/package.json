@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.54",
+  "version": "1.0.55",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -60,7 +60,7 @@
     "passport-jwt": "^4.0.0",
     "passport-ldapauth": "^3.0.1",
     "passport-local": "^1.0.0",
-    "passport": "^0.5.0",
+    "passport": "^0.6.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.4.0",
     "uuid": "^8.3.2"
