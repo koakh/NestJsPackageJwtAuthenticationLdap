@@ -6,7 +6,7 @@
   "configurations": [
     // use with combination with `start:debug` script, this is always working
     {
-      "type": "pwa-node",
+      "type": "node",
       "name": "Attach to Process",
       "port": 9239,
       "request": "attach",
@@ -23,7 +23,7 @@
     },
     // just launch debugger and toggle to `debug console`
     {
-      "type": "pwa-node",
+      "type": "node",
       "request": "launch",
       "name": "Launch Program",
       "skipFiles": [
