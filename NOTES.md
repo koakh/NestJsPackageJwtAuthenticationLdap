@@ -117,14 +117,6 @@ OK GRAM > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/Typ
 
 KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
 
-before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with
-
-```shell
-$ ls -la nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh
-# outcome
-lrwxrwxrwx   1 mario mario    47 fev  7 16:03 nestjs-package-jwt-authentication-ldap -> ../../../nestjs-package-jwt-authentication-ldap
-```
-
 ```shell
 # package watch: in term1: build and watch
 $ cd nestjs-package-jwt-authentication-ldap
@@ -132,6 +124,19 @@ $ npm run start:dev
 
 # consumer app (api)
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
+
+
+# NOTE: before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with
+$ ls -la node_modules/@koakh
+# OK
+lrwxrwxrwx   1 mario mario    47 fev  7 16:03 nestjs-package-jwt-authentication-ldap -> ../../../nestjs-package-jwt-authentication-ldap
+# KO
+drwxr-xr-x   4 mario mario  200 fev  7 17:21 nestjs-package-jwt-authentication-ldap
+
+# in case of KO 
+$ rm node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ -r
+$ cd node_modules/@koakh && ln -s ../../../nestjs-package-jwt-authentication-ldap && cd ../..
+# now we can debug
 $ npm run start:debug
 
 # or debugger with "Launch Program"
@@ -142,7 +147,7 @@ $ npm run start:debug
 [NestApplication] Nest application successfully started +2ms
 ```
 
-> to debug use `launch.json` with [F5]
+> to debug use `launch.json` with [F5] ("Attach to Process")
 
 > if service not start check `DEBUG CONSOLE` window for errors
 
