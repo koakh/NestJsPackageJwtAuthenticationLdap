@@ -4,7 +4,9 @@
   - [Starter Project](#starter-project)
     - [Links](#links)
   - [TLDR](#tldr)
-    - [Create tunnel to connect to c3 LDAP](#create-tunnel-to-connect-to-c3-ldap)
+    - [Connect to LDAP form a remote machine](#connect-to-ldap-form-a-remote-machine)
+      - [Option #1 : Expose eth0](#option-1--expose-eth0)
+      - [Option #2 : Create tunnel to connect to c3 LDAP](#option-2--create-tunnel-to-connect-to-c3-ldap)
     - [Change .env to use tunnel](#change-env-to-use-tunnel)
     - [Install Nest Cli](#install-nest-cli)
     - [Debug package and consumer App](#debug-package-and-consumer-app)
@@ -15,7 +17,6 @@
   - [Example of Search Users with LdapJs](#example-of-search-users-with-ldapjs)
   - [Problems](#problems)
   - [Ignore debug error message](#ignore-debug-error-message)
-  - [Missing LDAP Port Forword](#missing-ldap-port-forword)
   - [Extract data from JWT in Endpoints, ex Extract injected User](#extract-data-from-jwt-in-endpoints-ex-extract-injected-user)
   - [Add AuthRoles Guard, Decorator etc](#add-authroles-guard-decorator-etc)
   - [ldapjs Password Change](#ldapjs-password-change)
@@ -30,6 +31,7 @@
     - [Run unit tests](#run-unit-tests)
   - [\[ExceptionsHandler\] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
   - [Property 'user' does not exist on type 'Request\<ParamsDictionary, any, any, ParsedQs, Record\<string, any\>\>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
+  - [Update of latest problems of **unbounded breakpoint** in debug in LG Gram](#update-of-latest-problems-of-unbounded-breakpoint-in-debug-in-lg-gram)
 
 ## Starter Project
 
@@ -43,11 +45,34 @@
 
 ## TLDR
 
+UPDATE 2023-02-07 16:08:40: latest problems in LG GRAM, go to bottom and check "Update of latest problems of **unbounded breakpoint** in debug in LG Gram" section
+
 project used node version `node/v12.8.1`
+confirm to work with `v16.15.0` and `v19.3.0`
 
 > this notes are the continuation of NOTES.md from [NestJsPackageStarter](https://github.com/koakh/NestJsPackageStarter/blob/main/NOTES.md) and [GitHub: NestJsPackageJwtAuthentication](https://github.com/koakh/NestJsPackageJwtAuthentication)
 
-### Create tunnel to connect to c3 LDAP
+### Connect to LDAP form a remote machine
+
+#### Option #1 : Expose eth0
+
+```shell
+[ExceptionsHandler] connect ECONNREFUSED 192.168.1.1:2210 +97867ms
+Error: connect ECONNREFUSED 192.168.1.1:2210
+```
+
+or miss `eth0` interface in samba config, fix add eth0
+
+```shell
+$ sudo nano /etc/samba/smb.conf
+
+interfaces = lo br0 docker0 eth0
+
+[sudo] password for c3:
+$ sudo service samba-ad-dc restart
+```
+
+#### Option #2 : Create tunnel to connect to c3 LDAP
 
 > Optional, if we use remote development in c3 we can skip bellow step
 
@@ -86,10 +111,19 @@ WARNING: update 2021-10-29 12:25:38 Debugger breakpoints fails when load code fr
 ![image](assets/2021-10-29-12-28-02.png)
 
 OK > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
+OK GRAM > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
 
 ![image](assets/2021-10-29-12-40-24.png)
 
 KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
+
+before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with
+
+```shell
+$ ls -la nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh
+# outcome
+lrwxrwxrwx   1 mario mario    47 fev  7 16:03 nestjs-package-jwt-authentication-ldap -> ../../../nestjs-package-jwt-authentication-ldap
+```
 
 ```shell
 # package watch: in term1: build and watch
@@ -200,24 +234,6 @@ when launch debug with F5 we can see bellow error on start, please ignore it, ev
 
 ```shell
 Could not read source map for file:///media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/typescript/lib/typescript.js: ENOENT: no such file or directory, open '/media/mario/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/typescript/lib/typescript.js.map'
-```
-
-## Missing LDAP Port Forword
-
-```shell
-[ExceptionsHandler] connect ECONNREFUSED 192.168.1.1:2210 +97867ms
-Error: connect ECONNREFUSED 192.168.1.1:2210
-```
-
-or miss `eth0` interface in samba config, fix add eth0
-
-```shell
-$ sudo nano /etc/samba/smb.conf
-
-interfaces = lo br0 docker0 eth0
-
-[sudo] password for c3:
-$ sudo service samba-ad-dc restart
 ```
 
 ## Extract data from JWT in Endpoints, ex Extract injected User
@@ -569,3 +585,42 @@ fix with
 ```shell
 $ npm i -D @types/express
 ```
+
+## Update of latest problems of **unbounded breakpoint** in debug in LG Gram
+
+![image](./assets/2023-02-07-16-36-30.png)
+
+this problem occur when we use `npm i ../nestjs-package-jwt-authentication-ldap` that somehow create a copy of `nestjs-package-jwt-authentication-ldap` and not symbolic link, and this create a hard do find problem, until we found what is the root cause
+
+the solution comes after checkout and install the dependencies on c3 with node `v16.15.0`, in that specific case it works out of the box
+
+after copied this working project `backup.tgz` from a c3 to local machine (gram), it works
+
+this is what let me figure out the problem
+
+the problem is that the package `nestjs-package-jwt-authentication-ldap` installed with `npm i` > `"@koakh/nestjs-package-jwt-authentication-ldap": "file:../nestjs-package-jwt-authentication-ldap"` is not a symbolic link of the sources that we use in project
+
+is a copied version of it, that somehow waste a few hours to debug
+
+the trick is always using the symbolic link path
+
+```shell
+# OK
+$ ls -la /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh
+# this is a a symlink of nestjs-package-jwt-authentication-ldap
+lrwxrwxrwx   1 mario mario    47 fev  7 11:45 nestjs-package-jwt-authentication-ldap -> ../../../nestjs-package-jwt-authentication-ldap
+
+# KO
+$ ls -la /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh_
+# this is a folder not a symlink of nestjs-package-jwt-authentication-ldap
+drwxr-xr-x   4 mario mario  4096 fev  6 17:26 nestjs-package-jwt-authentication-ldap
+```
+
+to prove that we can revert to KO folder and delete `nestjs-package-jwt-authentication-ldap` and create a symbolic link with
+
+```shell
+$ mv /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ /tmp/
+$ ln -s ../../../nestjs-package-jwt-authentication-ldap
+```
+
+WARN: the other option is install the package (`npm i ../nestjs-package-jwt-authentication-ldap`) and let npm create the symbolic link, this will create a lot of problems with new versions of node and will re-install everything, **AND WILL NOT WORK with current node `v19.3.0`, with that node version it will create the folder and not the symbolic link and this is what creates the problem
