@@ -28,8 +28,8 @@
     - [Config File](#config-file)
     - [Install prerequisites](#install-prerequisites)
     - [Run unit tests](#run-unit-tests)
-  - [[ExceptionsHandler] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
-  - [Property 'user' does not exist on type 'Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
+  - [\[ExceptionsHandler\] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
+  - [Property 'user' does not exist on type 'Request\<ParamsDictionary, any, any, ParsedQs, Record\<string, any\>\>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
 
 ## Starter Project
 
@@ -74,10 +74,12 @@ LDAP_ADDRESS="192.168.1.1:2210"
 ### Install Nest Cli
 
 ```shell
-$ sudo npm install -g @nestjs/cli
+$ npm install -g @nestjs/cli
 ```
 
 ### Debug package and consumer App
+
+WARNING: update 2023-02-07 11:47:31 debugger with **Unbound breakpoint** on lg gram, but it works in c3edu.online out of the box and version `v16.15.0`
 
 WARNING: update 2021-10-29 12:25:38 Debugger breakpoints fails when load code from a path with symbolic links
 
