@@ -38,7 +38,9 @@ Content-Type: {{contentType}}
 
 {
   "username": "dev",
-  "password": "qhA1Bpn5s5"
+  "password": "qhA1Bpn5s5",
+  // this will ignore license activate status, and always get all permissions even when device is not activated
+  "forceActivatedLicense": true
   // "username": "c3",
   // "password": "root"
   // "username": "parent1",

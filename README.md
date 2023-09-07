@@ -24,7 +24,7 @@ v10.19.0
 $ node -v
 v16.6.2
 # require
-$ sudo npm install -g @nestjs/cli
+$ sudo npm install -g @nestjs/cli nodemon
 ```
 
 ## Checkout Project

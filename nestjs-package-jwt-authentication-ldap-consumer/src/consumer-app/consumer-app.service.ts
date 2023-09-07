@@ -20,6 +20,7 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
 
   // proxy function to injected licenseService
   async licenseState() {
+    // used tru or false to force activate or un-activated device
     // used only in c3-updater, here we can always respond with licenseActivated: true
     return { licenseActivated: true };
   }

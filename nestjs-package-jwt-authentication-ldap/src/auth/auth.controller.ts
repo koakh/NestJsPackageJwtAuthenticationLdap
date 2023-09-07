@@ -20,7 +20,6 @@ import { getProfileFromFirstMemberOf } from './utils';
 /**
  * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken
  */
-
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
@@ -41,14 +40,21 @@ export class AuthController {
   async login(
     @Request() req: LoginDto,
     @Response() res,
+    // use body to extract forceActivatedLicense property only
+    @Body() body?: { forceActivatedLicense: boolean },
   ): Promise<LoginResponseDto> {
     // authenticate user
     passport.authenticate('ldap', { session: false });
     // destruct
     const { user: { cn: username, userPrincipalName: email, dn: userId, memberOf } } = req;
     let { user: { extraPermission } } = req;
-    // get licenseActivated to pass to getRolesAndPermissionsFromMemberOf
-    const { licenseActivated } = await this.consumerAppService.licenseState();
+    let { licenseActivated } = await this.consumerAppService.licenseState();
+    // get forceActivatedLicense to override licenseActivated and fake a licensed device, useful for c3-system-core requests in a unActivated device
+    const { forceActivatedLicense } = body;
+    // force force Activated License
+    if (forceActivatedLicense) {
+      licenseActivated = true;
+    }
     // roles/permissions
     const [roles, permissions] = await this.authService.getRolesAndPermissionsFromMemberOf(memberOf, licenseActivated);
     // sometimes we don't receive an array bu a string, like when we have only one extraPermission, in this case we must convert it to an array

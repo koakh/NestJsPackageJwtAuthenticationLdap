@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDefined, Length } from 'class-validator';
+import { IsDefined, IsOptional, Length } from 'class-validator';
 
 // TODO seems that this DTO don't work in swagger
 export class LoginDto {
@@ -12,6 +12,11 @@ export class LoginDto {
   @Length(3, 50)
   @ApiProperty({ default: 'pass' })
   password: string;
+
+  @IsOptional()
+  @ApiProperty({ default: false })
+  // this will force a activated license device, and always get all permissions even when device is not activated
+  forceActivatedLicense: boolean;
 
   // WARN: this object will be extended ldap by passport strategy
   user: {

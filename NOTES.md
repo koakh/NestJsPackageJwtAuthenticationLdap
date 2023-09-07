@@ -32,6 +32,7 @@
   - [\[ExceptionsHandler\] unexpected number of matches (2) for "c3" username](#exceptionshandler-unexpected-number-of-matches-2-for-c3-username)
   - [Property 'user' does not exist on type 'Request\<ParamsDictionary, any, any, ParsedQs, Record\<string, any\>\>](#property-user-does-not-exist-on-type-requestparamsdictionary-any-any-parsedqs-recordstring-any)
   - [Update of latest problems of **unbounded breakpoint** in debug in LG Gram](#update-of-latest-problems-of-unbounded-breakpoint-in-debug-in-lg-gram)
+  - [Gram http Client Request don't respond and Term2 window will be black without any response](#gram-http-client-request-dont-respond-and-term2-window-will-be-black-without-any-response)
 
 ## Starter Project
 
@@ -54,11 +55,17 @@ confirm to work with `v16.15.0` and `v19.3.0`
 
 ### Connect to LDAP form a remote machine
 
+error1: prevent `Error: connect ECONNREFUSED 192.168.122.194:389`
+
+error2: `LDAPError [InvalidCredentialsError]: 80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1`
+
+`.env` : must change `LDAP_BIND_CREDENTIALS='$pJDRW%7%B%w_C1k'`, get ldap pass with `cat /etc/ldap.password`
+
 #### Option #1 : Expose eth0
 
 ```shell
-[ExceptionsHandler] connect ECONNREFUSED 192.168.1.1:2210 +97867ms
-Error: connect ECONNREFUSED 192.168.1.1:2210
+[ExceptionsHandler] connect ECONNREFUSED 192.168.122.194:389 +97867ms
+Error: connect ECONNREFUSED 192.168.122.194:389
 ```
 
 or miss `eth0` interface in samba config, fix add eth0
@@ -70,6 +77,16 @@ interfaces = lo br0 docker0 eth0
 
 [sudo] password for c3:
 $ sudo service samba-ad-dc restart
+```
+
+always check if firewall ports are enable
+
+```shell
+$ sudo ufw status | grep 389
+389/tcp                    ALLOW       Anywhere                  
+389/udp                    ALLOW       Anywhere                  
+389/tcp (v6)               ALLOW       Anywhere (v6)             
+389/udp (v6)               ALLOW       Anywhere (v6)
 ```
 
 #### Option #2 : Create tunnel to connect to c3 LDAP
@@ -118,13 +135,12 @@ OK GRAM > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/Typ
 KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
 
 ```shell
-# package watch: in term1: build and watch
+# term1: package watch: build and watch
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
 
-# consumer app (api)
+# term2: consumer app (api)
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
-
 
 # NOTE: before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with
 $ ls -la node_modules/@koakh
@@ -507,7 +523,7 @@ ACCESS_TOKEN_EXPIRES_IN='15m'
 REFRESH_TOKEN_JWT_SECRET='secretKeyRefreshToken'
 REFRESH_TOKEN_EXPIRES_IN='7d'
 REFRESH_TOKEN_SKIP_INCREMENT_VERSION='false'
-# # ldap
+# ldap
 LDAP_ADDRESS='c3edu.online'
 LDAP_BIND_DN='cn=administrator,cn=users,dc=c3edu,dc=online'
 LDAP_BIND_CREDENTIALS='Root123...'
@@ -629,3 +645,14 @@ $ ln -s ../../../nestjs-package-jwt-authentication-ldap
 ```
 
 WARN: the other option is install the package (`npm i ../nestjs-package-jwt-authentication-ldap`) and let npm create the symbolic link, this will create a lot of problems with new versions of node and will re-install everything, **AND WILL NOT WORK with current node `v19.3.0`, with that node version it will create the folder and not the symbolic link and this is what creates the problem
+
+## Gram http Client Request don't respond and Term2 window will be black without any response
+
+fix use a curl and it will respond, and term2 window will not be blank
+
+```shell
+$ curl --request POST \
+  --url http://localhost:3010/v1/auth/login \
+  --header 'content-type: application/json' \
+  --data '{"username": "dev","password": "qhA1Bpn5s5","forceActivatedLicense": true}' | jq
+```
