@@ -17,7 +17,7 @@ export class LdapUpdateUsersGuard implements CanActivate {
       return false;
     }
 
-    const username: string = request.body.username ? request.body.username : request.user.username;
+    const username: string = request.body.cn ? request.body.cn : request.user.cn;
     const selfChange: boolean = username == request.user.username;
 
     if (selfChange) {
