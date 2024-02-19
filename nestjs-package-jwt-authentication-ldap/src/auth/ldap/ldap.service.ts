@@ -345,7 +345,7 @@ export class LdapService {
           throw new Error('cache not yet initialized! first initialize cache and try again');
         } else {
           // convert record to array before duty
-          const recordArray = recordToArray(this.cache.users);
+          const recordArray = (recordToArray(this.cache.users) as SearchUserRecordDto[]);
           const filtered = await filterator(recordArray, searchUserRecordsDto.searchAttributes);
           const filteredExcludedGroups = filterLdapGroup(filtered, this.searchGroupExcludeProfileGroups);
           let filteredUsersCn = filteredExcludedGroups;

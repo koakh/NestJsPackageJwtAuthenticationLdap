@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import { FilteratorSearchFieldAttribute } from '../../auth/ldap/interfaces';
 import { SearchUserPaginatorResponseDto, SearchUserRecordDto } from '../../auth/ldap/dto';
 import { MemoryUsage } from '../interfaces';
+import { clearConfigCache } from 'prettier';
 
 /**
  * generic function to get Enum key from a Enum value
@@ -100,44 +101,89 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
  * @param items 
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
-export const filterator = (items: any, searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
   try {
     if (Array.isArray(searchAttributes)) {
+      // start with full recordSet
       let result: SearchUserRecordDto[] = items;
+      // loop searchAttributes and start filter
       searchAttributes.forEach((attribute: FilteratorSearchFieldAttribute) => {
         // check if is a valid object with attributeKey
         if (typeof attribute === 'object' && Array.isArray(Object.keys(attribute))) {
+          // can be 'cn', 'cn||displayName' ect
           const attributeKey = Object.keys(attribute)[0];
+          const attributeKeys = attributeKey.split('||');
+
+          // exact
           if (attribute[attributeKey].exact) {
             // Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
             // filter normal attributeKey
             if (attributeKey !== 'memberOf') {
-              result = result.filter((e) => e[attributeKey] === attribute[attributeKey].exact);
-              // filter memberOf attributeKey
-            } else {
+              // old non OR array 
+              // return e[attributeKey] === attribute[attributeKey].exact;
+              // new OR array
+              let exactResult: Array<SearchUserRecordDto> = [];
+              // loop OR array fields
+              attributeKeys.forEach((f) => {
+                const innerResult = result.filter((e) => {
+                  return e[f] === attribute[attributeKey].exact;
+                });
+                // if innerResult has foundedRecords, push to helper array
+                if (innerResult.length > 0) {
+                  exactResult = exactResult.concat(innerResult);
+                }
+              });
+              // replace current result pipeline with matched or results
+              result = exactResult;
+            }
+            // filter memberOf attributeKey, THIS don't work with more than on field
+            else {
               // if memberOf we must search in all items the memberOf array to see if includes exact match
               if (attribute[attributeKey].exact) {
                 result = result.filter((e) => Array.isArray(e[attributeKey]) && e[attributeKey].length > 0 && e[attributeKey].includes(attribute[attributeKey].exact));
               }
             }
           }
-          if (attribute[attributeKey].includes) {
+
+          // includes
+          // some properties may not exists in some users, we must check with ?.includes, for ex telephoneNumber
+          if (attribute[attributeKey]?.includes) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].includes}'`);
             // filter attributeKey
-            result = result.filter((e) => {
-              return (e[attributeKey]).includes(attribute[attributeKey].includes);
-            });
-          }
-          if (attribute[attributeKey].regex) {
-            // Logger.log(`filterator attribute: regex '${attribute[attributeKey].regex}'`);
-            try {
-              result = result.filter((e) => {
-                const regExp = new RegExp(attribute[attributeKey].regex, attribute[attributeKey].regexOptions ? attribute[attributeKey].regexOptions : undefined);
-                return regExp.test(e[attributeKey]);
+            let exactResult: Array<SearchUserRecordDto> = [];
+            // loop OR array fields
+            attributeKeys.forEach((f) => {
+              const innerResult = result.filter((e) => {
+                return attribute[attributeKey]?.includes && (e[f]).includes(attribute[attributeKey]?.includes);
               });
-            } catch (error) {
-              Logger.log(`filterator invalid regExp on attributeKey ${attributeKey}. regExp: '${attribute[attributeKey].regex}'`);
-            }
+              // if innerResult has foundedRecords, push to helper array
+              if (innerResult.length > 0) {
+                exactResult = exactResult.concat(innerResult);
+              }
+            });
+            // replace current result pipeline with matched or results
+            result = exactResult;
+          }
+
+          // includes
+          // some properties may not exists in some users, we must check with ?.includes, for ex telephoneNumber
+          if (attribute[attributeKey]?.regex) {
+            // Logger.log(`filterator attribute: contains '${attribute[attributeKey].regex}'`);
+            // filter attributeKey
+            let exactResult: Array<SearchUserRecordDto> = [];
+            // loop OR array fields
+            attributeKeys.forEach((f) => {
+              const innerResult = result.filter((e) => {
+                const regExp = new RegExp(attribute[attributeKey].regex, attribute[attributeKey].regexOptions ? attribute[attributeKey].regexOptions : undefined);
+                return regExp.test(e[f]);
+              });
+              // if innerResult has foundedRecords, push to helper array
+              if (innerResult.length > 0) {
+                exactResult = exactResult.concat(innerResult);
+              }
+            });
+            // replace current result pipeline with matched or results
+            result = exactResult;
           }
         }
       });

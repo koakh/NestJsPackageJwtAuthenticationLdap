@@ -388,22 +388,26 @@ Authorization: Bearer {{authToken}}
   "sortBy": "dateOfBirth",
   // "sortDirection": "ascending",
   // "sortDirection": "descending",
-  // optional
-  // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "fakeuser"]
-  "searchUsersCn": ["teacher1"]
-  // "searchAttributes": [
-    // {
-    //   // fields
-    //   "cn": {
-    //     // must match string
-    //     "exact": "c3"
-    //     "exact": "nuno"
-    //     // must contain string
-    //     "includes": "mario",
-    //     // must match regex, warn for escaped slashes
-    //     "regex": "\\b(\\w*studentschool2c\\w*)\\b"
-    //   }
-    // },
+  // optional array of users
+  // "searchUsersCn": ["dev", "c3", "teacher1", "parent1", "nano", "dontexists", "koakh"]
+  // or one user
+  // "searchUsersCn": ["teacher1"]
+  "searchAttributes": [
+    {
+      // fields
+      // "cn": {
+      // "cn||displayName": {
+      "cn||displayName||telephoneNumber": {
+        // must match string
+        // "exact": "koakh",
+        // "exact": "Mário Monteiro"
+        "exact": "+351936202288",
+        // must contain string
+        "includes": "Má",
+        // must match regex, warn for escaped slashes
+        "regex": "\\b(\\w*koakh\\w*)\\b"
+      }
+    },
     // {
     //   "dn": {
     //     // "regex": "\\.*,OU=School2,OU=People,DC=c3edu,DC=online$\\b"
@@ -422,14 +426,17 @@ Authorization: Bearer {{authToken}}
     //     "exact":"mario monteiro"
     //   }
     // },
-    // {
-    //   // special property, must search in memberOf array
-    //   "memberOf": {
-    //     "exact": "CN=C3Student,OU=Groups,DC=c3edu,DC=online"
-    //     "exact": "CN=C3Administrator,OU=Groups,DC=c3edu,DC=online"
-    //   }
-    // }
-  // ]
+    {
+      // special property, must search in memberOf array
+      "memberOf": {
+        // c3
+        // "exact": "CN=C3Administrator,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
+        // "exact": "CN=Domain Admins,CN=Users,DC=c3edu,DC=online"
+        // student, ex mario
+        "exact": "CN=C3Student,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
+      }
+    }
+  ]
 }
 
 ### ldapGetUserProfileRecord: don't use cache, goes direct to ldap

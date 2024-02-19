@@ -117,6 +117,8 @@ LDAP_ADDRESS="192.168.1.1:2210"
 
 ```shell
 $ npm install -g @nestjs/cli
+# in nixos use `nix-shell -p nest-cli` to install @nestjs/cli
+# or better use hust nestnix-shell and it will use shell.nix local config file
 ```
 
 ### Debug package and consumer App
@@ -129,6 +131,7 @@ WARNING: update 2021-10-29 12:25:38 Debugger breakpoints fails when load code fr
 
 OK > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
 OK GRAM > `code /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
+OK GRAM NIX > `code /mnt/gram/disk2/Home/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap`
 
 ![image](assets/2021-10-29-12-40-24.png)
 
@@ -152,6 +155,15 @@ drwxr-xr-x   4 mario mario  200 fev  7 17:21 nestjs-package-jwt-authentication-l
 # in case of KO 
 $ rm node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ -r
 $ cd node_modules/@koakh && ln -s ../../../nestjs-package-jwt-authentication-ldap && cd ../..
+
+# now change 
+$ LDAP_BIND_CREDENTIALS=$(cat /etc/ldap.password)
+# with value
+$ echo ${LDAP_BIND_CREDENTIALS}
+# ex
+LDAP_BIND_CREDENTIALS='5J8UALlzJ@lR_C1k'
+# else we get the error `lde_message: '80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1'`
+
 # now we can debug
 $ npm run start:debug
 
@@ -162,6 +174,8 @@ $ npm run start:debug
 # wait for...in debug console
 [NestApplication] Nest application successfully started +2ms
 ```
+
+> ALWAYS but ALWAYS use right paths without any simbolic links, see above the right path, and test a breakpoint asap
 
 > to debug use `launch.json` with [F5] ("Attach to Process")
 
