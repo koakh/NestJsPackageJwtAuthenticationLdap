@@ -139,10 +139,12 @@ KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNe
 
 ```shell
 # term1: package watch: build and watch
+$ nix-shell
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm run start:dev
 
 # term2: consumer app (api)
+$ nix-shell
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
 
 # NOTE: before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with

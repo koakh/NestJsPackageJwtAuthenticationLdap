@@ -6,13 +6,14 @@ import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
-import { addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getCnFromDn, getProfileFromFirstMemberOf, getProfileFromMemberOf, includeLdapGroup, parseTemplate, sortObjectByKey } from '../utils';
+import { ValidationErrorsResponse, addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getFieldValidation, getProfileFromMemberOf, includeLdapGroup, isValidRuleField, parseTemplate, sortObjectByKey } from '../utils';
 // tslint:disable-next-line: max-line-length
+import { ConsumerAppService } from '../../common/interfaces';
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
+import { CHANGE_USER_RECORD_VALIDATION } from './ldap.constants';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
-import { ConsumerAppService } from '../../common/interfaces';
 
 /**
  * user model
@@ -244,7 +245,7 @@ export class LdapService {
             const memberOf = (typeof entry.object.memberOf === 'string')
               ? [entry.object.memberOf]
               : entry.object.memberOf;
-              const injectedMetadata = this.consumerAppService.injectMetadataCache ? this.consumerAppService.injectMetadataCache(entry.object as unknown as SearchUserRecordDto) : {};
+            const injectedMetadata = this.consumerAppService.injectMetadataCache ? this.consumerAppService.injectMetadataCache(entry.object as unknown as SearchUserRecordDto) : {};
             user = {
               // extract username from string | array
               dn,
@@ -563,6 +564,58 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
+        // start validation here, before everithing else
+        const validationErrorsResponse: ValidationErrorsResponse = [];
+        changeUserRecordDto.changes.forEach((e: ldap.Change) => {
+          if (e.operation === 'add' || e.operation === 'replace') {
+            // get first property field from modificaion object
+            const fieldName = Object.keys(e.modification)[0];
+            const fieldValue = e.modification[fieldName];
+            const isValidFieldErrorMessage = isValidRuleField(fieldName, CHANGE_USER_RECORD_VALIDATION);
+            // valid fields are null of error messages, we use redundant === null, here to be more explicit
+            if (isValidFieldErrorMessage === null) {
+              const fieldValidation = getFieldValidation(fieldName, CHANGE_USER_RECORD_VALIDATION);
+              // loop field validations rules
+              fieldValidation.forEach((e: (fieldName: string, fieldValue: string) => string[]) => {
+                // launch fieldValidation function to get result
+                const innerError = e(fieldName, fieldValue);
+                // console.log(`innerError ${fieldName}: [${JSON.stringify(innerError, undefined, 2)}]`);
+                // push to field errors
+                if (innerError.length > 0) {
+                  if (validationErrorsResponse[fieldName] === undefined) {
+                    // init field array first
+                    validationErrorsResponse[fieldName] = [];
+                  }
+                  validationErrorsResponse[fieldName].push(innerError);
+                }
+              });
+              // debug
+              // output field ValidationErrorsResponse
+              // console.log(`validationErrorsResponse[${fieldName}]: [${JSON.stringify(validationErrorsResponse[fieldName], undefined, 2)}]`);
+              // const fieldErrors = simpleLenghtValidation(fieldName, fieldValue, 30, 50);
+              // console.log(`validationErrorsResponse: [${JSON.stringify(validationErrorsResponse, undefined, 2)}]`);
+            } else {
+              if (validationErrorsResponse[fieldName] === undefined) {
+                // init field array first
+                validationErrorsResponse[fieldName] = [];
+              }
+              validationErrorsResponse[fieldName].push(isValidFieldErrorMessage);
+            }
+          };
+        });
+
+        // verify if exist errors
+        if (Object.keys(validationErrorsResponse).length > 0) {
+          const keys = Object.keys(validationErrorsResponse);
+          const response = keys.map((e) => {
+            // console.log(`e: [${JSON.stringify(e, undefined, 2)}]`);
+            return { [e]: validationErrorsResponse[e] }
+          });
+          return reject({ validation: response });
+        }
+
+        // validation ok, procced
+
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         let password: string = null;
 
@@ -581,8 +634,9 @@ export class LdapService {
           });
         });
 
-        if (password)
+        if (password) {
           await this.consumerAppService.changePassword(changeUserRecordDto.cn, password);
+        };
 
         // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {

@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUserRecordDto {
   @IsDefined()
-  @Length(1, 50)
+  @Length(2, 50)
   @ApiProperty()
   // username (commonName)
   cn: string;
@@ -15,7 +15,7 @@ export class CreateUserRecordDto {
   unicodePwd: string;
 
   @IsDefined()
-  @Length(1, 50)
+  @Length(2, 50)
   @ApiProperty()
   // firstName
   givenName: string;
@@ -23,7 +23,7 @@ export class CreateUserRecordDto {
   // lastName
   @IsDefined()
   @IsOptional()
-  @Length(1, 50)
+  @Length(2, 50)
   // lastName (sureName)
   @ApiProperty()
   sn: string;
@@ -41,10 +41,12 @@ export class CreateUserRecordDto {
   objectClass: string;
 
   @IsOptional()
+  @Length(5, 50)
   @ApiProperty()
   displayName: string;
 
   @IsOptional()
+  @Length(4, 50)
   @ApiProperty()
   jpegPhoto?: string;
 

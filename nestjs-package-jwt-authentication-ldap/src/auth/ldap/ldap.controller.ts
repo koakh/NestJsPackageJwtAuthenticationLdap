@@ -182,13 +182,14 @@ export class LdapController {
   async changeUserRecord(
     @Response() res,
     @Body() changeUserRecordDto: ChangeUserRecordDto,
-  ): Promise<void> {
+  ): Promise<any> {
     this.ldapService.changeUserRecord(changeUserRecordDto)
       .then(() => {
         res.status(HttpStatus.NO_CONTENT).send();
       })
       .catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+        // res.status(HttpStatus.BAD_REQUEST).send({ error: error.message ? error.message : error.validation ? error.validation : error });
+        res.status(HttpStatus.BAD_REQUEST).send({ error: error.message ? error.message : error });
       });
   }
 

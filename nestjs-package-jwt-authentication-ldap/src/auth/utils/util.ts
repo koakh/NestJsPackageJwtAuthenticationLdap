@@ -1,9 +1,8 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import e = require('express');
 import { pascalCase } from 'pascal-case';
-import { UserRoles } from '../enums';
-import { SearchUserPaginatorResponseDto, SearchUserRecordDto } from '../ldap/dto';
+import { SearchUserRecordDto } from '../ldap/dto';
+import e = require('express');
 
 const bcryptSaltRounds = 10;
 
@@ -169,11 +168,11 @@ export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[], 
 
   return data.map((e: SearchUserRecordDto) => {
     const injectedMetadata = injectMetadataCache ? injectMetadataCache(e) : {};
-    return { 
-      ...e, 
-      customUsersBaseSearch: isCustom(e.dn), 
+    return {
+      ...e,
+      customUsersBaseSearch: isCustom(e.dn),
       // inject injectedMetadata
-      metaData: {...e.metaData, ...injectedMetadata}
+      metaData: { ...e.metaData, ...injectedMetadata }
     };
   });
 };
