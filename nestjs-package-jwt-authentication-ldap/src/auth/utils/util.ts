@@ -215,3 +215,15 @@ export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection
     return 0;
   });
 }
+
+// Remove duplicates from an array of objects by one property
+// https://www.javascripttutorial.net/array/javascript-remove-duplicates-from-array/
+// const members = [
+//   { id: 1, name: 'John' },
+//   { id: 2, name: 'Jane' },
+//   { id: 1, name: 'Johnny' },
+//   { id: 4, name: 'Alice' },
+// ];
+export const removeDuplicatesFromArrayByProperty = (array: any[], property: string): any[] => {
+  return [...new Map(array.map((m) => [m[property], m])).values()];
+}

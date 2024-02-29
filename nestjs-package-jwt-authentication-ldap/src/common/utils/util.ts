@@ -1,8 +1,7 @@
-import { Logger } from '@nestjs/common';
-import { FilteratorSearchFieldAttribute } from '../../auth/ldap/interfaces';
 import { SearchUserPaginatorResponseDto, SearchUserRecordDto } from '../../auth/ldap/dto';
+import { FilteratorSearchFieldAttribute } from '../../auth/ldap/interfaces';
+import { removeDuplicatesFromArrayByProperty } from '../../auth/utils';
 import { MemoryUsage } from '../interfaces';
-import { clearConfigCache } from 'prettier';
 
 /**
  * generic function to get Enum key from a Enum value
@@ -102,6 +101,7 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
 export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+  const removeDuplicatesKeyProperty = 'cn';
   try {
     if (Array.isArray(searchAttributes)) {
       // start with full recordSet
@@ -133,8 +133,8 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
                   exactResult = exactResult.concat(innerResult);
                 }
               });
-              // replace current result pipeline with matched or results
-              result = exactResult;
+              // replace current result pipeline with matched or results, and removing duplicates, ex Parent1 and parent, C3 and c3 etc
+              result = removeDuplicatesFromArrayByProperty(exactResult, removeDuplicatesKeyProperty);
             }
             // filter memberOf attributeKey, THIS don't work with more than on field
             else {
@@ -150,40 +150,41 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
           if (attribute[attributeKey]?.includes) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].includes}'`);
             // filter attributeKey
-            let exactResult: Array<SearchUserRecordDto> = [];
+            let includesResult: Array<SearchUserRecordDto> = [];
             // loop OR array fields
             attributeKeys.forEach((f) => {
               const innerResult = result.filter((e) => {
-                return attribute[attributeKey]?.includes && (e[f]).includes(attribute[attributeKey]?.includes);
+                // required to check if e[f] is undefined, else we will try to access e[f].includes on it
+                return attribute[attributeKey]?.includes && e[f] && (e[f]).includes(attribute[attributeKey]?.includes);
               });
               // if innerResult has foundedRecords, push to helper array
               if (innerResult.length > 0) {
-                exactResult = exactResult.concat(innerResult);
+                includesResult = includesResult.concat(innerResult);
               }
             });
-            // replace current result pipeline with matched or results
-            result = exactResult;
+            // replace current result pipeline with matched or results, and removing duplicates, ex Parent1 and parent, C3 and c3 etc
+            result = removeDuplicatesFromArrayByProperty(includesResult, removeDuplicatesKeyProperty);
           }
 
-          // includes
+          // regex
           // some properties may not exists in some users, we must check with ?.includes, for ex telephoneNumber
           if (attribute[attributeKey]?.regex) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].regex}'`);
             // filter attributeKey
-            let exactResult: Array<SearchUserRecordDto> = [];
+            let regexResult: Array<SearchUserRecordDto> = [];
             // loop OR array fields
             attributeKeys.forEach((f) => {
               const innerResult = result.filter((e) => {
                 const regExp = new RegExp(attribute[attributeKey].regex, attribute[attributeKey].regexOptions ? attribute[attributeKey].regexOptions : undefined);
                 return regExp.test(e[f]);
               });
-              // if innerResult has foundedRecords, push to helper array
+              // if innerResult has foundedRecords, push to helper array              
               if (innerResult.length > 0) {
-                exactResult = exactResult.concat(innerResult);
+                regexResult = regexResult.concat(innerResult);
               }
             });
-            // replace current result pipeline with matched or results
-            result = exactResult;
+            // replace current result pipeline with matched or results, and removing duplicates, ex Parent1 and parent, C3 and c3 etc
+            result = removeDuplicatesFromArrayByProperty(regexResult, removeDuplicatesKeyProperty);
           }
         }
       });

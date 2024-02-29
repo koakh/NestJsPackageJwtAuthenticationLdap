@@ -460,11 +460,15 @@ Authorization: Bearer {{authToken}}
         // must match string
         // "exact": "koakh",
         // "exact": "Mário Monteiro"
-        "exact": "+351936202288",
+        // "exact": "+351936202288"
+        // "exact": "koakh",
+        "exact": "parent1",
         // must contain string
-        "includes": "Má",
+        "includes": "Pare",
         // must match regex, warn for escaped slashes
-        "regex": "\\b(\\w*koakh\\w*)\\b"
+        // TODO: always use case insensistivite, to catch duplicates like Parent1 & parent1, C3 and c3
+         "regex": "\\b(\\w*parent\\w*)\\b",
+         "regexOptions": "i"
       }
     },
     // {
@@ -492,7 +496,9 @@ Authorization: Bearer {{authToken}}
         // "exact": "CN=C3Administrator,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
         // "exact": "CN=Domain Admins,CN=Users,DC=c3edu,DC=online"
         // student, ex mario
-        "exact": "CN=C3Student,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
+        // "exact": "CN=C3Student,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
+        // parent
+        "exact": "CN=C3Parent,OU=Profiles,OU=Groups,DC=c3edu,DC=online"
       }
     }
   ]
