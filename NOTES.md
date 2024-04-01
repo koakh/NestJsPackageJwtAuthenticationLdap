@@ -146,6 +146,8 @@ $ npm run start:dev
 # term2: consumer app (api)
 $ nix-shell
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
+# now we can debug
+$ npm run start:debug
 
 # NOTE: before try debug always check if `nestjs-package-jwt-authentication-ldap` is a symbolic link with
 $ ls -la node_modules/@koakh
@@ -158,13 +160,13 @@ drwxr-xr-x   4 mario mario  200 fev  7 17:21 nestjs-package-jwt-authentication-l
 $ rm node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ -r
 $ cd node_modules/@koakh && ln -s ../../../nestjs-package-jwt-authentication-ldap && cd ../..
 
-# now change 
+# prevennt wrong ldap pass error `LDAPError [InvalidCredentialsError]: 80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1`
+# get current ladp pass in c3
 $ LDAP_BIND_CREDENTIALS=$(cat /etc/ldap.password)
 # with value
 $ echo ${LDAP_BIND_CREDENTIALS}
-# ex
+# now in `.env` change LDAP_BIND_CREDENTIALS='CURRENT-PASSWORD'
 LDAP_BIND_CREDENTIALS='5J8UALlzJ@lR_C1k'
-# else we get the error `lde_message: '80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1'`
 
 # now we can debug
 $ npm run start:debug

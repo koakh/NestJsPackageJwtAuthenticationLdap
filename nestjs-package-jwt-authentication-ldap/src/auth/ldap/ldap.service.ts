@@ -372,7 +372,9 @@ export class LdapService {
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
       // outside of try, catch must have access to entry object
-      const username = paramCase(createLdapUserDto.cn);
+      // DEPRECATED: CD-3043, removed paramCase from cn to username, now we just use lower case on cn to prevent errors like user type FiDeL, and it will be fi-d-e-l
+      // const username = paramCase(createLdapUserDto.cn).toLocaleLowerCase();
+      const username = createLdapUserDto.cn.toLocaleLowerCase();
       const cn = username;
       const newUser: CreateLdapUserModel = {
         cn,
