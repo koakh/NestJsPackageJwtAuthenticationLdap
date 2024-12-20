@@ -617,7 +617,7 @@ export class LdapService {
           return reject({ validation: response });
         }
 
-        // validation ok, procced
+        // validation ok, proceed
 
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         let password: string = null;
