@@ -7,3 +7,4 @@ test
 test.env
 .delete
 node_modules/
+nestjs-package-jwt-authentication-ldap-consumer/.yalc

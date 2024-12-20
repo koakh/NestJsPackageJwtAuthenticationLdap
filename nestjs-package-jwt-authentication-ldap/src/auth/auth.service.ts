@@ -1,8 +1,6 @@
-import { constants as c } from './ldap/ldap.constants';
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { constantCase } from 'constant-case';
 import { Response } from 'express';
 import { SignOptions } from 'jsonwebtoken';
 import { CONFIG_SERVICE } from '../common/constants';
@@ -12,8 +10,10 @@ import { AuthStore } from './auth.store';
 import { AccessToken, SignJwtToken } from './interfaces';
 import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface';
 import { GroupTypeOu } from './ldap/enums';
+import { constants as c } from './ldap/ldap.constants';
 import { LdapService } from './ldap/ldap.service';
 import { hashPassword } from './utils/util';
+import { constantCase } from './utils/case';
 
 @Injectable()
 export class AuthService {

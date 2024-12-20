@@ -10,7 +10,8 @@
     "sourceMap": true,
     "outDir": "./dist",
     "rootDir": "./src",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "esModuleInterop": true    
   },
   "include": [
     "src/**/*.ts"

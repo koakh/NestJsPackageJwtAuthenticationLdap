@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { pascalCase } from 'pascal-case';
 import { SearchUserRecordDto } from '../ldap/dto';
-import e = require('express');
+import * as e from 'express';
+import { pascalCase } from './case';
 
 const bcryptSaltRounds = 10;
 

@@ -1,7 +1,7 @@
 import { JwtSecrets, SearchUserRecordDto } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { ConsumerAppService as ConsumerAppServiceInterface, AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto } from '@koakh/nestjs-package-jwt-authentication-ldap';
 import { ChangeUserRecordOperation } from '@koakh/nestjs-package-jwt-authentication-ldap/dist/auth/ldap/enums';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { randomSecret } from '../utils';
 
 @Injectable()
@@ -62,42 +62,42 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
 
   // stub to implement
   onCreateUserRecord(createLdapUserDto: CreateUserRecordDto): void {
-    console.log(`fired onCreateUserRecord event for user '${createLdapUserDto.cn}'`);
+    Logger.log(`fired onCreateUserRecord event for user '${createLdapUserDto.cn}'`);
   }
 
   // stub to implement
   onChangeUserRecord(changeUserRecordDto: ChangeUserRecordDto): void {
-    console.log(`fired onChangeUserRecord event for user '${changeUserRecordDto.cn}'`);
+    Logger.log(`fired onChangeUserRecord event for user '${changeUserRecordDto.cn}'`);
   }
   
   // stub to implement
   onDeleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): void {
-    console.log(`fired onDeleteUserRecord event for user '${deleteUserRecordDto.cn}'`);
+    Logger.log(`fired onDeleteUserRecord event for user '${deleteUserRecordDto.cn}'`);
   }
 
   // stub to implement
   onAddOrDeleteUserToGroup(operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto): void {
-    console.log(`fired onAddOrDeleteUserToGroup event for user '${addUserToGroupDto.cn}' group '${addUserToGroupDto.group}' operation '${operation}'`);
+    Logger.log(`fired onAddOrDeleteUserToGroup event for user '${addUserToGroupDto.cn}' group '${addUserToGroupDto.group}' operation '${operation}'`);
   }
 
   // stub to implement
   onChangeUserProfilePassword(username: string): void {
-    console.log(`fired onChangeUserProfilePassword event for user '${username}'`);
+    Logger.log(`fired onChangeUserProfilePassword event for user '${username}'`);
   }
 
   // stub to implement
   onUpdateDefaultGroup(changeDefaultGroupDto: ChangeDefaultGroupDto): void {
-    console.log(`fired onUpdateDefaultGroup event for user '${changeDefaultGroupDto.cn}' group '${changeDefaultGroupDto.group}'`);
+    Logger.log(`fired onUpdateDefaultGroup event for user '${changeDefaultGroupDto.cn}' group '${changeDefaultGroupDto.group}'`);
   }
 
   // stub to implement
   onCreateGroupRecord(createLdapGroupDto: CreateGroupRecordDto): void {
-    console.log(`fired onCreateGroupRecord event for group '${createLdapGroupDto.groupName}'`);
+    Logger.log(`fired onCreateGroupRecord event for group '${createLdapGroupDto.groupName}'`);
   }
 
   // stub to implement
   onDeleteGroupRecord(deleteGroupRecordDto: DeleteGroupRecordDto): void {
-    console.log(`fired onDeleteGroupRecord event for group '${deleteGroupRecordDto.groupName}'`);
+    Logger.log(`fired onDeleteGroupRecord event for group '${deleteGroupRecordDto.groupName}'`);
   }
 
 }

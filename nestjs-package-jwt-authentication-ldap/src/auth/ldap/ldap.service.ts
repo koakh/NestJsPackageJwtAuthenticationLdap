@@ -1,8 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { paramCase } from 'param-case';
-import { pascalCase } from 'pascal-case';
 import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
@@ -14,6 +12,7 @@ import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperati
 import { Cache } from './interfaces';
 import { CHANGE_USER_RECORD_VALIDATION } from './ldap.constants';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
+import { pascalCase } from '../utils/case';
 
 /**
  * user model
@@ -147,6 +146,7 @@ export class LdapService {
         }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
+          // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
             const memberOf = (typeof entry.object.memberOf === 'string')
@@ -235,6 +235,7 @@ export class LdapService {
           },
         }, (err, res) => {
           if (err) Logger.error(err, LdapService.name);
+          // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             recordsFound++;
             const dn = entry.object.dn as string;
@@ -581,7 +582,7 @@ export class LdapService {
               fieldValidation.forEach((e: (fieldName: string, fieldValue: string) => string[]) => {
                 // launch fieldValidation function to get result
                 const innerError = e(fieldName, fieldValue);
-                // console.log(`innerError ${fieldName}: [${JSON.stringify(innerError, undefined, 2)}]`);
+                // Logger.log(`innerError ${fieldName}: [${JSON.stringify(innerError, undefined, 2)}]`);
                 // push to field errors
                 if (innerError.length > 0) {
                   if (validationErrorsResponse[fieldName] === undefined) {
@@ -593,9 +594,9 @@ export class LdapService {
               });
               // debug
               // output field ValidationErrorsResponse
-              // console.log(`validationErrorsResponse[${fieldName}]: [${JSON.stringify(validationErrorsResponse[fieldName], undefined, 2)}]`);
-              // const fieldErrors = simpleLenghtValidation(fieldName, fieldValue, 30, 50);
-              // console.log(`validationErrorsResponse: [${JSON.stringify(validationErrorsResponse, undefined, 2)}]`);
+              // Logger.log(`validationErrorsResponse[${fieldName}]: [${JSON.stringify(validationErrorsResponse[fieldName], undefined, 2)}]`);
+              // const fieldErrors = simpleLengthValidation(fieldName, fieldValue, 30, 50);
+              // Logger.log(`validationErrorsResponse: [${JSON.stringify(validationErrorsResponse, undefined, 2)}]`);
             } else {
               if (validationErrorsResponse[fieldName] === undefined) {
                 // init field array first
@@ -610,7 +611,7 @@ export class LdapService {
         if (Object.keys(validationErrorsResponse).length > 0) {
           const keys = Object.keys(validationErrorsResponse);
           const response = keys.map((e) => {
-            // console.log(`e: [${JSON.stringify(e, undefined, 2)}]`);
+            // Logger.log(`e: [${JSON.stringify(e, undefined, 2)}]`);
             return { [e]: validationErrorsResponse[e] }
           });
           return reject({ validation: response });
@@ -790,7 +791,9 @@ export class LdapService {
         }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) Logger.log(err);
+          // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
+            // Logger.log(`entry: [${JSON.stringify(entry, undefined, 2)}]`);
             const dn = entry.object.dn as string;
             // exclude groupType names ex Profiles and Permissions, they will by find by OU=Groups,DC=c3edu,DC=online filter
             // ex KO dn:'OU=Permissions,OU=Groups,DC=c3edu,DC=online'

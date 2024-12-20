@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
-import * as Strategy from 'passport-ldapauth';
+import Strategy from 'passport-ldapauth';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 

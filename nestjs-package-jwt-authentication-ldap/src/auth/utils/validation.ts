@@ -31,7 +31,7 @@ export const isValidRuleField = (fieldName: string, validationRules: Array<Valid
 
 export const getFieldValidation = (fieldName: string, validationRules: Array<ValidationRules>): ValidationRule => {
   const fieldValidationRules = validationRules.find((e: ValidationRules) => fieldName === Object.keys(e)[0]);
-  // console.log(`fieldValidationRules: [${JSON.stringify(fieldValidationRules, undefined, 2)}]`);
+  // Logger.log(`fieldValidationRules: [${JSON.stringify(fieldValidationRules, undefined, 2)}]`);
   return Object.values(fieldValidationRules)[0];
 }
 

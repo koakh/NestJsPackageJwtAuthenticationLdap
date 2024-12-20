@@ -1,18 +1,25 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2018",
+    "outDir": "./dist",
     "declaration": true,
+    "esModuleInterop": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es6",
     "sourceMap": true,
     "noLib": false,
-    "outDir": "./dist",
     "rootDir": "./src",
     "baseUrl": "./"
   },
-  "include": ["src/**/*.ts"],
+  "include": [
+    "src/**/*.ts"
+  ],
   // WARN commented tests on build, they fail from a lot of reasons
-  "exclude": ["node_modules", "src/**/*.spec.ts"]
+  "exclude": [
+    "node_modules",
+    "src/**/*.spec.ts"
+  ]
 }

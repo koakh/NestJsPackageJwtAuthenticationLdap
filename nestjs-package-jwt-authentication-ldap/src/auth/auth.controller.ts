@@ -1,8 +1,7 @@
 import { Body, Controller, ForbiddenException, Get, HttpStatus, Inject, Logger, Post, Request, Response, UseGuards } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
-import { constantCase } from 'constant-case';
-import * as passport from 'passport';
+import passport from 'passport';
 import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../common/constants';
 // ConsumerAppService must be imported from `src/common/interfaces/consumer-app-service.interface` not from `src/consumer-app/consumer-app.service.ts`
 import { ConsumerAppService, JwtSecrets, ModuleOptionsConfig } from '../common/interfaces';
@@ -15,7 +14,7 @@ import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
 import { getProfileFromFirstMemberOf } from './utils';
-// import { envConstants } from '../common/constants/env';
+import { constantCase } from './utils/case';
 
 /**
  * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken

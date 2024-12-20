@@ -1,57 +1,61 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserRoles } from '../enums';
 
 @Injectable()
 export class PermissionsAuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) { }
+  constructor(private reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
-    // get permissions from metaData ex `'RP_CLASSES', 'RP_CLASSES@READ'`
-    const permissions = this.reflector.get<string[]>('permissions', context.getHandler());
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const permissions = this.reflector.getAllAndOverride<string[]>('permissions', [
+      context.getHandler(),
+      context.getClass()
+    ]);
+    const roles = this.reflector.getAllAndOverride<string[]>('roles', [
+      context.getHandler(),
+      context.getClass()
+    ]);
 
     const request = context.switchToHttp().getRequest();
-    if (!request.user) {
-      return false;
-    }
-    // get jwt injected user from request
     const user = request.user;
 
-    // if guard don't have permissions or roles
+    // If no user is present, unauthorized
+    if (!user) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+
+    // If no specific permissions or roles are required, allow access
     if (!permissions && !roles) {
       return true;
     }
-    // check if user have guard required permission or have required role (we use only at a time, normally we dont user both)
-    const haveRole = this.matchRoles(roles, user.roles);
-    const havePermission = this.matchPermissions(permissions, user.permissions);
-    return haveRole || havePermission;
+
+    // Check if user has required roles or permissions
+    const hasRole = this.checkRoles(roles, user.roles);
+    const hasPermission = this.checkPermissions(permissions, user.permissions);
+
+    return hasRole || hasPermission;
   }
 
-  matchRoles(roles: string[], userRoles: string[]): boolean {
-    let result = false;
-    if (!roles) {
-      return result;
+  private checkRoles(requiredRoles: string[], userRoles: string[]): boolean {
+    if (!requiredRoles?.length) {
+      return false;
     }
-    roles.forEach((e) => {
-      // require to check environment ROLE_ADMIN alias too
-      if (userRoles.includes(e) || (e === UserRoles.ROLE_ADMIN && process.env.AUTH_ADMIN_ROLE && userRoles.includes(process.env.AUTH_ADMIN_ROLE))) {
-        result = true;
-      }
-    });
-    return result;
+
+    return requiredRoles.some(role => 
+      userRoles.includes(role) || 
+      (role === UserRoles.ROLE_ADMIN && 
+       process.env.AUTH_ADMIN_ROLE && 
+       userRoles.includes(process.env.AUTH_ADMIN_ROLE))
+    );
   }
 
-  matchPermissions(permissions: string[], userPermissions: string[]): boolean {
-    let result = false;
-    if (!permissions) {
-      return result;
+  private checkPermissions(requiredPermissions: string[], userPermissions: string[]): boolean {
+    if (!requiredPermissions?.length) {
+      return false;
     }
-    permissions.forEach((e) => {
-      if (userPermissions.includes(e)) {
-        result = true;
-      }
-    });
-    return result;
+
+    return requiredPermissions.some(permission => 
+      userPermissions.includes(permission)
+    );
   }
 }

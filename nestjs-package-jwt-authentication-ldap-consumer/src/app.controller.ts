@@ -1,8 +1,6 @@
 // TODO: must be imported from interface
-import { ConsumerAppService, AuthService, CONFIG_SERVICE, CONSUMER_APP_SERVICE, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
-import { Logger } from '@nestjs/common';
-import { Inject } from '@nestjs/common';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { AuthService, CONFIG_SERVICE, CONSUMER_APP_SERVICE, ConsumerAppService, LdapService, ModuleOptionsConfig } from '@koakh/nestjs-package-jwt-authentication-ldap';
+import { Body, Controller, Get, Inject, Param, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 // TODO: must be imported from service implementation and not from interface
 // import { ConsumerAppService } from './consumer-app/consumer-app.service';
@@ -39,12 +37,12 @@ export class AppController {
     return { message: this.consumerAppService.getWelcome(username) };
   }
 
-  @Get('consumer/inject-metadata/:username')
-  async testConsumerAppServiceInjectMetadata(
-    @Param('username') username: string,
-  ) {
-    return { message: this.consumerAppService.injectMetadata(username) };
-  }
+  // @Get('consumer/inject-metadata/:username')
+  // async testConsumerAppServiceInjectMetadata(
+  //   @Param('username') username: string,
+  // ) {
+  //   return { message: this.consumerAppService.injectMetadataCache(username) };
+  // }
 
   @Post('hash-password')
   async testAuthServiceHashPassword(
