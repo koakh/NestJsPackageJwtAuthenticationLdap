@@ -14,6 +14,12 @@ import { LdapService } from './ldap.service';
 
 config();
 
+// https://claude.ai/chat/01aaff81-c4c4-46c1-8408-a24432c89b77
+// in nestjs 10 we need to use constants, else we don't have access to process.env.LDAP_CONTROLLER_PERMISSION_GET_USER in @Permissions(process.env.LDAP_CONTROLLER_PERMISSION_GET_USER)
+const GET_USER = process.env.LDAP_CONTROLLER_PERMISSION_GET_USER || 'RP_USERS,RP_USERS@READ';
+const GET_USERS = process.env.LDAP_CONTROLLER_PERMISSION_GET_USERS || 'RP_USERS,RP_USERS@READ';
+const AUTH_ADMIN_ROLE = process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN;
+
 @Controller('ldap')
 @ApiTags('ldap')
 @ApiBearerAuth()
@@ -29,7 +35,7 @@ export class LdapController {
 
   @Post('/user')
   // @Roles and // @UseGuards(PermissionsAuthGuard) require to be before @UseGuards(JwtAuthGuard) else we don't have jwt user injected
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createUserRecord(
@@ -51,7 +57,7 @@ export class LdapController {
   }
 
   @Post('/group/:operation')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   @ApiParam({ name: 'operation', enum: ['add', 'delete'] })
@@ -72,7 +78,7 @@ export class LdapController {
   }
 
   @Put('/default-group')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async updateDefaultGroup(
@@ -89,8 +95,8 @@ export class LdapController {
   }
 
   @Get('/user/:username')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @Permissions(process.env.LDAP_CONTROLLER_PERMISSION_GET_USER)
+  @Roles(AUTH_ADMIN_ROLE)
+  @Permissions(GET_USER)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecord(
@@ -107,7 +113,7 @@ export class LdapController {
   }
 
   @Post('/cache/init')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async initUserRecordsCache(
@@ -124,7 +130,7 @@ export class LdapController {
   }
 
   @Post('/cache/update')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(JwtAuthGuard)
   async updateUserRecordsCache(
     @Response() res,
@@ -139,8 +145,8 @@ export class LdapController {
   }
 
   @Post('/cache/search')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
-  @Permissions(process.env.LDAP_CONTROLLER_PERMISSION_GET_USER)
+  @Roles(AUTH_ADMIN_ROLE)
+  @Permissions(GET_USERS)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getUserRecords(
@@ -157,7 +163,7 @@ export class LdapController {
   }
 
   @Delete('/user')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(LdapDeleteUsersGuard)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
@@ -175,7 +181,7 @@ export class LdapController {
   }
 
   @Put('/user')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   // @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
@@ -249,7 +255,7 @@ export class LdapController {
   }
 
   @Post('/group')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async createGroupRecord(
@@ -270,7 +276,7 @@ export class LdapController {
   }
 
   @Delete('/group')
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async deleteGroupRecord(
@@ -288,7 +294,7 @@ export class LdapController {
 
   @Get('/group/:groupName?')
   @ApiParam({ name: 'groupName', required: false, type: 'string' })
-  @Roles(process.env.AUTH_ADMIN_ROLE || UserRoles.ROLE_ADMIN)
+  @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async getGroupRecord(
