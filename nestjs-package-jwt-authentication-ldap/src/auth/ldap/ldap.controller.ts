@@ -180,6 +180,7 @@ export class LdapController {
       });
   }
 
+  // TODO: create new endpoint for own user, ex used in profile changes, and this must get user from jwt, and not from Dto
   @Put('/user')
   @Roles(AUTH_ADMIN_ROLE)
   // @UseGuards(LdapUpdateUsersGuard)
