@@ -5,14 +5,13 @@ import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
 import { ValidationErrorsResponse, addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getFieldValidation, getProfileFromMemberOf, includeLdapGroup, isValidRuleField, parseTemplate, sortObjectByKey } from '../utils';
-// tslint:disable-next-line: max-line-length
 import { ConsumerAppService } from '../../common/interfaces';
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, Objectclass, UpdateCacheOperation, UserAccountControl, UserObjectClass } from './enums';
 import { Cache } from './interfaces';
 import { CHANGE_USER_RECORD_VALIDATION } from './ldap.constants';
 import { CreateLdapGroupModel, CreateLdapUserModel } from './models';
-import { pascalCase } from '../utils/case';
+import { pascalCase } from '../utils';
 
 /**
  * user model
@@ -86,10 +85,81 @@ export class LdapService {
     // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`, LdapService.name);
   }
 
+  // helper function to retrieve the user's current password hash
+  private getUserPasswordHash(username: string, group: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const userDN = `cn=${username},ou=${group},${this.newUserDnPostfix},${this.baseDN}`;
+      Logger.log(`userDN: ${userDN}`, LdapService.name);
+
+      this.ldapClient.search(userDN, {
+        scope: 'base',
+        attributes: ['unicodePwd'],
+      }, (err, res) => {
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        let passwordHash = '';
+
+        res.on('searchEntry', (entry) => {
+          if (entry.attributes && entry.attributes.length > 0) {
+            const pwdAttr = entry.attributes.find(attr => attr.type === 'unicodePwd');
+            if (pwdAttr && pwdAttr.vals && pwdAttr.vals.length > 0) {
+              // The hash is stored as base64 in the database
+              passwordHash = pwdAttr.vals[0];
+            }
+          }
+        });
+
+        // tslint:disable-next-line:no-shadowed-variable
+        res.on('error', (err) => {
+          reject(err);
+        });
+
+        res.on('end', () => {
+          if (!passwordHash) {
+            reject(new Error('could not retrieve password hash'));
+          } else {
+            resolve(passwordHash);
+          }
+        });
+      });
+    });
+  }
+
+  validateUserPassword(username: string, group: string, password: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      // Create a new LDAP client for this validation attempt
+      const tempClient = ldap.createClient({
+        url: `ldap://${this.config.ldap.address}:${this.config.ldap.port}`,
+        reconnect: true,
+      });
+
+      const userDN = `cn=${username},ou=${group},${this.newUserDnPostfix},${this.baseDN}`;
+
+      // try to bind with the provided credentials
+      tempClient.bind(userDN, password, (err) => {
+        // Clean up the temporary connection
+        tempClient.unbind();
+
+        if (err) {
+          // if binding fails, password is incorrect
+          // Logger.log(`password validation failed for ${userDN}: ${err.message}`, LdapService.name);
+          resolve(false);
+        } else {
+          // binding succeeded, password is correct
+          // Logger.log(`password validation succeeded for ${userDN}`, LdapService.name);
+          resolve(true);
+        }
+      });
+    });
+  }
+
   /**
    * helper method to update cache, on ldap changes
    * @param operation
-   * @param username 
+   * @param username
    */
   updateCachedUser(operation: UpdateCacheOperation, username: string): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -102,17 +172,17 @@ export class LdapService {
             this.cache.users[username] = (await this.getUserRecord(username)).user;
             break;
           case UpdateCacheOperation.UPDATE:
-            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].cn === username);
+            key = (Object.keys(this.cache.users) as string[]).find((u) => this.cache.users[u].cn === username);
             // Logger.log(`this.cache.users[username]:${JSON.stringify(this.cache.users[key], undefined, 2)}`, LdapService.name)
             // update user in cache, always get it from ldap to double check that it is inSync
             this.cache.users[key] = (await this.getUserRecord(username)).user;
             break;
           case UpdateCacheOperation.DELETE:
-            key = (Object.keys(this.cache.users) as Array<string>).find((key) => this.cache.users[key].cn === username);
+            key = (Object.keys(this.cache.users) as string[]).find((u) => this.cache.users[u].cn === username);
             // remove user from cache, we need a filteredUsers array helper
             const filteredUsers: Record<string, SearchUserRecordDto> = {};
             recordToArray(this.cache.users).forEach((e: SearchUserRecordDto) => {
-              if (e.cn != username) {
+              if (e.cn !== username) {
                 // add to filteredUsers
                 filteredUsers[e.cn] = e;
               }
@@ -145,8 +215,8 @@ export class LdapService {
           filter,
         }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
-          if (err) Logger.log(err);
-          // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
+          if (err) { Logger.log(err); }
+          // NOTE: 2024-12-16 11:42:16: now mut use any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
             const memberOf = (typeof entry.object.memberOf === 'string')
@@ -180,7 +250,7 @@ export class LdapService {
                 profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
                 // inject cache metadata
                 ...injectedMetadata,
-              }
+              },
             };
           });
           res.on('error', (error) => {
@@ -201,7 +271,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * init/update inMemory cache
@@ -234,7 +304,7 @@ export class LdapService {
             pagePause: true,
           },
         }, (err, res) => {
-          if (err) Logger.error(err, LdapService.name);
+          if (err) { Logger.error(err, LdapService.name); }
           // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             recordsFound++;
@@ -250,7 +320,7 @@ export class LdapService {
             user = {
               // extract username from string | array
               dn,
-              memberOf: memberOf,
+              memberOf,
               extraPermission: (typeof entry.object.extraPermission === 'string') ? [entry.object.extraPermission] : entry.object.extraPermission,
               controls: entry.object.controls as string[],
               objectCategory: entry.object.objectCategory as string,
@@ -273,7 +343,7 @@ export class LdapService {
                 profile: Array.isArray(memberOf) && memberOf.length > 0 ? getProfileFromMemberOf(memberOf[0]) : undefined,
                 // inject cache metadata
                 ...injectedMetadata,
-              }
+              },
             };
             // add user to inMemoryUsers with dn key
             this.cache.users[dn] = user;
@@ -335,7 +405,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   /**
    * pagination version
@@ -368,7 +438,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   createUserRecord(createLdapUserDto: CreateUserRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -393,18 +463,24 @@ export class LdapService {
       };
 
       // optionals must be included outside the above object, otherwise the following error is shown {"error":"Cannot read property 'toString' of null"}
-      if (createLdapUserDto.sn)
+      if (createLdapUserDto.sn) {
         newUser.sn = createLdapUserDto.sn;
-      if (createLdapUserDto.mail)
+      }
+      if (createLdapUserDto.mail) {
         newUser.mail = createLdapUserDto.mail;
-      if (createLdapUserDto.dateOfBirth)
+      }
+      if (createLdapUserDto.dateOfBirth) {
         newUser.dateOfBirth = createLdapUserDto.dateOfBirth;
-      if (createLdapUserDto.gender)
+      }
+      if (createLdapUserDto.gender) {
         newUser.gender = createLdapUserDto.gender;
-      if (createLdapUserDto.telephoneNumber)
+      }
+      if (createLdapUserDto.telephoneNumber) {
         newUser.telephoneNumber = createLdapUserDto.telephoneNumber;
-      if (createLdapUserDto.studentID)
+      }
+      if (createLdapUserDto.studentID) {
         newUser.studentID = createLdapUserDto.studentID;
+      }
 
       try {
         // ex cn=root,c3administrator,ou=People,dc=c3edu,dc=online
@@ -418,8 +494,8 @@ export class LdapService {
             await this.updateCachedUser(UpdateCacheOperation.CREATE, cn);
             // must add new user to group after update cache, it can crash if group doesn't exists
             await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.ADD, { cn: newUser.cn, defaultGroup: createLdapUserDto.defaultGroup, group: createLdapUserDto.defaultGroup })
-              .catch((error) => {
-                reject(error);
+              .catch((innerError) => {
+                reject(innerError);
               });
             resolve(username);
             // fire event
@@ -449,7 +525,7 @@ export class LdapService {
         // search by member
         const member = `CN=${addUserToGroupDto.cn},OU=${searchGroup},OU=People,${this.baseDN}`;
         const groupChange = new ldap.Change({
-          operation: operation,
+          operation,
           modification: {
             member,
           },
@@ -494,14 +570,14 @@ export class LdapService {
               // add if not new defaultGroup or oldDefaultGroup
               if (e.toLowerCase() !== newDefaultGroup.toLowerCase() && e.toLowerCase() !== oldDefaultGroup.toLowerCase()) {
                 addGroups.push(e);
-              };
+              }
               const member = getProfileFromMemberOf(e);
               await this.addOrDeleteUserToGroup(ChangeUserRecordOperation.DELETE, { cn: changeDefaultGroupDto.cn, defaultGroup: changeDefaultGroupDto.defaultGroup, group: member })
                 .catch((error) => {
                   throw (error);
                 });
             });
-          };
+          }
           // always add new defaultGroupDn to index 0 position
           addGroups = insertItemInArrayAtPosition(addGroups, 0, newDefaultGroup);
           // add all members
@@ -512,7 +588,7 @@ export class LdapService {
                 throw (error);
               });
           });
-        };
+        }
         // the last thing to do is change userDn, else we cant't search it in above block code
         this.ldapClient.modifyDN(user.dn, newDn, async (error) => {
           if (error) {
@@ -567,11 +643,11 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        // start validation here, before everithing else
+        // start validation here, before everything else
         const validationErrorsResponse: ValidationErrorsResponse = [];
         changeUserRecordDto.changes.forEach((e: ldap.Change) => {
           if (e.operation === 'add' || e.operation === 'replace') {
-            // get first property field from modificaion object
+            // get first property field from modification object
             const fieldName = Object.keys(e.modification)[0];
             const fieldValue = e.modification[fieldName];
             const isValidFieldErrorMessage = isValidRuleField(fieldName, CHANGE_USER_RECORD_VALIDATION);
@@ -579,9 +655,9 @@ export class LdapService {
             if (isValidFieldErrorMessage === null) {
               const fieldValidation = getFieldValidation(fieldName, CHANGE_USER_RECORD_VALIDATION);
               // loop field validations rules
-              fieldValidation.forEach((e: (fieldName: string, fieldValue: string) => string[]) => {
+              fieldValidation.forEach((f: (fieldName: string, fieldValue: string) => string[]) => {
                 // launch fieldValidation function to get result
-                const innerError = e(fieldName, fieldValue);
+                const innerError = f(fieldName, fieldValue);
                 // Logger.log(`innerError ${fieldName}: [${JSON.stringify(innerError, undefined, 2)}]`);
                 // push to field errors
                 if (innerError.length > 0) {
@@ -604,7 +680,7 @@ export class LdapService {
               }
               validationErrorsResponse[fieldName].push(isValidFieldErrorMessage);
             }
-          };
+          }
         });
 
         // verify if exist errors
@@ -612,7 +688,7 @@ export class LdapService {
           const keys = Object.keys(validationErrorsResponse);
           const response = keys.map((e) => {
             // Logger.log(`e: [${JSON.stringify(e, undefined, 2)}]`);
-            return { [e]: validationErrorsResponse[e] }
+            return { [e]: validationErrorsResponse[e] };
           });
           return reject({ validation: response });
         }
@@ -639,7 +715,7 @@ export class LdapService {
 
         if (password) {
           await this.consumerAppService.changePassword(changeUserRecordDto.cn, password);
-        };
+        }
 
         // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {
@@ -666,30 +742,40 @@ export class LdapService {
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
-        const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
+        // Basic validation
         if (!changeUserPasswordDto.oldPassword || !changeUserPasswordDto.newPassword) {
           throw new Error('you must pass a valid oldPassword and newPassword properties');
         }
+
         if (changeUserPasswordDto.oldPassword === changeUserPasswordDto.newPassword) {
           throw new Error('oldPassword and newPassword are equal');
         }
+
+        // Validate the old password by attempting to bind with it
+        const isOldPasswordValid = await this.validateUserPassword(
+          username,
+          changeUserPasswordDto.defaultGroup,
+          changeUserPasswordDto.oldPassword,
+        );
+
+        if (!isOldPasswordValid) {
+          throw new Error('old password is incorrect');
+        }
+
+        // continue with password change as before
+        const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
 
         await this.consumerAppService.changePassword(username, changeUserPasswordDto.newPassword);
 
         // map array of changes to ldap.Change
         const changes = [
-          new ldap.Change({
-            operation: 'delete',
-            modification: {
-              unicodePwd: encodeAdPassword(changeUserPasswordDto.oldPassword),
-            },
-          }),
-          new ldap.Change({
-            operation: 'add',
-            modification: {
-              unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword),
-            },
-          }),
+          new ldap.Change(
+            {
+              operation: 'replace',
+              modification: {
+                unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword),
+              },
+            }),
         ];
         this.ldapClient.modify(changeUserDN, changes, (error) => {
           if (error) {
@@ -709,8 +795,8 @@ export class LdapService {
   }
 
   /**
-  * create group
-  */
+   * create group
+   */
   createGroupRecord(createLdapGroupDto: CreateGroupRecordDto): Promise<string> {
     return new Promise((resolve, reject) => {
       const groupName = createLdapGroupDto.groupName.startsWith(this.searchGroupProfilesPrefix)
@@ -790,7 +876,7 @@ export class LdapService {
           filter: groupName ? filter : undefined,
         }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
-          if (err) Logger.log(err);
+          if (err) { Logger.log(err); }
           // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             // Logger.log(`entry: [${JSON.stringify(entry, undefined, 2)}]`);
@@ -798,7 +884,7 @@ export class LdapService {
             // exclude groupType names ex Profiles and Permissions, they will by find by OU=Groups,DC=c3edu,DC=online filter
             // ex KO dn:'OU=Permissions,OU=Groups,DC=c3edu,DC=online'
             // ex OK dn:'CN=RPUpdate,OU=Permissions,OU=Groups,DC=c3edu,DC=online'
-            if (entry.object.name.toString().toLowerCase() != groupType) {
+            if (entry.object.name.toString().toLowerCase() !== groupType) {
               // Logger.log(`entry.object: [${JSON.stringify(entry.object, undefined, 2)}]`);
               if (showDebug) {
                 Logger.log(`entry.object ${groupType}: [${JSON.stringify(entry.object, undefined, 2)}]`);
@@ -847,7 +933,7 @@ export class LdapService {
         reject(error);
       }
     });
-  };
+  }
 
   // STUB promise template
   // createUserRecord(createLdapUserDto: CreateLdapUserDto): Promise<any> {

@@ -7,20 +7,20 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   private readonly logger = new Logger(JwtAuthGuard.name);
 
   canActivate(
-    context: ExecutionContext
+    context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     return super.canActivate(context);
   }
 
   handleRequest(
-    err: any, 
-    user: any, 
-    info: any
+    err: any,
+    user: any,
+    info: any,
   ): any {
     // Handle JWT-related errors
     if (info) {
       let errorMessage: string;
-      
+
       switch (info.message) {
         case 'jwt expired':
           errorMessage = `JWT expired: ${info.expiredAt}`;
@@ -31,7 +31,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           this.logger.error(errorMessage);
           break;
       }
-      
+
       throw new UnauthorizedException(errorMessage);
     }
 

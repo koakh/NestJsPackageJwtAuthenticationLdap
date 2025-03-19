@@ -1,13 +1,16 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Request } from 'express';
 import Strategy from 'passport-ldapauth';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
+import { AuthService } from '../auth.service';
+import { SearchUserRecordResponseDto } from '../ldap/dto';
 
 @Injectable()
 export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
   constructor(
+    private authService: AuthService,
     @Inject(CONFIG_SERVICE)
     private readonly config: ModuleOptionsConfig,
   ) {
@@ -29,5 +32,16 @@ export class LdapStrategy extends PassportStrategy(Strategy, 'ldap') {
       req.user = user;
       return done(null, user);
     });
+  }
+
+  async validate(username: string): Promise<SearchUserRecordResponseDto> {
+    // this gets called once the LDAP authentication succeeds
+    // you can add additional logic here like fetching user roles
+    const user = await this.authService.validate(username);
+    if (!user) {
+      throw new UnauthorizedException(`user '${username}' not found in the system`);
+    }
+    // return the user object that will be attached to the request as req.user
+    return user;
   }
 }

@@ -3,16 +3,16 @@ import { SearchUserRecordDto } from '../dto';
 
 export interface Cache {
   // last update initialized date
-  lastUpdate: number,
-  totalRecords: number,
-  status: number,
+  lastUpdate: number;
+  totalRecords: number;
+  status: number;
   // hashMap of cached users
-  users: Record<string, SearchUserRecordDto>,
-  elapsedTime: number,
+  users: Record<string, SearchUserRecordDto>;
+  elapsedTime: number;
   memoryUsage: {
     // used in cache
     cache: MemoryUsage,
     // used in system, after cache users
-    system :MemoryUsage,
-  },
+    system: MemoryUsage,
+  };
 }

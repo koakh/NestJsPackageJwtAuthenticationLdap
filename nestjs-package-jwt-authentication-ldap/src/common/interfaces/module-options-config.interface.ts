@@ -2,8 +2,8 @@ export interface ModuleOptionsConfig {
   auth: {
     authShowAccessTokenProps: boolean;
     authSecretKey: string;
-    accessTokenJwtSecret: string | { (): string };
-    refreshTokenJwtSecret: string | { (): string };
+    accessTokenJwtSecret: string | (() => string);
+    refreshTokenJwtSecret: string | (() => string);
     accessTokenExpiresIn: string;
     refreshTokenExpiresIn: string;
     refreshTokenSkipIncrementVersion: boolean;
@@ -11,7 +11,7 @@ export interface ModuleOptionsConfig {
     rolePermittedUnlicensedPermissionGroups: string;
     developerGroup: string;
     developerAccessTokenExpiresIn: string;
-  },
+  };
   ldap: {
     address: string;
     port: string | number;
@@ -33,5 +33,5 @@ export interface ModuleOptionsConfig {
     searchGroupExcludePermissionGroups: string;
     searchCacheFilter: string;
     newUserDnPostfix: string;
-  }
+  };
 }

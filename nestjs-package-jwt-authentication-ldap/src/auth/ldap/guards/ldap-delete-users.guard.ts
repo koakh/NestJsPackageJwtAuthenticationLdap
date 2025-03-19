@@ -18,6 +18,6 @@ export class LdapDeleteUsersGuard implements CanActivate {
     }
 
     // protect delete user if is the root user or current logged user
-    return request.body.cn != this.config.ldap.rootUser && request.body.cn != request.user.username;
+    return request.body.cn !== this.config.ldap.rootUser && request.body.cn !== request.user.username;
   }
 }

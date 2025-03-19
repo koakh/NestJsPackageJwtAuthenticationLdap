@@ -59,7 +59,7 @@ export class CreateUserRecordDto {
   @IsOptional()
   @IsNumber()
   @ApiProperty()
-  dateOfBirth?: number
+  dateOfBirth?: number;
 
   @IsOptional()
   @Length(1)

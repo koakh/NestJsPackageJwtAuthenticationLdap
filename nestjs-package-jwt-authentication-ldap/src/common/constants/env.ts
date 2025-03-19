@@ -24,5 +24,5 @@ export const envConstants = {
   // new used in cache filter
   LDAP_SEARCH_CACHE_FILTER: 'LDAP_SEARCH_CACHE_FILTER',
   // app ldap admins
-  LDAP_ROOT_USER: 'LDAP_ROOT_USER'
-}
+  LDAP_ROOT_USER: 'LDAP_ROOT_USER',
+};

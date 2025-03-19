@@ -9,11 +9,11 @@ export class PermissionsAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const permissions = this.reflector.getAllAndOverride<string[]>('permissions', [
       context.getHandler(),
-      context.getClass()
+      context.getClass(),
     ]);
     const roles = this.reflector.getAllAndOverride<string[]>('roles', [
       context.getHandler(),
-      context.getClass()
+      context.getClass(),
     ]);
 
     const request = context.switchToHttp().getRequest();
@@ -41,11 +41,11 @@ export class PermissionsAuthGuard implements CanActivate {
       return false;
     }
 
-    return requiredRoles.some(role => 
-      userRoles.includes(role) || 
-      (role === UserRoles.ROLE_ADMIN && 
-       process.env.AUTH_ADMIN_ROLE && 
-       userRoles.includes(process.env.AUTH_ADMIN_ROLE))
+    return requiredRoles.some(role =>
+      userRoles.includes(role) ||
+      (role === UserRoles.ROLE_ADMIN &&
+       process.env.AUTH_ADMIN_ROLE &&
+       userRoles.includes(process.env.AUTH_ADMIN_ROLE)),
     );
   }
 
@@ -54,8 +54,8 @@ export class PermissionsAuthGuard implements CanActivate {
       return false;
     }
 
-    return requiredPermissions.some(permission => 
-      userPermissions.includes(permission)
+    return requiredPermissions.some(permission =>
+      userPermissions.includes(permission),
     );
   }
 }

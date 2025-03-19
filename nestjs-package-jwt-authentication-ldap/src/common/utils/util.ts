@@ -53,14 +53,14 @@ export const mapKeysToLowerCase = (obj: object) => {
 
 /**
  * helper to convert Record Type into array
- * @param record 
+ * @param record
  */
 export const recordToArray = (record: any) => {
   if (Array.isArray(Object.values(record))) {
     // console.log(`Object.values(record): [${JSON.stringify(Object.values(record), undefined, 2)}]`);
     return Object.values(record);
   }
-}
+};
 
 /**
  * paginator helper function
@@ -92,15 +92,15 @@ export const paginator = (items: any, currentPage: number, perPageItems: number)
       // reject promise
       reject(error);
     }
-  })
+  });
 };
 
 /**
  * helper function to filter array based on searchAttributes
- * @param items 
+ * @param items
  * @param searchAttributes can use all props at same time, "search": {"username": { "exact": "mario", "contains": "ari", "regex": "\b(\\w*mario\\w*)\b" } }
  */
-export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Array<FilteratorSearchFieldAttribute>): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
+export const filterator = (items: SearchUserRecordDto[], searchAttributes?: FilteratorSearchFieldAttribute[]): Promise<SearchUserRecordDto[]> => new Promise((resolve, reject) => {
   const removeDuplicatesKeyProperty = 'cn';
   try {
     if (Array.isArray(searchAttributes)) {
@@ -119,10 +119,10 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
             // Logger.log(`filterator attribute: exact '${attribute[attributeKey].exact}'`);
             // filter normal attributeKey
             if (attributeKey !== 'memberOf') {
-              // old non OR array 
+              // old non OR array
               // return e[attributeKey] === attribute[attributeKey].exact;
               // new OR array
-              let exactResult: Array<SearchUserRecordDto> = [];
+              let exactResult: SearchUserRecordDto[] = [];
               // loop OR array fields
               attributeKeys.forEach((f) => {
                 const innerResult = result.filter((e) => {
@@ -137,6 +137,7 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
               result = removeDuplicatesFromArrayByProperty(exactResult, removeDuplicatesKeyProperty);
             }
             // filter memberOf attributeKey, THIS don't work with more than on field
+            // tslint:disable-next-line:one-line
             else {
               // if memberOf we must search in all items the memberOf array to see if includes exact match
               if (attribute[attributeKey].exact) {
@@ -150,7 +151,7 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
           if (attribute[attributeKey]?.includes) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].includes}'`);
             // filter attributeKey
-            let includesResult: Array<SearchUserRecordDto> = [];
+            let includesResult: SearchUserRecordDto[] = [];
             // loop OR array fields
             attributeKeys.forEach((f) => {
               const innerResult = result.filter((e) => {
@@ -171,14 +172,14 @@ export const filterator = (items: SearchUserRecordDto[], searchAttributes?: Arra
           if (attribute[attributeKey]?.regex) {
             // Logger.log(`filterator attribute: contains '${attribute[attributeKey].regex}'`);
             // filter attributeKey
-            let regexResult: Array<SearchUserRecordDto> = [];
+            let regexResult: SearchUserRecordDto[] = [];
             // loop OR array fields
             attributeKeys.forEach((f) => {
               const innerResult = result.filter((e) => {
                 const regExp = new RegExp(attribute[attributeKey].regex, attribute[attributeKey].regexOptions ? attribute[attributeKey].regexOptions : undefined);
                 return regExp.test(e[f]);
               });
-              // if innerResult has foundedRecords, push to helper array              
+              // if innerResult has foundedRecords, push to helper array
               if (innerResult.length > 0) {
                 regexResult = regexResult.concat(innerResult);
               }
@@ -203,7 +204,7 @@ export const getMemoryUsage = (): MemoryUsage => {
   // inner helper function
   const formatMemoryUsage = (data: any) => `${Math.round(data / 1024 / 1024 * 100) / 100} MB`;
   // get memoryUsage
-  const memoryData = process.memoryUsage()
+  const memoryData = process.memoryUsage();
   // compose result object
   const memoryUsage: MemoryUsage = {
     rss: {
@@ -279,8 +280,8 @@ export const asyncForEach = async (array: any, callback: any) => {
 
 /**
  * sort string array
- * @param items 
- * @returns 
+ * @param items
+ * @returns
  */
 export const sortArrayString = (items: string[]): string[] => {
   if (items && Array.isArray(items) && items.length) {
@@ -296,14 +297,14 @@ export const sortArrayString = (items: string[]): string[] => {
   } else {
     return [];
   }
-}
+};
 
 /**
  * insert Item in array at position
- * @param arr 
- * @param index 
- * @param newItem 
- * @returns 
+ * @param arr
+ * @param index
+ * @param newItem
+ * @returns
  */
 export const insertItemInArrayAtPosition = (arr: any[], index: number, newItem: any) => [
   // part of the array before the specified index
@@ -316,8 +317,8 @@ export const insertItemInArrayAtPosition = (arr: any[], index: number, newItem: 
 
 /**
  * generate a random secret string
- * @param length 
- * @returns 
+ * @param length
+ * @returns
  */
 export const randomSecret = (length = 100): string => {
   const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz#%&~!@-#$';

@@ -12,8 +12,7 @@ import { JwtResponsePayload } from './interfaces/jwt-response-payload.interface'
 import { GroupTypeOu } from './ldap/enums';
 import { constants as c } from './ldap/ldap.constants';
 import { LdapService } from './ldap/ldap.service';
-import { hashPassword } from './utils/util';
-import { constantCase } from './utils/case';
+import { constantCase, hashPassword } from './utils';
 
 @Injectable()
 export class AuthService {
@@ -102,7 +101,7 @@ export class AuthService {
       const groupName = memberOfRole[0].split('=')[1];
       // deprecated, now we never exclude groups from roles
       // const excluded = groupExcludeProfileGroupsArray.length > 0 && groupExcludeProfileGroupsArray.findIndex(e => e === groupName) >= 0;
-      // always hide non prefixed groups like 'Domain Admins' 
+      // always hide non prefixed groups like 'Domain Admins'
       const excluded = !groupName.startsWith(this.config.ldap.searchGroupProfilesPrefix);
       // must exclude groups but here must let pass AUTH_DEVELOPER_ROLE
       if (memberOfRole[0].includes('=') && !excluded) {
@@ -111,9 +110,9 @@ export class AuthService {
         const groupObject = await this.ldapService.getGroupRecord(groupName, GroupTypeOu.PROFILES, false);
         if (groupObject.groups && Array.isArray(groupObject.groups[0].permissions)) {
           // get current role permissions
-          const groupPermissions = groupObject.groups[0].permissions.map(e => {
+          const groupPermissions = groupObject.groups[0].permissions.map(g => {
             // Logger.log(`${groupObject.groups[0].name} permissions ${e}`, AuthService.name);
-            const split = e.split('@');
+            const split = g.split('@');
             // must replace start RP with RP_ else we can get issues like RPGGO and not RP_GGO
             const permission = constantCase(split[0].replace(this.config.ldap.searchGroupPermissionsPrefix, `${this.config.ldap.searchGroupPermissionsPrefix}_`).replace(' ', '_'));
             const permissionAction = split[1] ? constantCase(split[1]) : undefined;
@@ -122,7 +121,7 @@ export class AuthService {
           // if permission don't exist on permissions, push it
           groupPermissions.forEach((p) => {
             // check if is a permitted unlicensed permission
-            const permittedUnlicensedPermission = rolePermittedUnlicensedPermissionGroupsArray.length > 0 && rolePermittedUnlicensedPermissionGroupsArray.findIndex(e => e === p) >= 0;
+            const permittedUnlicensedPermission = rolePermittedUnlicensedPermissionGroupsArray.length > 0 && rolePermittedUnlicensedPermissionGroupsArray.findIndex(r => r === p) >= 0;
             // Logger.log(`permission: '${p}', permittedUnlicensedPermission: '${permittedUnlicensedPermission}', licenseActivated: '${licenseActivated}'`, AuthService.name);
             // add permission in not added already, and if licensed, or unlicensed and is a permittedUnlicensedPermission
             if (permissions.indexOf(p) < 0 && (licenseActivated || (!licenseActivated && permittedUnlicensedPermission))) {
@@ -134,5 +133,9 @@ export class AuthService {
     });
     // return with sorted permissions
     return [roles, sortArrayString(permissions)];
+  }
+
+  async validate(username: string) {
+    return await this.ldapService.getUserRecord(username);
   }
 }

@@ -20,7 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKeyProvider: (request, jwtToken, done) => {
         const secret = config.auth.accessTokenJwtSecret instanceof Function
           ? config.auth.accessTokenJwtSecret()
-          : config.auth.accessTokenJwtSecret
+          : config.auth.accessTokenJwtSecret;
         done(null, secret);
       },
       ignoreExpiration: false,

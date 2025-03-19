@@ -1,7 +1,6 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import * as utils from '../../common/utils/util';
-// tslint:disable-next-line:max-line-length
 import { AddOrDeleteUserToGroupDto, ChangeDefaultGroupDto, ChangeUserRecordDto, CreateUserRecordDto, DeleteUserRecordDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation } from './enums';
 import { LdapService } from './ldap.service';

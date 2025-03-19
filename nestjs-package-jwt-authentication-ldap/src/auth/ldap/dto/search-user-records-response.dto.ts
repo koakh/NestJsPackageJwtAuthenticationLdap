@@ -13,7 +13,7 @@ export class SearchUserRecordsResponseDto {
   @IsDefined()
   @ApiProperty()
   status: number;
-  
+
   @IsDefined()
   @ApiProperty()
   timeTaken: number;

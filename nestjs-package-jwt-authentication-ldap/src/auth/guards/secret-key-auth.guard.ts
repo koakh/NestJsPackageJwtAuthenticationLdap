@@ -1,9 +1,9 @@
-import { 
-  Injectable, 
-  CanActivate, 
-  ExecutionContext, 
-  Inject, 
-  UnauthorizedException 
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  Inject,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CONFIG_SERVICE } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';

@@ -1,11 +1,10 @@
-import { Body, Controller, Delete, Get, HttpStatus, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Logger, NotFoundException, Param, Post, Put, Request, Response, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { config } from 'dotenv';
 import { Roles, Permissions } from '../decorators';
 import { UserRoles } from '../enums';
 import { JwtAuthGuard, PermissionsAuthGuard } from '../guards';
 import { parseTemplate } from '../utils';
-// tslint:disable-next-line: max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, CreateGroupRecordDto, CreateUserRecordDto, DeleteGroupRecordDto, DeleteUserRecordDto, SearchGroupRecordResponseDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { ChangeUserRecordOperation, GroupTypeOu, UpdateCacheOperation } from './enums';
 import { LdapDeleteUsersGuard, LdapUpdateUsersGuard } from './guards';
@@ -136,9 +135,9 @@ export class LdapController {
     @Response() res,
     @Body() payload: string[],
   ): Promise<void> {
-    for (let i = 0; i < payload.length; i++) {
-      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE, payload[i]).catch((error) => {
-        res.status(HttpStatus.BAD_REQUEST).send({ error: (error.message) ? error.message : error });
+    for (const item of payload) {
+      this.ldapService.updateCachedUser(UpdateCacheOperation.CREATE, item).catch((error) => {
+        res.status(HttpStatus.BAD_REQUEST).send({ error: error.message ? error.message : error });
       });
     }
     res.status(HttpStatus.CREATED).send({});
@@ -183,6 +182,7 @@ export class LdapController {
   // TODO: create new endpoint for own user, ex used in profile changes, and this must get user from jwt, and not from Dto
   @Put('/user')
   @Roles(AUTH_ADMIN_ROLE)
+  // TODO: remove line
   // @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
@@ -230,6 +230,7 @@ export class LdapController {
     // convert ChangeUserProfileDto into ChangeUserRecordDto with injected user and pass to changeUserRecord
     this.ldapService.changeUserRecord({ ...changeUserProfileDto, cn: req.user.username })
       .then(() => {
+        Logger.log(`changed user profile record: '${req.user.username}'`, LdapController.name);
         res.status(HttpStatus.NO_CONTENT).send();
       })
       .catch((error) => {
@@ -293,7 +294,7 @@ export class LdapController {
       });
   }
 
-  @Get('/group/:groupName?')
+  @Get('/group/:groupName')
   @ApiParam({ name: 'groupName', required: false, type: 'string' })
   @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)

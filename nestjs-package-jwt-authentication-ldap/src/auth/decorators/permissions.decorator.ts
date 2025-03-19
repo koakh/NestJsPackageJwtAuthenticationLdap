@@ -8,7 +8,7 @@ export const Permissions = (...permissions: string[]) => {
   permissions.forEach((e: string) => {
     if (e.includes(',')) {
       const a = e.split(',');
-      a.forEach(e => setPermission.push(e));
+      a.forEach(f => setPermission.push(f));
     } else {
       setPermission.push(e);
     }

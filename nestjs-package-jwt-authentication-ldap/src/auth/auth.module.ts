@@ -1,5 +1,5 @@
 import { createConfigurableDynamicRootModule } from '@golevelup/nestjs-modules';
-import { CookieParserMiddleware } from '@nest-middlewares/cookie-parser';
+// import { CookieParserMiddleware } from '@nest-middlewares/cookie-parser';
 import { Global, MiddlewareConsumer, Module } from '@nestjs/common';
 import { APP_FILTER, Reflector } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
@@ -35,6 +35,7 @@ import { JwtStrategy, LdapStrategy, RolesStrategy } from './strategy';
     }),
   ],
 })
+
 export class AuthModule extends createConfigurableDynamicRootModule<AuthModule, ModuleOptions>(AUTH_OPTIONS, {
   // TODO: trick#1 KO, here don't export expose all controllers and services
   // exports: [AuthService, LdapService, CONFIG_SERVICE],
@@ -60,6 +61,6 @@ export class AuthModule extends createConfigurableDynamicRootModule<AuthModule, 
   ],
 }) {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token');
+    // consumer.apply(CookieParserMiddleware).forRoutes('/auth/refresh-token');
   }
 }

@@ -11,7 +11,7 @@ export const constantCase = (input: string): string => {
     .replace(/[\s-]+/g, '_')
     // Convert everything to uppercase
     .toUpperCase();
-}
+};
 
 /**
  * Converts a given string to PascalCase.
@@ -25,7 +25,7 @@ export const pascalCase = (input: string): string => {
     // Replace underscores, spaces, or hyphens
     .replace(/[_\s-]+(.)?/g, (_, c) =>
       // Capitalize the letter after them
-      c ? c.toUpperCase() : ''
+      c ? c.toUpperCase() : '',
     )
     .replace(/^\w/, (c) => c.toUpperCase()); // Capitalize the first letter
-}
+};

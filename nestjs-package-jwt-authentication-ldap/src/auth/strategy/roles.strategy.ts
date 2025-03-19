@@ -13,7 +13,7 @@ export class RolesStrategy extends PassportStrategy(Strategy, 'roles') {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.auth.accessTokenJwtSecret,
+      secretOrKey: config.auth.accessTokenJwtSecret as string,
       ignoreExpiration: false,
     });
   }

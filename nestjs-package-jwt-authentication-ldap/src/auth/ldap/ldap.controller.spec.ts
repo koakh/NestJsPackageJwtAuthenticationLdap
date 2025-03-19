@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { mockRequest, mockResponse } from 'jest-mock-req-res';
 import { mockedConfigService } from '../utils/mocks/config.service';
-// tslint:disable-next-line:max-line-length
 import { AddOrDeleteUserToGroupDto, CacheResponseDto, ChangeDefaultGroupDto, ChangeUserPasswordDto, ChangeUserProfileDto, ChangeUserRecordDto, DeleteUserRecordDto, SearchUserPaginatorResponseDto, SearchUserRecordResponseDto, SearchUserRecordsDto } from './dto';
 import { CreateUserRecordDto } from './dto/create-user-record.dto';
 import { ChangeUserRecordOperation, Objectclass, UpdateCacheOperation } from './enums';

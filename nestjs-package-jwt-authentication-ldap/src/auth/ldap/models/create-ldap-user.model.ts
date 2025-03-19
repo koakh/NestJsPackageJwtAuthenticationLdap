@@ -53,7 +53,7 @@ export class CreateLdapUserModel {
   // description: Date of birth (format YYYYMMDD, only numeric chars)
   @IsOptional()
   @IsNumber()
-  dateOfBirth?: number
+  dateOfBirth?: number;
 
   @IsOptional()
   @Length(1)

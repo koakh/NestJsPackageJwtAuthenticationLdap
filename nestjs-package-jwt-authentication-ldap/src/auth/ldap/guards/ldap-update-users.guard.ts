@@ -1,4 +1,4 @@
-import { Injectable, CanActivate, ExecutionContext, Inject } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, Inject, Logger } from '@nestjs/common';
 import { ModuleOptionsConfig } from '../../../common/interfaces';
 import { CONFIG_SERVICE } from '../../../common/constants';
 
@@ -13,24 +13,26 @@ export class LdapUpdateUsersGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
+    // Logger.log(`request: ${JSON.stringify(request.user, undefined, 2)}`, LdapUpdateUsersGuard.name);
+    // Logger.log(`request.body: ${JSON.stringify(request.body, undefined, 2)}`, LdapUpdateUsersGuard.name);
+
     if (!request.user) {
       return false;
     }
 
-    const username: string = request.body.cn ? request.body.cn : request.user.cn;
-    const selfChange: boolean = username == request.user.username;
-
-    if (selfChange) {
-      if (request.body.changes) {
-        request.body.changes = request.body.changes.reduce((acu, item) => {
-          const keys = Object.keys(item.modification);
-          if (keys.length && keys[0].toLowerCase() != 'useraccountcontrol')
-            acu.push(item);
-          return acu;
-        }, []);
-      }
+    if (request.body.changes) {
+      request.body.changes = request.body.changes.reduce((acu, item) => {
+        const keys = Object.keys(item.modification);
+        const permittedKeys = ['givenName', 'sn', 'displayName', 'mail'];
+        // protectedKeys
+        // if (keys.length && keys[0].toLowerCase() !== 'useraccountcontrol') {
+        // permittedKeys
+        if (keys.length && permittedKeys.includes(keys[0].toLowerCase())) {
+          acu.push(item);
+        }
+        return acu;
+      }, []);
     }
-
-    return request.user.username == this.config.ldap.rootUser || selfChange;
+    return true;
   }
 }

@@ -1,4 +1,4 @@
-import { ValidationRules, isEmailValidation, isGenderValidation, isLenghtValidation, isNumberDateValidation, isURLValidation } from "../utils"
+import { ValidationRules, isEmailValidation, isGenderValidation, isLengthValidation, isNumberDateValidation } from '../utils';
 
 export const constants: { [key: string]: string } = {
   USER_CREATED: 'user \'${username}\' created successfully',
@@ -8,7 +8,7 @@ export const constants: { [key: string]: string } = {
   DEVELOPER_ACCESS_TOKEN_EXPIRES_IN: '1000y',
   // occurs on create user that already exists
   // INVALID_DISTINGUISHED_NAME_ERROR: 'can\'t create user \'${username}\' with invalid distinguished name \'${distinguishedName}\'',
-}
+};
 
 // test implementation
 // export const CHANGE_USER_RECORD_VALIDATION: Array<ValidationRules> = [
@@ -21,21 +21,21 @@ export const constants: { [key: string]: string } = {
 // ]
 
 // final implementation
-export const CHANGE_USER_RECORD_VALIDATION: Array<ValidationRules> = [
+export const CHANGE_USER_RECORD_VALIDATION: ValidationRules[] = [
   // protected field: can permit change cn, and a validation that fire if prop is sent
-  // { cn: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 2, 50, true)] },
-  { unicodePwd: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 4, 50, true)] },
-  { givenName: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 2, 50, true)] },
-  { sn: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 2, 50, true)] },
+  // { cn: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 2, 50, true)] },
+  { unicodePwd: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 4, 50, true)] },
+  { givenName: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 2, 50, true)] },
+  { sn: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 2, 50, true)] },
   // protected field: this have a diferent endpoint: https://c3edu.online/backend/v1/ldap/default-group
-  // { defaultGroup: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 3, 50, true)] },
-  { objectClass: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 3, 50, true)] },
-  { displayName: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 3, 50, true)] },
-  { jpegPhoto: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 4, 50, true)] },
+  // { defaultGroup: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+  { objectClass: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+  { displayName: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+  { jpegPhoto: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 4, 50, true)] },
   { mail: [(fieldName: string, fieldValue: string) => isEmailValidation(fieldName, fieldValue, true)] },
   { dateOfBirth: [(fieldName: string, fieldValue: string) => isNumberDateValidation(fieldName, fieldValue, true)] },
   // require to implement
   { gender: [(fieldName: string, fieldValue: string) => isGenderValidation(fieldName, fieldValue, true)] },
-  { telephoneNumber: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 3, 50, true)] },
-  { studentID: [(fieldName: string, fieldValue: string) => isLenghtValidation(fieldName, fieldValue, 3, 50, true)] },
-]
+  { telephoneNumber: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+  { studentID: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+];

@@ -1,5 +1,5 @@
 export interface FilteratorSearchFieldAttribute {
-  [key:string]: {
+  [key: string]: {
     // must match string
     exact?: string,
     // must contain string
@@ -7,5 +7,5 @@ export interface FilteratorSearchFieldAttribute {
     // must match regex
     regex?: string,
     regexOptions?: string,
-  }
+  };
 }

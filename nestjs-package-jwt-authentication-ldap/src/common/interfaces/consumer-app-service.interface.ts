@@ -18,7 +18,7 @@ export interface ConsumerAppService {
   onChangeUserRecord?: (changeUserRecordDto: ChangeUserRecordDto) => void;
   onDeleteUserRecord?: (deleteUserRecordDto: DeleteUserRecordDto) => void;
   onAddOrDeleteUserToGroup?: (operation: ChangeUserRecordOperation, addUserToGroupDto: AddOrDeleteUserToGroupDto) => void;
-  onChangeUserProfilePassword?: (username: string) => void; 
+  onChangeUserProfilePassword?: (username: string) => void;
   onUpdateDefaultGroup?: (changeDefaultGroupDto: ChangeDefaultGroupDto) => void;
   onCreateGroupRecord?: (createLdapGroupDto: CreateGroupRecordDto) => void;
   onDeleteGroupRecord?: (deleteGroupRecordDto: DeleteGroupRecordDto) => void;

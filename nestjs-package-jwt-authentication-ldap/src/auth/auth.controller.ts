@@ -13,8 +13,7 @@ import { JwtAuthGuard, LdapAuthGuard, PermissionsAuthGuard, SecretKeyAuthGuard }
 import { AccessToken, JwtResponsePayload, SignJwtToken } from './interfaces';
 import { SearchUserRecordResponseDto } from './ldap/dto';
 import { LdapService } from './ldap/ldap.service';
-import { getProfileFromFirstMemberOf } from './utils';
-import { constantCase } from './utils/case';
+import { getProfileFromFirstMemberOf, constantCase } from './utils';
 
 /**
  * Note: "tokenVersion" in in authToken, not in refreshToken, check it in sent cookie, after refreshToken
@@ -131,7 +130,7 @@ export class AuthController {
       payload = this.jwtService.verify(token, {
         secret: this.config.auth.refreshTokenJwtSecret instanceof Function
           ? this.config.auth.refreshTokenJwtSecret()
-          : this.config.auth.refreshTokenJwtSecret
+          : this.config.auth.refreshTokenJwtSecret,
       });
     } catch (error) {
       Logger.error(error, AuthController.name);
@@ -206,9 +205,9 @@ export class AuthController {
     return {
       message: {
         accessTokenJwtSecret: `${accessTokenJwtSecret.substr(0, 20)}...`,
-        refreshTokenJwtSecret: `${refreshTokenJwtSecret.substr(0, 20)}...`
-      }
-    }
+        refreshTokenJwtSecret: `${refreshTokenJwtSecret.substr(0, 20)}...`,
+      },
+    };
   }
 
   // use only in development mode, unGuarded endpoint
@@ -244,12 +243,12 @@ export class AuthController {
       payload = this.jwtService.verify(token, {
         secret: this.config.auth.accessTokenJwtSecret instanceof Function
           ? this.config.auth.accessTokenJwtSecret()
-          : this.config.auth.accessTokenJwtSecret
+          : this.config.auth.accessTokenJwtSecret,
       });
     } catch (error) {
       Logger.error(error, AuthController.name);
       return invalidPayload();
     }
     return res.status(HttpStatus.OK).send({ valid: true });
-  };
+  }
 }

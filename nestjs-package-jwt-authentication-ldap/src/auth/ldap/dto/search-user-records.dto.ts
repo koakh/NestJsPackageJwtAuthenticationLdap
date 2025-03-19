@@ -21,13 +21,13 @@ export class SearchUserRecordsDto {
 
   @IsOptional()
   @ApiProperty({ enum: [SortDirection.ASCENDING, SortDirection.DESCENDING]})
-  sortDirection?: SortDirection
+  sortDirection?: SortDirection;
 
   @IsOptional()
   @ApiProperty()
-  searchAttributes?: Array<FilteratorSearchFieldAttribute>
+  searchAttributes?: FilteratorSearchFieldAttribute[];
 
   @IsOptional()
   @ApiProperty()
-  searchUsersCn?: Array<string>
+  searchUsersCn?: string[];
 }

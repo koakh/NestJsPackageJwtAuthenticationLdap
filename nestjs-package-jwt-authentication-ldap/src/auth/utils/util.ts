@@ -1,13 +1,12 @@
 import { Logger } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { SearchUserRecordDto } from '../ldap/dto';
-import * as e from 'express';
 import { pascalCase } from './case';
 
 const bcryptSaltRounds = 10;
 
 /**
- * @param password 
+ * @param password
  */
 export const hashPassword = (password: string): string => {
   if (!password) {
@@ -43,7 +42,7 @@ export const encodeAdPassword = (utf8: string): string => {
 
 /**
  * encode ldapPassword in base64 format / unicodePwd
- * used to encode passwords and use it in iso file staticfiles/usr/share/samba/setup/c3/users.ldif
+ * used to encode passwords and use it in iso file kee/usr/share/samba/setup/c3/users.ldif
  * @param utf8
  */
 export const encodeAdPasswordBase64 = (adPassword: string): string => {
@@ -85,16 +84,16 @@ export const filterLdapGroup = (groups: SearchUserRecordDto[], groupExcludeGroup
           if (g.toLowerCase().startsWith(`CN=${p}`.toLowerCase())) {
             if (debug) {
               Logger.log(`  excludeMember: ${e.cn} it is a memberOf ${p}`);
-            };
+            }
             excludeMember = true;
-          };
-        })
+          }
+        });
       });
       if (!excludeMember) {
         filteredExcludedGroups.push(e);
-      };
+      }
     } else {
-      // always push if dont belongs or have memberOf
+      // always push if don't belongs or have memberOf
       filteredExcludedGroups.push(e);
     }
   });
@@ -114,7 +113,7 @@ export const getProfileFromDistinguishedName = (dn: string): string => {
     return profile;
   } catch (err) {
     return '';
-  };
+  }
 };
 
 /**
@@ -130,7 +129,7 @@ export const getProfileFromMemberOf = (memberOf: string): string => {
     return profile;
   } catch (err) {
     return '';
-  };
+  }
 };
 
 /*
@@ -161,7 +160,7 @@ export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[], 
     cnArray.forEach(e => {
       if (e.toLowerCase().startsWith('OU='.toLowerCase())) {
         countOUs++;
-      };
+      }
     });
     return countOUs > defaultNumberOfOUs;
   };
@@ -172,7 +171,7 @@ export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[], 
       ...e,
       customUsersBaseSearch: isCustom(e.dn),
       // inject injectedMetadata
-      metaData: { ...e.metaData, ...injectedMetadata }
+      metaData: { ...e.metaData, ...injectedMetadata },
     };
   });
 };
@@ -180,15 +179,15 @@ export const addExtraPropertiesToGetUserRecords = (data: SearchUserRecordDto[], 
 export enum SortDirection {
   ASCENDING = 'ascending',
   DESCENDING = 'descending',
-};
+}
 
 /**
  * sort array by key
- * @param data 
- * @param keyProp 
- * @returns 
+ * @param data
+ * @param keyProp
+ * @returns
  */
-export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection: SortDirection = SortDirection.ASCENDING) => {
+export const sortObjectByKey = (data: any[], keyProp: string, sortDirection: SortDirection = SortDirection.ASCENDING) => {
   let op1: number;
   let op2: number;
   if (sortDirection === SortDirection.ASCENDING) {
@@ -197,24 +196,25 @@ export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection
   } else {
     op1 = 1;
     op2 = -1;
-  };
+  }
   // sort by name
-  return data.sort(function (a: any, b: any) {
+  // tslint:disable-next-line:only-arrow-functions
+  return data.sort(function(a: any, b: any) {
     // ignore upper and lowercase, but sometimes it is undefined, or object don't have that key
-    var nameA = keyProp in a && a[keyProp] ? a[keyProp].toUpperCase() : '';
-    var nameB = keyProp in b && b[keyProp] ? b[keyProp].toUpperCase() : '';
+    const nameA = keyProp in a && a[keyProp] ? a[keyProp].toUpperCase() : '';
+    const nameB = keyProp in b && b[keyProp] ? b[keyProp].toUpperCase() : '';
     if (nameA < nameB) {
       // return -1;
       return op1;
-    };
+    }
     if (nameA > nameB) {
       // return 1;
       return op2;
-    };
+    }
     // names must be equal
     return 0;
   });
-}
+};
 
 // Remove duplicates from an array of objects by one property
 // https://www.javascripttutorial.net/array/javascript-remove-duplicates-from-array/
@@ -226,4 +226,4 @@ export const sortObjectByKey = (data: Array<any>, keyProp: string, sortDirection
 // ];
 export const removeDuplicatesFromArrayByProperty = (array: any[], property: string): any[] => {
   return [...new Map(array.map((m) => [m[property], m])).values()];
-}
+};
