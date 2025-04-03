@@ -294,15 +294,33 @@ export class LdapController {
       });
   }
 
-  @Get('/group/:groupName')
-  @ApiParam({ name: 'groupName', required: false, type: 'string' })
+  @Get('/group')
   @Roles(AUTH_ADMIN_ROLE)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
-  async getGroupRecord(
+  async getGroupRecordWithoutParam(
     @Response() res,
-    @Param('groupName') groupName?: string,
-  ): Promise<void> {
+  ) {
+    return this.getGroupRecord(res, undefined);
+  }
+
+  @Get('/group/:groupName')
+  @ApiParam({ name: 'groupName', type: 'string' })
+  @Roles(AUTH_ADMIN_ROLE)
+  @UseGuards(PermissionsAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  async getGroupRecordWithParam(
+    @Response() res,
+    @Param('groupName') groupName: string,
+  ) {
+    return this.getGroupRecord(res, groupName);
+  }
+
+  // helper method to avoid duplicating logic
+  private async getGroupRecord(
+    res: any,
+    groupName?: string,
+  ) {
     this.ldapService.getGroupRecord(groupName, GroupTypeOu.PROFILES, true)
       .then((user: SearchGroupRecordResponseDto) => {
         res.status(HttpStatus.CREATED).send(user);
