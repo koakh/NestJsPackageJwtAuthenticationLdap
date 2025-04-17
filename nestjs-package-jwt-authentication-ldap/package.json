@@ -46,7 +46,7 @@
   "dependencies": {
     "@golevelup/nestjs-modules": "0.7.2",
     "@golevelup/ts-jest": "0.6.2",
-    "@nestjs/common": "11.0.12",
+    "@nestjs/common": "11.0.16",
     "@nestjs/config": "4.0.1",
     "@nestjs/core": "11.0.12",
     "@nestjs/jwt": "11.0.0",
