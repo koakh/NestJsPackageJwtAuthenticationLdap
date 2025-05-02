@@ -7,14 +7,14 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // Disable strict type checking for versioning
-    snapshot: true
+    snapshot: true,
   });
 
   app.setGlobalPrefix('v1');
-  app.useGlobalPipes(new ValidationPipe({ 
+  app.useGlobalPipes(new ValidationPipe({
     transform: true,
     // Add additional validation options if needed
-    forbidNonWhitelisted: true
+    forbidNonWhitelisted: true,
   }));
   app.useGlobalFilters(new HttpExceptionFilter());
 
@@ -37,6 +37,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch(err => {
+  // tslint:disable-next-line:no-console
   console.error('Bootstrap failed', err);
   process.exit(1);
 });
