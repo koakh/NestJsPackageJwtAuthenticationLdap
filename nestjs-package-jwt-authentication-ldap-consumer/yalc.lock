@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "@koakh/nestjs-package-jwt-authentication-ldap": {
-      "signature": "a8d39b613ecf8fee14129aee2241e9d6",
+      "signature": "1c5d53790b4064a2a590bf58e6960b8e",
       "file": true,
       "replaced": "file:../nestjs-package-jwt-authentication-ldap"
     }
