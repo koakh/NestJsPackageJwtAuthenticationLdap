@@ -46,7 +46,7 @@ export class AppController {
 
   @Post('hash-password')
   async testAuthServiceHashPassword(
-    @Body() { password }: HashPasswordDto
+    @Body() { password }: HashPasswordDto,
   ) {
     return { message: this.authService.hashPassword(password) };
   }
@@ -71,4 +71,4 @@ export class AppController {
   // ) {
   //   return { accessToken: this.jwtService.sign(payload) };
   // }
-};
+}

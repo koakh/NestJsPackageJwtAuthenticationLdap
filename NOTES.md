@@ -141,11 +141,14 @@ KO > `code ~/Development/@Koakh/node-modules/@koakh/@NestJsPackages/TypescriptNe
 # term1: package watch: build and watch
 $ nix-shell
 $ cd nestjs-package-jwt-authentication-ldap
-$ npm run start:dev
+$ npm i
+$ npm run yalc:publish
 
 # term2: consumer app (api)
 $ nix-shell
 $ cd nestjs-package-jwt-authentication-ldap-consumer/
+$ npm i
+$ yalc add @koakh/nestjs-package-jwt-authentication-ldap
 # now we can debug
 $ npm run start:debug
 
@@ -160,7 +163,7 @@ drwxr-xr-x   4 mario mario  200 fev  7 17:21 nestjs-package-jwt-authentication-l
 $ rm node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ -r
 $ cd node_modules/@koakh && ln -s ../../../nestjs-package-jwt-authentication-ldap && cd ../..
 
-# prevennt wrong ldap pass error `LDAPError [InvalidCredentialsError]: 80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1`
+# prevent wrong ldap pass error `LDAPError [InvalidCredentialsError]: 80090308: LdapErr: DSID-0C0903A9, comment: AcceptSecurityContext error, data 52e, v1db1`
 # get current ladp pass in c3
 $ LDAP_BIND_CREDENTIALS=$(cat /etc/ldap.password)
 # with value
@@ -507,9 +510,7 @@ export class AuthController {
     passport.authenticate('ldap', { session: false });
 ```
 
-
 @ApiParam({name: 'operation', enum: ['replace', 'add', 'delete']})
-
 
 - [Documentation | NestJS - A progressive Node.js framework](https://docs.nestjs.com/openapi/types-and-parameters#generics-and-interfaces)
 
@@ -627,6 +628,8 @@ $ npm i -D @types/express
 
 ## Update of latest problems of **unbounded breakpoint** in debug in LG Gram
 
+> note: update at 2025-05-02 17:44:23 with v20.18.1
+
 ![image](./assets/2023-02-07-16-36-30.png)
 
 this problem occur when we use `npm i ../nestjs-package-jwt-authentication-ldap` that somehow create a copy of `nestjs-package-jwt-authentication-ldap` and not symbolic link, and this create a hard do find problem, until we found what is the root cause
@@ -653,16 +656,34 @@ lrwxrwxrwx   1 mario mario    47 fev  7 11:45 nestjs-package-jwt-authentication-
 $ ls -la /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh_
 # this is a folder not a symlink of nestjs-package-jwt-authentication-ldap
 drwxr-xr-x   4 mario mario  4096 fev  6 17:26 nestjs-package-jwt-authentication-ldap
+# or in c3
+$ ls -la nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh
+drwxrwxr-x   3 c3 c3  4096 Apr 30 00:04 nestjs-package-jwt-authentication-ldap
 ```
 
 to prove that we can revert to KO folder and delete `nestjs-package-jwt-authentication-ldap` and create a symbolic link with
 
 ```shell
 $ mv /mnt/storage/Home/Documents/Development/Node/@NestJsPackages/TypescriptNestJsPackageJwtAuthenticationLdap/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh/nestjs-package-jwt-authentication-ldap/ /tmp/
+# or in c3
+$ mv nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh/nestjs-package-jwt-authentication-ldap /tmp
+# now crearte ths symbolic link
+$ cd nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh
 $ ln -s ../../../nestjs-package-jwt-authentication-ldap
+# check it
+$ ls -la
+lrwxrwxrwx   1 c3 c3    47 May  2 17:48 nestjs-package-jwt-authentication-ldap -> ../../../nestjs-package-jwt-authentication-ldap
+$ ls -la nestjs-package-jwt-authentication-ldap/
 ```
 
+now update `package.json` from 
+`"@koakh/nestjs-package-jwt-authentication-ldap": "file:.yalc/@koakh/nestjs-package-jwt-authentication-ldap",`
+to
+`"@koakh/nestjs-package-jwt-authentication-ldap": "file:../nestjs-package-jwt-authentication-ldap",`
+
 WARN: the other option is install the package (`npm i ../nestjs-package-jwt-authentication-ldap`) and let npm create the symbolic link, this will create a lot of problems with new versions of node and will re-install everything, **AND WILL NOT WORK with current node `v19.3.0`, with that node version it will create the folder and not the symbolic link and this is what creates the problem
+
+> WARN: THIS IS WHAT FUCK THE SYMBOLIC LINK, it will install the yalc package everytime we run it, and remove the symbolic link when we run `npm run start:debug -> yalc update && nest start --watch`, now we use only `"start:dev": "nest start --watch",` to prevent this annoying problem
 
 ## Gram http Client Request don't respond and Term2 window will be black without any response
 

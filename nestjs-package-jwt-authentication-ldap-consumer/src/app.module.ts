@@ -3,11 +3,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ConsumerAppModule } from './consumer-app/consumer-app.module';
 import { ConsumerAppService } from './consumer-app/consumer-app.service';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 @Module({
   imports: [
     // config module
-    ConfigModule.forRoot({ isGlobal: true, }),
+    ConfigModule.forRoot({ isGlobal: true }),
     // the trick is import the module, not the service here, this will expose AppController to
     // AuthModule,
     AuthModule.forRootAsync(AuthModule, {
@@ -20,8 +22,8 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
             auth: {
               authShowAccessTokenProps: config.get<boolean>('AUTH_SHOW_ACCESS_TOKEN_PROPS', false),
               authSecretKey: config.get<string>('AUTH_SECRET_KEY', '4LGHe209gmlJtQwP7FfM89hMNzOCqrNg'),
-              accessTokenJwtSecret: config.get<string | { (): string }>('ACCESS_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().accessTokenJwtSecret),
-              refreshTokenJwtSecret: config.get<string | { (): string }>('REFRESH_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().refreshTokenJwtSecret),
+              accessTokenJwtSecret: config.get<string | (() => string)>('ACCESS_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().accessTokenJwtSecret),
+              refreshTokenJwtSecret: config.get<string | (() => string)>('REFRESH_TOKEN_JWT_SECRET', () => consumerAppService.getJwtSecrets().refreshTokenJwtSecret),
               accessTokenExpiresIn: config.get<string>('ACCESS_TOKEN_EXPIRES_IN', '30m'),
               refreshTokenExpiresIn: config.get<string>('REFRESH_TOKEN_EXPIRES_IN', '7d'),
               refreshTokenSkipIncrementVersion: config.get<boolean>('REFRESH_TOKEN_SKIP_INCREMENT_VERSION', false),
@@ -51,8 +53,8 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
               searchGroupExcludePermissionGroups: config.get<string>('LDAP_SEARCH_GROUP_EXCLUDE_PERMISSION_GROUPS', ''),
               searchCacheFilter: config.get<string>('LDAP_SEARCH_CACHE_FILTER', '(objectCategory=CN=Person,CN=Schema,CN=Configuration,DC=c3edu,DC=online)'),
               newUserDnPostfix: config.get<string>('LDAP_NEW_USER_DN_POSTFIX', 'ou=People'),
-            }
-          }
+            },
+          },
         };
       },
     }),
@@ -65,7 +67,7 @@ import { ConsumerAppService } from './consumer-app/consumer-app.service';
   // require to use app AppService in DI
   // else Nest can't resolve dependencies of the AppController (?). Please make sure that the argument AppService at index [0] is available in the AppModule context
   providers: [/*AppService, ConsumerAppService*/],
-  exports: []
+  exports: [],
 })
 
 export class AppModule { }
