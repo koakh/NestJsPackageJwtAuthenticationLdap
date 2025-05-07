@@ -69,7 +69,7 @@ export class ConsumerAppService implements ConsumerAppServiceInterface {
   onChangeUserRecord(changeUserRecordDto: ChangeUserRecordDto): void {
     Logger.log(`fired onChangeUserRecord event for user '${changeUserRecordDto.cn}'`);
   }
-  
+
   // stub to implement
   onDeleteUserRecord(deleteUserRecordDto: DeleteUserRecordDto): void {
     Logger.log(`fired onDeleteUserRecord event for user '${deleteUserRecordDto.cn}'`);

@@ -676,7 +676,7 @@ lrwxrwxrwx   1 c3 c3    47 May  2 17:48 nestjs-package-jwt-authentication-ldap -
 $ ls -la nestjs-package-jwt-authentication-ldap/
 ```
 
-now update `package.json` from 
+now update `package.json` from
 `"@koakh/nestjs-package-jwt-authentication-ldap": "file:.yalc/@koakh/nestjs-package-jwt-authentication-ldap",`
 to
 `"@koakh/nestjs-package-jwt-authentication-ldap": "file:../nestjs-package-jwt-authentication-ldap",`

@@ -23,21 +23,35 @@ export const hashPassword = (password: string): string => {
 export const parseTemplate = (stringTemplate: string, obj: any) => stringTemplate.replace(/\${(.*?)}/g, (x, g) => obj[g]);
 
 /**
+ * DEPRECATED:
+ * encode ldapPassword
+ * @param utf8
+ * problems
+ * Your current implementation:
+ *  Returns a string instead of a Buffer (critical error)
+ *  Manually adds null bytes which is not how UTF-16LE encoding works
+ *  Adds extra quotes and null bytes at the beginning and end
+ */
+// export const encodeAdPassword = (utf8: string): string => {
+//   const quoteEncoded = '"' + '\u0000';
+//   let utf16le = quoteEncoded;
+//   // eslint-disable-next-line no-plusplus
+//   for (let i = 0, n = utf8.length; i < n; ++i) {
+//     // utf16le += utf8[i] + '\\000';
+//     // eslint-disable-next-line prefer-template
+//     utf16le += utf8[i] + '\u0000';
+//   }
+//   utf16le += quoteEncoded;
+//   return utf16le;
+// };
+
+/**
  * encode ldapPassword
  * @param utf8
  */
-export const encodeAdPassword = (utf8: string): string => {
-  const quoteEncoded = '"' + '\u0000';
-  let utf16le = quoteEncoded;
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0, n = utf8.length; i < n; ++i) {
-    // utf16le += utf8[i] + '\\000';
-    // eslint-disable-next-line prefer-template
-    utf16le += utf8[i] + '\u0000';
-  }
-  utf16le += quoteEncoded;
-
-  return utf16le;
+export const encodeAdPassword = (utf8: string): Buffer => {
+  // This is the correct implementation for AD password encoding
+  return Buffer.from(`"${utf8}"`, 'utf16le');
 };
 
 /**

@@ -17,7 +17,8 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "nest build && yalc publish && yalc push --deps && yalc publish",
+    "build": "nest build",
+    "build:yalc": "nest build && yalc publish && yalc push --deps && yalc publish",
     "dev": "tsc -w",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

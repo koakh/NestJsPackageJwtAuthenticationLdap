@@ -25,7 +25,7 @@ export class CreateLdapUserModel {
 
   @IsDefined()
   @Length(3, 50)
-  unicodePwd: string;
+  unicodePwd: string | Buffer;
 
   @IsOptional()
   jpegPhoto?: string;

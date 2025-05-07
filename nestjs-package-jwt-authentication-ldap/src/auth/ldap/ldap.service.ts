@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import * as ldap from 'ldapjs';
 import { Client } from 'ldapjs';
-import { CONFIG_SERVICE, CONSUMER_APP_SERVICE } from '../../common/constants';
+import { CONFIG_SERVICE, CONSUMER_APP_SERVICE, envConstants as c } from '../../common/constants';
 import { ModuleOptionsConfig } from '../../common/interfaces';
 import { asyncForEach, filterator, getMemoryUsage, getMemoryUsageDifference, insertItemInArrayAtPosition, paginator, recordToArray } from '../../common/utils/util';
 import { ValidationErrorsResponse, addExtraPropertiesToGetUserRecords, encodeAdPassword, filterLdapGroup, getFieldValidation, getProfileFromMemberOf, includeLdapGroup, isValidRuleField, parseTemplate, sortObjectByKey } from '../utils';
@@ -57,31 +57,31 @@ export class LdapService {
   // called by GqlLocalAuthGuard
   async init(config: ModuleOptionsConfig): Promise<any> {
     const clientOptions: ldap.ClientOptions = {
-      url: `ldap://${this.config.ldap.address}:${this.config.ldap.port}`,
-      bindDN: this.config.ldap.bindDN,
-      bindCredentials: this.config.ldap.bindCredentials,
+      url: `ldap://${config.ldap.address}:${config.ldap.port}`,
+      bindDN: config.ldap.bindDN,
+      bindCredentials: config.ldap.bindCredentials,
       // required to prevent lost connections with ldap after preDefined time
       // check note `Samba-LDAP: Shell Commands and Tips Extended.md > ### Samba MaxConnIdleTime Lower times to debug problem`
       reconnect: true,
     };
     // props
-    this.searchBase = this.config.ldap.searchBase;
-    this.searchUserFilter = this.config.ldap.searchUserFilter;
-    this.searchUserAttributes = this.config.ldap.searchUserAttributes.toString().split(',');
-    this.searchCacheFilter = this.config.ldap.searchCacheFilter;
-    this.searchGroupFilter = this.config.ldap.searchGroupFilter;
-    this.searchGroupAttributes = this.config.ldap.searchGroupAttributes.toString().split(',');
-    this.searchGroupProfilesPrefix = this.config.ldap.searchGroupProfilesPrefix;
-    this.searchGroupPermissionsPrefix = this.config.ldap.searchGroupPermissionsPrefix;
-    this.searchGroupExcludeProfileGroups = this.config.ldap.searchGroupExcludeProfileGroups.toString().split(',');
-    this.searchGroupExcludePermissionGroups = this.config.ldap.searchGroupExcludePermissionGroups.toString().split(',');
-    this.newUserDnPostfix = this.config.ldap.newUserDnPostfix;
-    this.baseDN = this.config.ldap.baseDN;
+    this.searchBase = config.ldap.searchBase;
+    this.searchUserFilter = config.ldap.searchUserFilter;
+    this.searchUserAttributes = config.ldap.searchUserAttributes.toString().split(',');
+    this.searchCacheFilter = config.ldap.searchCacheFilter;
+    this.searchGroupFilter = config.ldap.searchGroupFilter;
+    this.searchGroupAttributes = config.ldap.searchGroupAttributes.toString().split(',');
+    this.searchGroupProfilesPrefix = config.ldap.searchGroupProfilesPrefix;
+    this.searchGroupPermissionsPrefix = config.ldap.searchGroupPermissionsPrefix;
+    this.searchGroupExcludeProfileGroups = config.ldap.searchGroupExcludeProfileGroups.toString().split(',');
+    this.searchGroupExcludePermissionGroups = config.ldap.searchGroupExcludePermissionGroups.toString().split(',');
+    this.newUserDnPostfix = config.ldap.newUserDnPostfix;
+    this.baseDN = config.ldap.baseDN;
 
     // create client
     this.ldapClient = ldap.createClient(clientOptions);
     // uncomment to test getUserRecord on init
-    // const user = await this.getUserRecord('mario');
+    // const user = await this.getUserRecord('c3');
     // Logger.log(`user: [${JSON.stringify(user, undefined, 2)}]`, LdapService.name);
   }
 
@@ -643,6 +643,8 @@ export class LdapService {
   changeUserRecord(changeUserRecordDto: ChangeUserRecordDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
       try {
+        // check that only permittedKeys are passing
+        // Logger.log(`changeUserRecord: ${JSON.stringify(changeUserRecordDto, undefined, 2)}`, LdapService.name);
         // start validation here, before everything else
         const validationErrorsResponse: ValidationErrorsResponse = [];
         changeUserRecordDto.changes.forEach((e: ldap.Change) => {
@@ -698,6 +700,45 @@ export class LdapService {
         const changeUserDN = `cn=${changeUserRecordDto.cn},ou=${changeUserRecordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
         let password: string = null;
 
+        // // compose changes array
+        // const changes: ldap.Change[] = [];
+        // changeUserRecordDto.changes.forEach((change: ldap.Change) => {
+        //   // detect and override properties
+        //   if ('unicodePwd' in change.modification) {
+        //     // must override unicodePwd properties
+        //     password = change.modification.unicodePwd;
+        //     change.modification.unicodePwd = encodeAdPassword(change.modification.unicodePwd);
+        //     changes.push(new ldap.Change({
+        //       operation: change.operation,
+        //       modification: change.modification,
+        //     },
+        //     ));
+        //     // // add these if using AD
+        //     // changes.push(
+        //     //   new ldap.Change({
+        //     //     operation: 'replace',
+        //     //     modification: {
+        //     //       // force password change at next logon
+        //     //       pwdLastSet: 0,
+        //     //     },
+        //     //   }));
+        //     // changes.push(new ldap.Change({
+        //     //   operation: 'replace',
+        //     //   modification: {
+        //     //     // then immediately set it to not require change
+        //     //     pwdLastSet: -1,
+        //     //   },
+        //     // }));
+        //   } else {
+        //     changes.push(new ldap.Change({
+        //       operation: change.operation,
+        //       modification: change.modification,
+        //     }));
+        //   }
+        // });
+
+        // Logger.debug(`changes: [${JSON.stringify(changes, undefined, 2)}]`, LdapService.name);
+
         // map and override changes
         const changes = changeUserRecordDto.changes.map((change: ldap.Change) => {
           // detect and override properties
@@ -713,23 +754,36 @@ export class LdapService {
           });
         });
 
-        if (password) {
-          await this.consumerAppService.changePassword(changeUserRecordDto.cn, password);
-        }
-
         // apply changes
         this.ldapClient.modify(changeUserDN, changes, async (error) => {
           if (error) {
             reject(error);
           } else {
+            if (password) {
+              // WARN: hack double modify to prevent annoying problem of old password works after password change
+              this.ldapClient.modify(changeUserDN, new ldap.Change({ operation: 'replace', modification: { unicodePwd: encodeAdPassword(password) } }), (innerError) => {
+                if (innerError) {
+                  reject(innerError);
+                } else {
+                  resolve();
+                }
+              });
+            } else {
+              resolve();
+            }
             await this.updateCachedUser(UpdateCacheOperation.UPDATE, changeUserRecordDto.cn);
-            resolve();
             // fire event
             if (typeof this.consumerAppService.onChangeUserRecord === 'function') {
               this.consumerAppService.onChangeUserRecord(changeUserRecordDto);
             }
           }
         });
+
+        if (password) {
+          // execute external changePassword, see ConsumerAppService interface
+          await this.consumerAppService.changePassword(changeUserRecordDto.cn, password);
+        }
+
       } catch (error) {
         reject(error);
       }
@@ -738,6 +792,7 @@ export class LdapService {
 
   /**
    * change user password
+   * TODO: refactor changeUserProfilePassword to changeUserPassword, this will work for all change password calls
    */
   changeUserProfilePassword(username: string, changeUserPasswordDto: ChangeUserPasswordDto): Promise<void> {
     return new Promise(async (resolve, reject) => {
@@ -765,27 +820,34 @@ export class LdapService {
         // continue with password change as before
         const changeUserDN = `cn=${username},ou=${changeUserPasswordDto.defaultGroup},${this.newUserDnPostfix},${this.baseDN}`;
 
+        // execute external changePassword, see ConsumerAppService interface
         await this.consumerAppService.changePassword(username, changeUserPasswordDto.newPassword);
 
-        // map array of changes to ldap.Change
         const changes = [
-          new ldap.Change(
-            {
-              operation: 'replace',
-              modification: {
-                unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword),
-              },
-            }),
+          new ldap.Change({
+            operation: 'replace',
+            modification: {
+              unicodePwd: encodeAdPassword(changeUserPasswordDto.newPassword),
+            },
+          }),
         ];
+
         this.ldapClient.modify(changeUserDN, changes, (error) => {
           if (error) {
             reject(error);
           } else {
-            resolve();
-            // fire event
-            if (typeof this.consumerAppService.onChangeUserProfilePassword === 'function') {
-              this.consumerAppService.onChangeUserProfilePassword(username);
-            }
+            // WARN: hack double modify to prevent annoying problem of old password works after password change
+            this.ldapClient.modify(changeUserDN, changes, (innerError) => {
+              if (innerError) {
+                reject(innerError);
+              } else {
+                // fire event
+                if (typeof this.consumerAppService.onChangeUserProfilePassword === 'function') {
+                  this.consumerAppService.onChangeUserProfilePassword(username);
+                }
+                resolve();
+              }
+            });
           }
         });
       } catch (error) {
@@ -877,7 +939,7 @@ export class LdapService {
         }, (err, res) => {
           // this.ldapClient.search(this.searchBase, { filter: this.searchFilter, attributes: this.searchAttributes }, (err, res) => {
           if (err) { Logger.log(err); }
-          // NOTE: 2024-12-16 11:42:16: now mut suse any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
+          // 2024-12-16 11:42:16: now mut use any, else we get `Property 'object' does not exist on type 'SearchEntry'.ts(2339)`
           res.on('searchEntry', (entry) => {
             // Logger.log(`entry: [${JSON.stringify(entry, undefined, 2)}]`);
             const dn = entry.object.dn as string;

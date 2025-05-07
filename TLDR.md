@@ -15,6 +15,7 @@ $ cd NestJsPackageJwtAuthenticationLdap
 $ cd nestjs-package-jwt-authentication-ldap
 $ npm i
 $ npm run build
+# npm run dev
 
 # consumer app
 $ cd nestjs-package-jwt-authentication-ldap-consumer
@@ -29,7 +30,9 @@ $ npm run start:debug
 
 add a breakpoint and launch debuger, tested with above notes and everything works out of the box
 
-## C3-Backend
+> NOTE: in package changes, we must stop and start consumer, it will not reload after packages changes
+
+## C3-Backend: WIP (doesn't work, opted to use consumer app)
 
 ```shell
 $ cd ~/c3-backend/node_modules/@koakh

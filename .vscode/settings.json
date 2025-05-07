@@ -57,6 +57,7 @@
     "ldap",
     "ldapauth",
     "ldapjs",
+    "ldaps",
     "ldapsearch",
     "ldif",
     "listmembers",

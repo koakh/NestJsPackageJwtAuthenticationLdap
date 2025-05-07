@@ -179,11 +179,8 @@ export class LdapController {
       });
   }
 
-  // TODO: create new endpoint for own user, ex used in profile changes, and this must get user from jwt, and not from Dto
   @Put('/user')
   @Roles(AUTH_ADMIN_ROLE)
-  // TODO: remove line
-  // @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(PermissionsAuthGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserRecord(
@@ -219,6 +216,7 @@ export class LdapController {
   }
 
   @Put('/profile')
+  // see permittedKeys = ['givenName', 'sn', 'displayName', 'mail', 'telephoneNumber' ];
   @UseGuards(LdapUpdateUsersGuard)
   @UseGuards(JwtAuthGuard)
   async changeUserProfileRecord(

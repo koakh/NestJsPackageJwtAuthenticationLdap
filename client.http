@@ -39,9 +39,6 @@ Content-Type: {{contentType}}
 {
   // "username": "dev",
   // "password": "qhA1Bpn5s5",
-  // this will ignore license activate status, and always get all permissions even when device is not activated
-  // can be used to always get a token without c3 activation
-  "forceActivatedLicense": true,
   // "username": "c3",
   // "password": "root"
   // "username": "parent1",
@@ -56,7 +53,10 @@ Content-Type: {{contentType}}
   // "password": "superhiddenpassword"
   // "password": "secret!"
   "username": "mario",
-  "password": "1234"
+  "password": "1234",
+  // this will ignore license activate status, and always get all permissions even when device is not activated
+  // can be used to always get a token without c3 activation
+  "forceActivatedLicense": true
 }
 
 ### authRefreshTokenLdap
@@ -136,8 +136,9 @@ Authorization: Bearer {{authToken}}
 
 {
   // will be converted to username marioalbertomendesmonteiro
-  "cn": "MarioAlbertoMendesMonteiro",
-  "unicodePwd": "secret",
+  // "cn": "MarioAlbertoMendesMonteiro",
+  "cn": "mario",
+  "unicodePwd": "1234",
   "givenName": "Mário",
   "sn": "Monteiro",
   "displayName": "Mário Alberto Mendes Monteiro",
@@ -181,7 +182,7 @@ Authorization: Bearer {{authToken}}
 ### ldapChangeUserRecord
 // @name ldapChangeUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@changeUsername = koakh
+@changeUsername = mario
 
 PUT {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
@@ -231,21 +232,21 @@ Authorization: Bearer {{authToken}}
     {
       "operation": "replace",
       "modification": {
-        "unicodePwd": "1234"
+        "unicodePwd": "2222"
       }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "givenName": "John"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "sn": "Doe"
-      }
-    },
+    }
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "givenName": "John"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "sn": "Doe"
+    //   }
+    // },
     // TODO: can't permit change cn, this is a protected field
     // TODO: this have a diferent endpoint: https://c3edu.online/backend/v1/ldap/default-group
     // {
@@ -254,54 +255,54 @@ Authorization: Bearer {{authToken}}
     //     "defaultGroup": "CN=dev,OU=C3Developer,OU=People,DC=c3edu,DC=online"
     //   }
     // },
-    {
-      "operation": "replace",
-      "modification": {
-        "objectClass": "User"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "displayName": "John Doe"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "jpegPhoto": "1.png"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "mail": "mail@mail.pt"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "dateOfBirth": "19721219"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "gender": "m"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "telephoneNumber": "+351936202288"
-      }
-    },
-    {
-      "operation": "replace",
-      "modification": {
-        "studentID": "282"
-      }
-    }
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "objectClass": "User"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "displayName": "John Doe"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "jpegPhoto": "1.png"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "mail": "mail@mail.pt"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "dateOfBirth": "19721219"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "gender": "m"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "telephoneNumber": "+351936202288"
+    //   }
+    // },
+    // {
+    //   "operation": "replace",
+    //   "modification": {
+    //     "studentID": "282"
+    //   }
+    // }
     // works
     // {
     //   "operation": "delete",
@@ -350,7 +351,8 @@ Authorization: Bearer {{authToken}}
 ### ldapGetUserRecord: don't use cache, goes direct to ldap
 // @name ldapGetUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@getUsername = dev
+// @getUsername = dev
+@getUsername = mario
 
 GET {{uri}}/ldap/user/{{getUsername}} HTTP/1.1
 Content-Type: {{contentType}}
@@ -411,7 +413,7 @@ Authorization: Bearer {{authToken}}
 ### ldapDeleteUserRecord
 // @name ldapDeleteUserRecord
 @authToken = {{authLogInLdap.response.body.$.accessToken}}
-@deleteUsername = mario-alberto-monteiro
+@deleteUsername = mario
 
 DELETE {{uri}}/ldap/user HTTP/1.1
 Content-Type: {{contentType}}
@@ -419,7 +421,8 @@ Authorization: Bearer {{authToken}}
 
 {
   "cn": "{{deleteUsername}}",
-  "defaultGroup" : "{{groupC3Developer}}"
+  // "defaultGroup" : "{{groupC3Developer}}"
+  "defaultGroup" : "{{groupC3Student}}"
 }
 
 ### ldapInitUserRecordsCache
@@ -527,21 +530,29 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{authToken}}
 
 {
-  // must match logged user defaultGroup
+  // NOTE: must match logged user defaultGroup
   // "defaultGroup" : "{{groupC3Administrator}}",
   // "defaultGroup" : "{{groupC3Developer}}",
   "defaultGroup" : "{{groupC3Student}}",
   "changes": [
     // replace, add, delete
-    // {
-    //   "operation": "replace",
-    //   "modification": {
-    //     "displayName": "Changed Display Name in Profile Endpoint..."
-    //   }
-    // }
-    { "operation": "replace", "modification": { "mail": "mail@koakh.com" } },
-    // TODO: does nothing
-    { "operation": "replace", "modification": { "telephoneNumber": "936202222"}}
+    // permittedKeys
+    { "operation": "replace", "modification": { "givenName": "Mário" } },
+    { "operation": "replace", "modification": { "sn": "Monteiro" } },
+    { "operation": "replace", "modification": { "displayName": "Mário A.M. Monteiro" } },
+    { "operation": "replace", "modification": { "mail": "mario.monteiro@critical-links.com" } },
+    { "operation": "replace", "modification": { "telephoneNumber": "936202288" } },
+    // { "operation": "replace", "modification": { "givenName": "Helder" } },
+    // { "operation": "replace", "modification": { "sn": "Pereira" } },
+    // { "operation": "replace", "modification": { "displayName": "Helder Pereira" } },
+    // { "operation": "replace", "modification": { "mail": "helder.pereira@critical-links.com" } },
+    // { "operation": "replace", "modification": { "telephoneNumber": "939876543" } },
+    // test password
+    { "operation": "replace", "modification": { "unicodePwd": "1111" } },
+    
+    // test non permittedKeys
+    { "operation": "replace", "modification": { "unknownKey1": "foo" } },
+    { "operation": "replace", "modification": { "unknownKey2": "bar" } }
   ]
 }
 
@@ -556,12 +567,13 @@ Authorization: Bearer {{authToken}}
 {
   // must match logged user defaultGroup
   // "defaultGroup" : "{{groupC3Administrator}}",
-  "defaultGroup" : "{{groupC3Developer}}",
-  // "defaultGroup" : "{{groupC3Student}}",
-  "oldPassword": "superhiddenpassword",
+  // "defaultGroup" : "{{groupC3Developer}}",
+  "defaultGroup" : "{{groupC3Student}}",
+  "oldPassword": "1234",
   // newPassword must not be used in history, else
   // 0000052D: Constraint violation - check_password_restrictions: the password was already used (in history)!
-  "newPassword": "secret!"
+  // NOTE: old password, after change will work, in this case old and new will work
+  "newPassword": "0000"
 }
 
 ### ldapCreateGroupRecord

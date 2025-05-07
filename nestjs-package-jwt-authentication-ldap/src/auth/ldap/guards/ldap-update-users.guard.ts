@@ -2,7 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, Inject, Logger } from '@nest
 import { ModuleOptionsConfig } from '../../../common/interfaces';
 import { CONFIG_SERVICE } from '../../../common/constants';
 
-// this guard is to prevent update the user LDAP_ROOT_USER ex change its name from c3 to other
+// this guard is to prevent user profile update, to use only permittedKeys
 
 @Injectable()
 export class LdapUpdateUsersGuard implements CanActivate {
@@ -23,16 +23,19 @@ export class LdapUpdateUsersGuard implements CanActivate {
     if (request.body.changes) {
       request.body.changes = request.body.changes.reduce((acu, item) => {
         const keys = Object.keys(item.modification);
-        const permittedKeys = ['givenName', 'sn', 'displayName', 'mail'];
+        const permittedKeys = ['givenName', 'sn', 'displayName', 'mail', 'telephoneNumber', 'unicodePwd' ];
         // protectedKeys
         // if (keys.length && keys[0].toLowerCase() !== 'useraccountcontrol') {
         // permittedKeys
-        if (keys.length && permittedKeys.includes(keys[0].toLowerCase())) {
+        if (keys.length && permittedKeys.includes(keys[0])) {
           acu.push(item);
+        } else {
+          Logger.warn(`LdapUpdateUsersGuard canActivate invalid attribute: '${JSON.stringify(item)}', attribute is skipped from changes`, LdapUpdateUsersGuard.name);
         }
         return acu;
       }, []);
     }
+
     return true;
   }
 }
