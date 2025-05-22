@@ -43,8 +43,8 @@ Content-Type: {{contentType}}
   // "password": "root"
   // "username": "parent1",
   // "username": "student1",
-  // "username": "teacher1",
-  // "password": "1234"
+  "username": "teacher1",
+  "password": "1234",
   // "username": "nano",
   // "password": "nanosecret"
   // "password": "secret"
@@ -52,8 +52,8 @@ Content-Type: {{contentType}}
   // "username": "developer5",
   // "password": "superhiddenpassword"
   // "password": "secret!"
-  "username": "mario",
-  "password": "1234",
+  // "username": "mario",
+  // "password": "1234",
   // this will ignore license activate status, and always get all permissions even when device is not activated
   // can be used to always get a token without c3 activation
   "forceActivatedLicense": true

@@ -1,8 +1,7 @@
 {
   "watch": [
     "src", 
-    "../nestjs-package-jwt-authentication-ldap/dist", 
-    "node_modules/@koakh/nestjs-package-jwt-authentication-ldap/dist"
+    "../nestjs-package-jwt-authentication-ldap/src"
   ],
   "ext": "ts",
   "ignore": ["src/**/*.spec.ts"],

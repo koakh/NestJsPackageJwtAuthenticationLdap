@@ -15,11 +15,11 @@
       ],
       "sourceMaps": true,
       // NOT required, it works without this
-      "outFiles": [
-        "${workspaceFolder}/nestjs-package-jwt-authentication-ldap/dist/**/*.js",
-        "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/dist/**/*.js",
-        "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh/nestjs-package-jwt-authentication-ldap/dist/**/*.js",
-      ],
+      // "outFiles": [
+      //   "${workspaceFolder}/nestjs-package-jwt-authentication-ldap/dist/**/*.js",
+      //   "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/dist/**/*.js",
+      //   "${workspaceFolder}/nestjs-package-jwt-authentication-ldap-consumer/node_modules/@koakh/nestjs-package-jwt-authentication-ldap/dist/**/*.js",
+      // ],
       "restart": true,
     },
     // just launch debugger and toggle to `debug console`

@@ -1,4 +1,4 @@
-import { ValidationRules, isEmailValidation, isGenderValidation, isLengthValidation, isNumberDateValidation } from '../utils';
+import { ValidationRules, isEmailValidation, isGenderValidation, isLengthValidation, isNumberDateValidation, isUserAccountControlValidation } from '../utils';
 
 export const constants: { [key: string]: string } = {
   USER_CREATED: 'user \'${username}\' created successfully',
@@ -27,7 +27,7 @@ export const CHANGE_USER_RECORD_VALIDATION: ValidationRules[] = [
   { unicodePwd: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 4, 50, true)] },
   { givenName: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 2, 50, true)] },
   { sn: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 2, 50, true)] },
-  // protected field: this have a diferent endpoint: https://c3edu.online/backend/v1/ldap/default-group
+  // protected field: this have a different endpoint: https://c3edu.online/backend/v1/ldap/default-group
   // { defaultGroup: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
   { objectClass: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
   { displayName: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
@@ -38,4 +38,5 @@ export const CHANGE_USER_RECORD_VALIDATION: ValidationRules[] = [
   { gender: [(fieldName: string, fieldValue: string) => isGenderValidation(fieldName, fieldValue, true)] },
   { telephoneNumber: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
   { studentID: [(fieldName: string, fieldValue: string) => isLengthValidation(fieldName, fieldValue, 3, 50, true)] },
+  { userAccountControl: [(fieldName: string, fieldValue: string) => isUserAccountControlValidation(fieldName, fieldValue)] },
 ];

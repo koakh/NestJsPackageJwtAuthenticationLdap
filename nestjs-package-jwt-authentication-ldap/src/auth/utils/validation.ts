@@ -105,7 +105,20 @@ export const isNumberDateValidation = (field: string, value: string, optional: b
   return isRegExValidation(
     value,
     new RegExp('^[0-9]{8}$', 'si'),
-    `${field} must be a valid email address`,
+    `${field} must be a valid number date`,
+    optional,
+  );
+};
+
+/**
+ * regEx: ^66056|66058$
+ * ex 66056 (enabled) 66058 (disabled)
+ */
+export const isUserAccountControlValidation = (field: string, value: string, optional: boolean = true) => {
+  return isRegExValidation(
+    value,
+    new RegExp('^66056|66058$', 'si'),
+    `${field} must be a valid user account control number`,
     optional,
   );
 };
