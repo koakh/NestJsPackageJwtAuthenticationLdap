@@ -61,6 +61,7 @@ and this is waht breaks the debug
 fix it
 
 ```shell
+$ cd nestjs-package-jwt-authentication-ldap-consumer
 # if package is not a symbolic link, uninstall it and create the symbolic link
 $ ls -la node_modules/@koakh
 # remove yalc package
