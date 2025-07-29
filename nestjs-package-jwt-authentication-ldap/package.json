@@ -1,6 +1,6 @@
 {
   "name": "@koakh/nestjs-package-jwt-authentication-ldap",
-  "version": "1.0.69",
+  "version": "1.0.70",
   "description": "Koakh NestJS Jwt Authentication LDAP",
   "author": "Mário Monteiro <marioammonteiro@gmail.com>",
   "license": "MIT",
@@ -30,7 +30,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "yalc:publish": "npm run build && yalc publish",
     "version:patch": "npm run build && npm version patch",
-    "npm run ": "npm publish",
+    "version:publish": "npm publish",
     "pack": "npm pack && cp $(node -p \"p=require('./package.json');p.name+'-'+p.version+'.tgz'\") ../route-your-app/@koakh/nestjs-package-jwt-authentication-ldap.tgz && npm install ../route-your-app/@koakh/nestjs-package-jwt-authentication-ldap.tgz --prefix ../route-your-app && rm -f $(node -p \"p=require('./package.json');p.name+'-'+p.version+'.tgz'\")"
   },
   "keywords": [
@@ -41,7 +41,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap"
+    "url": "git+https://github.com/koakh/NestJsPackageJwtAuthenticationLdap.git"
   },
   "bugs": "https://github.com/koakh/NestJsPackageJwtAuthenticationLdap",
   "dependencies": {
