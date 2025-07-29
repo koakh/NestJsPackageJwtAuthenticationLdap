@@ -957,7 +957,7 @@ export class LdapService {
                 name: entry.object.name as string,
                 objectCategory: entry.object.objectCategory as string,
                 distinguishedName: entry.object.distinguishedName as string,
-                permissions: entry.object.permission,
+                permissions: entry.object.permission != null ? typeof entry.object.permission === 'string' ? [entry.object.permission] : entry.object.permission : [],
               };
               // profiles
               if (groupType === GroupTypeOu.PROFILES) {
